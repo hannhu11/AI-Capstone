@@ -57,6 +57,45 @@ from ultralytics import YOLO
 from src.config import config
 
 
+def _nms_keep_indices_agnostic(boxes: np.ndarray, scores: np.ndarray, iou_thresh: float = 0.45) -> List[int]:
+    """Greedy class-agnostic NMS returning kept indices sorted by descending confidence."""
+    n = int(len(scores))
+    if n == 0:
+        return []
+    order = np.argsort(-scores, kind="mergesort")
+    keep: List[int] = []
+    areas = np.maximum(0.0, boxes[:, 2] - boxes[:, 0]) * np.maximum(0.0, boxes[:, 3] - boxes[:, 1])
+
+    while order.size > 0:
+        i = int(order[0])
+        keep.append(i)
+        if order.size == 1:
+            break
+        rest = order[1:]
+        xx1 = np.maximum(boxes[i, 0], boxes[rest, 0])
+        yy1 = np.maximum(boxes[i, 1], boxes[rest, 1])
+        xx2 = np.minimum(boxes[i, 2], boxes[rest, 2])
+        yy2 = np.minimum(boxes[i, 3], boxes[rest, 3])
+        inter = np.maximum(0.0, xx2 - xx1) * np.maximum(0.0, yy2 - yy1)
+        union = areas[i] + areas[rest] - inter + 1e-7
+        ious = inter / union
+        order = rest[ious <= iou_thresh]
+    return keep
+
+
+def _apply_class_agnostic_nms(
+    detections: List[Dict[str, Any]],
+    iou_thresh: float = 0.45,
+) -> List[Dict[str, Any]]:
+    """Suppresses overlapping lower-confidence boxes across all classes on the same head."""
+    if len(detections) <= 1:
+        return list(detections)
+    boxes = np.asarray([d["box"][:4] for d in detections], dtype=np.float32)
+    scores = np.asarray([float(d.get("conf", 0.0)) for d in detections], dtype=np.float32)
+    keep = _nms_keep_indices_agnostic(boxes, scores, iou_thresh=iou_thresh)
+    return [detections[idx] for idx in keep]
+
+
 class SafetyObjectDetector:
     """YOLO Detection Wrapper with decoupled model loading, taxonomy adaptation, and head-track emission."""
 
@@ -232,6 +271,8 @@ class SafetyObjectDetector:
             "device": self.device,
             "verbose": False,
         }
+        if self.is_helmet_only:
+            predict_kwargs["agnostic_nms"] = True
         if self.use_half and "cuda" in str(self.device).lower():
             predict_kwargs["half"] = True
 
@@ -279,6 +320,14 @@ class SafetyObjectDetector:
                         head_floor = min(req_conf, low_track_floor) if req_conf <= 0.30 else req_conf
                         if conf_score >= head_floor:
                             head_raw.append([x1, y1, x2, y2, conf_score, cls_id])
+
+        if self.is_helmet_only:
+            nms_iou = min(0.45, float(iou_val))
+            all_detections = _apply_class_agnostic_nms(all_detections, iou_thresh=nms_iou)
+            if len(head_raw) > 1:
+                head_arr_tmp = np.asarray(head_raw, dtype=np.float32)
+                keep_h = _nms_keep_indices_agnostic(head_arr_tmp[:, :4], head_arr_tmp[:, 4], iou_thresh=nms_iou)
+                head_raw = [head_raw[idx] for idx in keep_h]
 
         person_arr = np.array(person_raw, dtype=np.float32) if person_raw else np.empty((0, 6), dtype=np.float32)
         self.last_head_tracks = np.array(head_raw, dtype=np.float32) if head_raw else np.empty((0, 6), dtype=np.float32)

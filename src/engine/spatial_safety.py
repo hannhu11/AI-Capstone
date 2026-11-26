@@ -149,7 +149,7 @@ class SpatialSafetyEngine:
         for track in tracks:
             if hasattr(track, "state") and track.state == TrackState.Removed:
                 continue
-            if getattr(track, "time_since_update", 0) > 2:
+            if getattr(track, "is_predicted", False) or getattr(track, "time_since_update", 0) > 0:
                 continue
             if getattr(track, "score", 1.0) < 0.15:
                 continue
@@ -167,52 +167,41 @@ class SpatialSafetyEngine:
                 or px2 >= (w_frame - border_margin)
                 or py2 >= (h_frame - border_margin)
             )
-            is_predicted_frame = getattr(track, "is_predicted", False) or getattr(track, "time_since_update", 0) > 0
-
-            if is_predicted_frame:
-                violations = list(getattr(track, "last_violation_types", []))
-                has_helmet = ("MISSING_SAFETY_HELMET" not in violations)
-                raw_cls = getattr(track, "head_cls_name", None) or getattr(track, "last_helmet_color", None)
-                cls_name = str(raw_cls).lower().strip() if raw_cls else ("white" if has_helmet else "none")
-                if not has_helmet:
-                    cls_name = "none"
+            raw_cls = getattr(track, "head_cls_name", None)
+            if not raw_cls and class_names is not None:
+                raw_cls = class_names.get(int(getattr(track, "cls_id", -1)), "none")
+            raw_l = str(raw_cls or "none").lower().strip()
+            if is_negative_helmet(raw_l) or raw_l == "none":
+                cls_name = "none"
             else:
-                raw_cls = getattr(track, "head_cls_name", None)
-                if not raw_cls and class_names is not None:
-                    raw_cls = class_names.get(int(getattr(track, "cls_id", -1)), "none")
-                raw_l = str(raw_cls or "none").lower().strip()
-                if is_negative_helmet(raw_l) or raw_l == "none":
-                    cls_name = "none"
-                else:
-                    cls_name = HELMET_NAME_TO_COLOR.get(raw_l, raw_l)
-                    if cls_name not in policy:
-                        for c in ("yellow", "blue", "red", "white", "green"):
-                            if c in cls_name:
-                                cls_name = c
-                                break
+                cls_name = HELMET_NAME_TO_COLOR.get(raw_l, raw_l)
+                if cls_name not in policy:
+                    for c in ("yellow", "blue", "red", "white", "green"):
+                        if c in cls_name:
+                            cls_name = c
+                            break
 
-                has_helmet = (cls_name != "none" and cls_name != "unknown")
-                violations = [] if has_helmet else ["MISSING_SAFETY_HELMET"]
-                track.last_helmet_color = cls_name if has_helmet else None
-                if hasattr(track, "color_history") and has_helmet:
-                    track.color_history.append(cls_name)
-                    # Majority voting over recent helmet color window suppresses 1-frame glare flicker
-                    stable_col = getattr(track, "stable_helmet_color", None)
-                    if stable_col and stable_col in policy and stable_col != "none":
-                        cls_name = stable_col
-                track.last_violation_types = violations
+            has_helmet = (cls_name != "none" and cls_name != "unknown")
+            violations = [] if has_helmet else ["MISSING_SAFETY_HELMET"]
+            track.last_helmet_color = cls_name if has_helmet else None
+            if hasattr(track, "color_history") and has_helmet:
+                track.color_history.append(cls_name)
+                # Majority voting over recent helmet color window suppresses 1-frame glare flicker
+                stable_col = getattr(track, "stable_helmet_color", None)
+                if stable_col and stable_col in policy and stable_col != "none":
+                    cls_name = stable_col
+            track.last_violation_types = violations
 
             is_compliant = (len(violations) == 0)
             status_str = "COMPLIANT" if is_compliant else "VIOLATION"
 
-            if not is_predicted_frame:
-                if is_compliant:
-                    track.compliance_streak += 1
-                    if track.compliance_streak >= 2:
-                        track.violation_streak = 0
-                else:
-                    track.violation_streak += 1
-                    track.compliance_streak = 0
+            if is_compliant:
+                track.compliance_streak += 1
+                if track.compliance_streak >= 2:
+                    track.violation_streak = 0
+            else:
+                track.violation_streak += 1
+                track.compliance_streak = 0
 
             current_color = cls_name if has_helmet else "none"
             hist_color = getattr(track, "historical_helmet_color", None)
@@ -267,8 +256,7 @@ class SpatialSafetyEngine:
             )
 
             should_alert = (
-                not is_predicted_frame
-                and not is_compliant
+                not is_compliant
                 and is_mature_track
                 and track.violation_streak >= self.consecutive_frames_thresh
                 and strict_cooldown_passed
@@ -314,6 +302,7 @@ class SpatialSafetyEngine:
         is_helmet_only: Optional[bool] = None,
         role_policy: Optional[Dict[str, Dict[str, Any]]] = None,
         class_names: Optional[Dict[int, str]] = None,
+        use_head_tracking: bool = False,
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """
         Evaluate compliance for all active tracked workers.
@@ -331,7 +320,7 @@ class SpatialSafetyEngine:
         ]
 
         # Head-tracked GDUT 5-class Enterprise Path (Persistent Re-ID + Role-by-Color + Debounce FSM)
-        if is_helmet_only is True and len(tracks) > 0:
+        if is_helmet_only is True and (use_head_tracking or len(tracks) > 0):
             return self._evaluate_head_tracked_frame(
                 tracks=tracks,
                 frame_bgr=frame_bgr,
@@ -767,8 +756,7 @@ class SpatialSafetyEngine:
             )
 
             should_alert = (
-                not is_predicted_frame
-                and not is_compliant
+                not is_compliant
                 and is_mature_track
                 and track.violation_streak >= self.consecutive_frames_thresh
                 and strict_cooldown_passed

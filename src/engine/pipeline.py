@@ -60,6 +60,13 @@ _RESOLUTION_HEIGHTS = {
 }
 
 
+def _resolve_display_role_short_code(report: Dict[str, Any]) -> str:
+    """Single source of truth: compliant heads always display active stabilized color role."""
+    if report.get("status") == "COMPLIANT":
+        return str(report.get("role_short_code") or "ID")
+    return str(report.get("historical_role_short_code") or report.get("role_short_code") or "ID")
+
+
 def compute_box_intersection_ratio(
     box_a: List[float] | np.ndarray,
     box_b: List[float] | np.ndarray,
@@ -184,6 +191,7 @@ class CCTVSurveillancePipeline:
         self.current_frame_index: int = 0
         self.total_frames: int = 0
         self.source_type: str = "video"
+        self._external_webcam_active: bool = False
         self._pending_seek_frame: Optional[int] = None
         self._last_raw_frame: Optional[np.ndarray] = None
         self._last_worker_reports: List[Dict[str, Any]] = []
@@ -371,6 +379,7 @@ class CCTVSurveillancePipeline:
         with self.lock:
             self.source_path = new_source
             config.video_source = new_source
+            self._external_webcam_active = (self._detect_source_type(str(new_source)) == "browser_webcam")
             self._reset_session_metrics(clear_focus=True)
             self._init_video_capture()
             self._refresh_read_caches_unlocked()
@@ -702,7 +711,7 @@ class CCTVSurveillancePipeline:
 
         while self.is_running:
             t0 = time.perf_counter()
-            if self.source_type == "browser_webcam":
+            if getattr(self, "_external_webcam_active", False) or self.source_type == "browser_webcam":
                 time.sleep(0.05)
                 continue
 
@@ -780,6 +789,9 @@ class CCTVSurveillancePipeline:
     # ------------------------------------------------------------------
     def process_next_frame(self) -> Optional[np.ndarray]:
         with self.lock:
+            if getattr(self, "_external_webcam_active", False) or self.source_type == "browser_webcam":
+                return None
+
             if self.is_paused and self._last_raw_frame is not None:
                 return self._render_annotations(self._last_raw_frame, self._last_detections, self._last_worker_reports)
 
@@ -833,7 +845,11 @@ class CCTVSurveillancePipeline:
         so the browser can overlay crisp vector boxes at 25-30 FPS over live `<video>`.
         """
         with self.lock:
-            if self.source_type != "browser_webcam":
+            if not getattr(self, "_external_webcam_active", False) or self.source_type != "browser_webcam":
+                self._external_webcam_active = True
+                if getattr(self, "cap", None) is not None:
+                    self.cap.release()
+                    self.cap = None
                 self.tracker.reset()
                 self.safety_engine.reset()
                 if hasattr(self, "gdut_reid") and self.gdut_reid is not None:
@@ -992,6 +1008,7 @@ class CCTVSurveillancePipeline:
                 is_helmet_only=True,
                 role_policy=self.role_policy,
                 class_names=self.detector.class_names,
+                use_head_tracking=True,
             )
 
             for r in worker_reports:
@@ -1000,6 +1017,8 @@ class CCTVSurveillancePipeline:
                     prof = self.gdut_reid.profiles[wid]
                     prof.status = r["status"]
                     prof.violations = list(r["violations"])
+                    if r.get("current_class"):
+                        prof.current_helmet_color = r["current_class"]
             active_cids = [int(r["track_id"]) for r in worker_reports if isinstance(r["track_id"], int)]
             self.latest_active_track_ids = active_cids
             self.gdut_reid.update_frame_end(active_cids, self.total_frames_processed, now_ts=now_ts)
@@ -1089,7 +1108,7 @@ class CCTVSurveillancePipeline:
                 "current_class": r.get("current_class", r.get("helmet_color") or "none"),
                 "historical_helmet_color": r.get("historical_helmet_color"),
                 "role_title": r.get("role_title"),
-                "role_short_code": r.get("historical_role_short_code") or r.get("role_short_code"),
+                "role_short_code": _resolve_display_role_short_code(r),
                 "role_hex_color": r.get("role_hex_color", "#15803D"),
                 "custom_label": r.get("custom_label"),
                 "status": r.get("status"),
@@ -1109,18 +1128,13 @@ class CCTVSurveillancePipeline:
         instant_violations = instant_workers - instant_compliant
         instant_compliance_rate = (instant_compliant / instant_workers * 100.0) if instant_workers > 0 else 100.0
 
-        alpha = 0.25
-        if self.total_frames_processed == 0:
-            self.workers_count_ema = float(instant_workers)
-            self.compliance_rate_ema = float(instant_compliance_rate)
-        else:
-            self.workers_count_ema = alpha * instant_workers + (1.0 - alpha) * self.workers_count_ema
-            self.compliance_rate_ema = alpha * instant_compliance_rate + (1.0 - alpha) * self.compliance_rate_ema
+        self.workers_count_ema = float(instant_workers)
+        self.compliance_rate_ema = float(instant_compliance_rate)
 
-        self.active_workers_count = int(round(self.workers_count_ema)) if instant_workers > 0 else 0
-        self.compliant_workers_count = instant_compliant
-        self.active_violations_count = instant_violations
-        self.compliance_rate = round(self.compliance_rate_ema, 1)
+        self.active_workers_count = int(instant_workers)
+        self.compliant_workers_count = int(instant_compliant)
+        self.active_violations_count = int(instant_violations)
+        self.compliance_rate = round(instant_compliance_rate, 1)
 
         color_counts = {"blue": 0, "white": 0, "yellow": 0, "red": 0, "none": 0, "green": 0}
         role_counts: Dict[str, int] = {}
@@ -1216,7 +1230,7 @@ class CCTVSurveillancePipeline:
                 cv2.circle(vis, (16, 17), 5, dot_bgr, -1)
 
                 status_note = "LOCKED" if is_locked else "COASTING / MEMORY"
-                role_note = f" | {focused.get('historical_role_short_code') or focused.get('role_short_code', '')}" if focused else ""
+                role_note = f" | {_resolve_display_role_short_code(focused)}" if focused else ""
                 hud_text = (
                     f"SOLO FOCUS: ID #{focus_id}{role_note} | {status_note} | "
                     f"{getattr(self, 'fps_rolling', 0.0):.1f} FPS | {getattr(self, 'inference_latency_ms', 0.0):.1f}ms"
@@ -1258,7 +1272,7 @@ class CCTVSurveillancePipeline:
                     cv2.rectangle(vis, (hx1, hy1), (hx2, hy2), (129, 76, 15), 2)
 
                 lbl_name = f" {r['custom_label']}" if r.get("custom_label") else ""
-                role_tag = r.get("historical_role_short_code") or r.get("role_short_code") or "ID"
+                role_tag = _resolve_display_role_short_code(r)
                 col_tag = (r.get("helmet_color") or "BARE-HEAD").upper()
                 label_top = f"ID #{r['track_id']}{lbl_name} | {role_tag} | {col_tag}"
                 (lw, _), _ = cv2.getTextSize(label_top, cv2.FONT_HERSHEY_SIMPLEX, 0.50, 1)
@@ -1314,7 +1328,7 @@ class CCTVSurveillancePipeline:
                     cv2.line(vis, (cx_b, cy_b), (cx_b, cy_b + dy), (38, 38, 220), 2)
 
             lbl_name = f" {r['custom_label']}" if r.get("custom_label") else ""
-            role_short = r.get("historical_role_short_code") or r.get("role_short_code") or "ID"
+            role_short = _resolve_display_role_short_code(r)
             col_tag = (r.get("helmet_color") or ("BARE" if not is_compliant else "HELMET")).upper()
             label_top = f"#{r['track_id']}{lbl_name} | {role_short} | {col_tag}"
 

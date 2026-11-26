@@ -832,6 +832,11 @@ async def webcam_websocket(websocket: WebSocket):
         await websocket.close(code=1013)
         return
     await websocket.accept()
+    if SERVICE_MODE != "gateway" and getattr(cctv_pipeline, "source_type", None) != "browser_webcam":
+        try:
+            cctv_pipeline.switch_source("browser_webcam")
+        except Exception:
+            pass
     query_params = websocket.query_params
     q_res = query_params.get("resolution")
     q_dev = str(query_params.get("device_label") or "C960 Ultra")[:48]

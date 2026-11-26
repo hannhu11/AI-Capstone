@@ -426,9 +426,16 @@ class UpperTorsoIdentityProfile:
         self.worker_id = worker_id
         self.custom_label: Optional[str] = None
         self.current_helmet_color: str = helmet_class
-        self.last_known_helmet_color: Optional[str] = (
-            helmet_class if helmet_class and helmet_class != "none" else None
-        )
+        self.min_history_votes: int = 10
+        self.helmet_color_votes: Dict[str, int] = {}
+        self._color_streak_cls: Optional[str] = None
+        self._color_streak_len: int = 0
+        # Hysteresis guard: require >= 10 confirmed frames before recording PRIOR <COLOR>
+        self.last_known_helmet_color: Optional[str] = None
+        if helmet_class and helmet_class != "none":
+            self.helmet_color_votes[helmet_class] = 1
+            self._color_streak_cls = helmet_class
+            self._color_streak_len = 1
         self.status: str = "VIOLATION" if helmet_class == "none" else "COMPLIANT"
         self.violations: List[str] = ["MISSING_SAFETY_HELMET"] if helmet_class == "none" else []
 
@@ -494,10 +501,22 @@ class UpperTorsoIdentityProfile:
 
         self.current_helmet_color = helmet_class
         if helmet_class and helmet_class != "none":
-            self.last_known_helmet_color = helmet_class
+            self.helmet_color_votes[helmet_class] = self.helmet_color_votes.get(helmet_class, 0) + 1
+            if helmet_class == self._color_streak_cls:
+                self._color_streak_len += 1
+            else:
+                self._color_streak_cls = helmet_class
+                self._color_streak_len = 1
+            if self._color_streak_len >= self.min_history_votes or (
+                self.last_known_helmet_color is None
+                and self.helmet_color_votes[helmet_class] >= self.min_history_votes
+            ):
+                self.last_known_helmet_color = helmet_class
             self.status = "COMPLIANT"
             self.violations = []
         else:
+            self._color_streak_cls = None
+            self._color_streak_len = 0
             self.status = "VIOLATION"
             self.violations = ["MISSING_SAFETY_HELMET"]
 
@@ -1202,9 +1221,10 @@ class UpperTorsoReIDGallery:
                 continue
 
             cur_cls = p.current_helmet_color or "none"
-            hist_col = p.last_known_helmet_color
+            hist_col = p.last_known_helmet_color if p.last_known_helmet_color != "none" else None
             cur_role = policy.get(cur_cls, policy.get("none", {}))
             hist_role = policy.get(hist_col, cur_role) if hist_col else cur_role
+            is_viol_state = (p.status == "VIOLATION" and cur_cls == "none")
 
             frames_since = max(0, latest_frame - p.last_seen_frame) if not p.is_active else 0
             secs_since = round(max(0.0, ts - p.last_seen_ts), 1) if not p.is_active else 0.0
@@ -1220,7 +1240,7 @@ class UpperTorsoReIDGallery:
                 "role_hex_color": cur_role.get("hex_color", "#64748B"),
                 "historical_role_title": hist_role.get("role_title", "Unclassified"),
                 "historical_role_short_code": hist_role.get("short_code", "N/A"),
-                "helmet_removed": (cur_cls == "none" and hist_col is not None),
+                "helmet_removed": (is_viol_state and hist_col is not None),
                 "status": p.status,
                 "is_active": p.is_active,
                 "is_confirmed": p.is_confirmed,

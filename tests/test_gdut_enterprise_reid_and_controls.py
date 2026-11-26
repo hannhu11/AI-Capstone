@@ -1139,3 +1139,195 @@ def test_pipeline_startup_syncs_bytetrack_for_none_conf_and_c960_auto_select():
             global_cfg.model_path,
             global_cfg.device,
         ) = saved
+
+
+def test_v26_class_agnostic_nms_merges_overlapping_different_colors():
+    import types as _types
+    import torch as _torch
+    from src.engine.detector import SafetyObjectDetector
+
+    class _FakeBox:
+        def __init__(self, cls_id: int, conf_val: float, xyxy: list[float]):
+            self.cls = _torch.tensor([cls_id], dtype=_torch.int64)
+            self.conf = _torch.tensor([conf_val], dtype=_torch.float32)
+            self.xyxy = _torch.tensor([xyxy], dtype=_torch.float32)
+
+    det = SafetyObjectDetector(
+        model_path="nonexistent_stub.pt",
+        conf_thresh=0.35,
+        iou_thresh=0.45,
+        device="cpu",
+        none_conf_thresh=0.25,
+    )
+    fake_res = _types.SimpleNamespace(
+        boxes=[
+            _FakeBox(2, 0.61, [100.0, 60.0, 220.0, 180.0]),   # yellow (lower conf)
+            _FakeBox(1, 0.78, [104.0, 63.0, 224.0, 182.0]),   # white (higher conf, IoU ~0.88)
+        ]
+    )
+    seen_kwargs: dict[str, object] = {}
+
+    def _fake_predict(_frame, **kwargs):
+        seen_kwargs.update(kwargs)
+        return [fake_res]
+
+    det.yolo = _types.SimpleNamespace(predict=_fake_predict)
+    frame = np.full((360, 640, 3), 180, dtype=np.uint8)
+    all_dets, _persons, _lat = det.predict(frame)
+    head_tracks = det.get_head_tracks()
+
+    assert seen_kwargs.get("agnostic_nms") is True
+    assert len(all_dets) == 1
+    assert all_dets[0]["name"] == "white"
+    assert all_dets[0]["conf"] == pytest.approx(0.78, abs=1e-4)
+    assert len(head_tracks) == 1
+    assert int(head_tracks[0][5]) == 1
+
+
+def test_v26_head_tracking_empty_confirmed_never_mints_head_v1():
+    engine = SpatialSafetyEngine(consecutive_frames_thresh=8, min_tracklet_len=0)
+    frame = _make_person_scene()
+    raw_none_dets = [
+        {"box": [200.0, 90.0, 260.0, 150.0], "cls": 4, "conf": 0.85, "name": "none"}
+    ]
+    reports, alerts = engine.evaluate_frame(
+        [],
+        raw_none_dets,
+        frame,
+        camera_id="WEBCAM-C960",
+        is_helmet_only=True,
+        role_policy=DEFAULT_ROLE_HIERARCHY,
+        use_head_tracking=True,
+    )
+    assert reports == []
+    assert alerts == []
+
+
+def test_v26_prior_helmet_requires_10_frames_and_single_source_of_truth():
+    from src.engine.pipeline import _resolve_display_role_short_code
+
+    gal = UpperTorsoReIDGallery(ttl_seconds=600.0, sim_thresh=0.70, use_deep=False, min_confirm_hits=6)
+    f_scene = _make_person_scene(person_a=(220, 90, "blue_slate"), person_b=None)
+    head_box = np.array([196.0, 90.0, 244.0, 146.0], dtype=np.float32)
+
+    # 3 frames of yellow chair/glare flicker followed by bare head confirmation at hit 6
+    for fidx in range(6):
+        cls_in = "yellow" if fidx < 3 else "none"
+        prof = gal.associate(5, head_box, cls_in, f_scene, frame_idx=fidx, now_ts=10.0 + fidx * 0.04)
+        gal.update_frame_end([prof.worker_id], fidx, now_ts=10.0 + fidx * 0.04)
+
+    assert 1 in gal.profiles
+    assert gal.profiles[1].last_known_helmet_color is None
+    workers_early = gal.get_registered_workers(DEFAULT_ROLE_HIERARCHY, filter_ghosts=True, now_ts=10.3)
+    assert workers_early[0]["helmet_removed"] is False
+
+    # 10 consecutive white helmet frames reliably establish PRIOR WHITE
+    for fidx in range(6, 16):
+        prof = gal.associate(5, head_box, "white", f_scene, frame_idx=fidx, now_ts=10.0 + fidx * 0.04)
+        gal.update_frame_end([prof.worker_id], fidx, now_ts=10.0 + fidx * 0.04)
+    assert gal.profiles[1].last_known_helmet_color == "white"
+
+    # Single source of truth for overlay tag
+    assert _resolve_display_role_short_code({
+        "status": "COMPLIANT",
+        "role_short_code": "PM/ENG",
+        "historical_role_short_code": "WORKER",
+    }) == "PM/ENG"
+    assert _resolve_display_role_short_code({
+        "status": "VIOLATION",
+        "role_short_code": "BARE-HEAD",
+        "historical_role_short_code": "PM/ENG",
+    }) == "PM/ENG"
+
+
+def test_v26_exact_instant_compliance_no_kalman_ghost_and_solo_focus_trajectory():
+    import types as _types
+    from pathlib import Path as _Path
+    from src.config import config as global_cfg
+    from src.engine.pipeline import CCTVSurveillancePipeline
+
+    # 1. Kalman coasting/predicted frame must NOT render ghost boxes in GDUT head-tracked mode
+    engine = SpatialSafetyEngine(consecutive_frames_thresh=8, min_tracklet_len=0)
+    frame = _make_person_scene()
+    trk = STrack(STrack.tlbr_to_tlwh(np.array([200.0, 90.0, 240.0, 140.0], dtype=np.float32)), score=0.88, cls_id=4)
+    trk.track_id = 2
+    trk.canonical_id = 2
+    trk.is_activated = True
+    trk.head_cls_name = "none"
+    trk.is_predicted = True
+    trk.time_since_update = 1
+    ghost_reports, ghost_alerts = engine.evaluate_frame(
+        [trk],
+        [],
+        frame,
+        is_helmet_only=True,
+        role_policy=DEFAULT_ROLE_HIERARCHY,
+        use_head_tracking=True,
+    )
+    assert ghost_reports == []
+    assert ghost_alerts == []
+
+    # 2. Exact instantaneous compliance calculation (no EMA drag: 1/3 -> 33.3%, 0/2 -> 0.0%)
+    saved = (global_cfg.model_path, global_cfg.device)
+    try:
+        global_cfg.model_path = "nonexistent_ci_stub.pt"
+        global_cfg.device = "cpu"
+        pipe = CCTVSurveillancePipeline(video_source="nonexistent_kpi_test.mp4")
+        pipe.gdut_reid.deep_extractor.enabled = False
+        pipe.tracker.min_hits = 1
+
+        three_people = np.array([
+            [180.0, 80.0, 240.0, 140.0, 0.90, 1.0],   # white (compliant)
+            [420.0, 80.0, 480.0, 140.0, 0.88, 4.0],   # none (violation)
+            [680.0, 80.0, 740.0, 140.0, 0.86, 4.0],   # none (violation)
+        ], dtype=np.float32)
+        two_violators = np.array([
+            [420.0, 80.0, 480.0, 140.0, 0.88, 4.0],
+            [680.0, 80.0, 740.0, 140.0, 0.86, 4.0],
+        ], dtype=np.float32)
+
+        state = {"arr": three_people}
+
+        def _fake_det_predict(_fr):
+            arr = state["arr"]
+            dets = [
+                {
+                    "box": row[:4].tolist(),
+                    "cls": int(row[5]),
+                    "conf": float(row[4]),
+                    "name": "white" if int(row[5]) == 1 else "none",
+                }
+                for row in arr
+            ]
+            return dets, np.empty((0, 6), dtype=np.float32), 2.0
+
+        pipe.detector.predict = _fake_det_predict
+        pipe.detector.get_head_tracks = lambda: state["arr"]
+
+        # Distinct background torso patches for 3 separate regions
+        kpi_frame = np.full((540, 960, 3), 180, dtype=np.uint8)
+        kpi_frame[155:340, 150:270] = (140, 80, 25)
+        kpi_frame[155:340, 390:510] = (40, 210, 230)
+        kpi_frame[155:340, 650:770] = (40, 90, 190)
+
+        for _ in range(7):
+            pipe._process_frame_unlocked(kpi_frame, "WEBCAM-C960", render_image=False)
+        assert pipe.active_workers_count == 3
+        assert pipe.compliance_rate == pytest.approx(33.3, abs=0.1)
+
+        state["arr"] = two_violators
+        pipe._process_frame_unlocked(kpi_frame, "WEBCAM-C960", render_image=False)
+        assert pipe.active_workers_count == 2
+        assert pipe.compliance_rate == pytest.approx(0.0, abs=1e-6)
+        pipe.stop()
+    finally:
+        global_cfg.model_path, global_cfg.device = saved
+
+    # 3. Dashboard UI invariants: trajectory Solo-Focus gate, 640px capture downscale, strict seq lock, Clip hide
+    dash_html = (_Path(__file__).resolve().parent.parent / "src" / "web" / "templates" / "dashboard.html").read_text(
+        encoding="utf-8"
+    )
+    assert "isFocused && Array.isArray(t.trajectory)" in dash_html
+    assert "const maxSide = 640;" in dash_html
+    assert "STATE.webcamReqSeq" in dash_html
+    assert "clipSelectorLabel" in dash_html

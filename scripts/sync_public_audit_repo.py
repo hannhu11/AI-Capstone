@@ -38,6 +38,7 @@ WHITELIST_ROOT_FILES = [
 ]
 
 WHITELIST_TESTS = [
+    "tests/conftest.py",
     "tests/test_cctv_forensic_fixes.py",
     "tests/test_gdut_enterprise_reid_and_controls.py",
     "tests/test_persistent_tracking_focus.py",
@@ -446,7 +447,7 @@ def sync_export(init_git: bool = False) -> Path:
 
     manifest = {
         "repo": "https://github.com/hannhu11/AI-Capstone",
-        "scope": "AEGIS-CCTV Enterprise VMS v2.5.3 (GDUT-HWD 5-Class Clean-Room Export)",
+        "scope": "AEGIS-CCTV Enterprise VMS v2.6 FIELD-HARDENED (GDUT-HWD 5-Class Clean-Room Export)",
         "total_files": len(manifest_entries) + 1,
         "total_size_mb": round(total_bytes / (1024 * 1024), 3),
         "max_single_file_mb": round(max_file_bytes / (1024 * 1024), 3),

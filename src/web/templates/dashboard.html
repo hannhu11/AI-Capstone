@@ -844,7 +844,7 @@
         </div>
 
         <div class="source-selectors">
-          <span class="selector-label">Clip</span>
+          <span class="selector-label" id="clipSelectorLabel">Clip</span>
           <select class="ctrl-select" id="videoSourceSelect" onchange="switchSelectedVideo(this.value)" style="max-width:250px;overflow:hidden;text-overflow:ellipsis;" title="Select Video File"></select>
           <span class="selector-label">Weights</span>
           <select class="ctrl-select" id="modelSelect" onchange="switchSelectedModel(this.value)" style="max-width:280px;" title="Active Detection Model"></select>
@@ -1239,6 +1239,9 @@
       webcamSocket: null,
       webcamLoopTimer: null,
       webcamBusy: false,
+      webcamInFlight: false,
+      webcamReqSeq: 0,
+      webcamInFlightSeq: 0,
       webcamLastSentAt: 0,
       actionConfirmCb: null,
     };
@@ -1422,10 +1425,14 @@
       const wsImg = document.getElementById('webcamAnnotated');
       const localVid = document.getElementById('localWebcamPreview');
       const overlayCvs = document.getElementById('webcamOverlayCanvas');
+      const clipLabelEl = document.getElementById('clipSelectorLabel');
+      const clipSelectEl = document.getElementById('videoSourceSelect');
 
       if (mode === 'webcam') {
         transport.style.display = 'none';
         webcamBar.classList.add('visible');
+        if (clipLabelEl) clipLabelEl.style.display = 'none';
+        if (clipSelectEl) clipSelectEl.style.display = 'none';
         enumerateCameras();
         if (prevMode !== 'webcam') {
           STATE._switchingToWebcam = true;
@@ -1459,6 +1466,8 @@
         stopBrowserWebcam();
         webcamBar.classList.remove('visible');
         transport.style.display = 'flex';
+        if (clipLabelEl) clipLabelEl.style.display = '';
+        if (clipSelectEl) clipSelectEl.style.display = '';
         wsImg.style.display = 'none';
         localVid.style.display = 'none';
         overlayCvs.style.display = 'none';
@@ -1759,8 +1768,8 @@
         let strokeHex = isViol ? '#DC2626' : (t.role_hex_color || '#0F4C81');
         if (isDimmed) strokeHex = '#6B7280';
 
-        // Trajectory path if available
-        if (Array.isArray(t.trajectory) && t.trajectory.length >= 2 && !isDimmed) {
+        // Trajectory path ONLY rendered when Solo Focus lock is active
+        if (isFocused && Array.isArray(t.trajectory) && t.trajectory.length >= 2) {
           ctx.save();
           ctx.strokeStyle = strokeHex;
           ctx.lineWidth = isFocused ? 2 : 1.5;
@@ -1887,6 +1896,7 @@
 
         ws.onmessage = (ev) => {
           STATE.webcamBusy = false;
+          STATE.webcamInFlight = false;
           try {
             const payload = JSON.parse(ev.data);
             if (payload.status === 'ok') {
@@ -1927,20 +1937,42 @@
 
       STATE.webcamLoopTimer = setInterval(() => {
         if (!STATE.webcamSocket || STATE.webcamSocket.readyState !== WebSocket.OPEN) return;
-        if (STATE.webcamBusy && (performance.now() - STATE.webcamLastSentAt) < 2500) return;
-        if (videoEl.readyState < 2 || !videoEl.videoWidth) return;
+        const nowMs = performance.now();
+        if (STATE.webcamInFlight && (nowMs - STATE.webcamLastSentAt) < 1500) return;
+        if (videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) return;
 
-        canvas.width = videoEl.videoWidth;
-        canvas.height = videoEl.videoHeight;
+        // Downscale capture longest side to <= 640px for fast WS transport while <video> keeps crisp 720p/1080p
+        const vw = videoEl.videoWidth;
+        const vh = videoEl.videoHeight;
+        const maxSide = 640;
+        const scale = Math.min(1, maxSide / Math.max(vw, vh));
+        canvas.width = Math.max(2, Math.round(vw * scale));
+        canvas.height = Math.max(2, Math.round(vh * scale));
         const ctx = canvas.getContext('2d');
         ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+        const seq = ++STATE.webcamReqSeq;
+        STATE.webcamInFlight = true;
         STATE.webcamBusy = true;
-        STATE.webcamLastSentAt = performance.now();
+        STATE.webcamInFlightSeq = seq;
+        STATE.webcamLastSentAt = nowMs;
+        const sockRef = STATE.webcamSocket;
+
         canvas.toBlob((blob) => {
-          if (!blob || !STATE.webcamSocket || STATE.webcamSocket.readyState !== WebSocket.OPEN) {
-            STATE.webcamBusy = false;
+          if (
+            !blob
+            || !STATE.webcamSocket
+            || STATE.webcamSocket !== sockRef
+            || STATE.webcamSocket.readyState !== WebSocket.OPEN
+            || seq !== STATE.webcamInFlightSeq
+          ) {
+            if (seq === STATE.webcamInFlightSeq) {
+              STATE.webcamInFlight = false;
+              STATE.webcamBusy = false;
+            }
             return;
           }
+          STATE.webcamLastSentAt = performance.now();
           STATE.webcamSocket.send(blob);
         }, 'image/jpeg', 0.72);
       }, intervalMs);
@@ -1960,6 +1992,8 @@
         STATE.webcamStream = null;
       }
       STATE.webcamBusy = false;
+      STATE.webcamInFlight = false;
+      STATE.webcamInFlightSeq = ++STATE.webcamReqSeq;
       clearWebcamOverlay();
       const localVid = document.getElementById('localWebcamPreview');
       if (localVid) {
