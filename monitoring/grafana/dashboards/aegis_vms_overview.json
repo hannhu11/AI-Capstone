@@ -1,0 +1,243 @@
+{
+  "id": null,
+  "uid": "aegis-vms-gdut5",
+  "title": "AEGIS-CCTV Enterprise VMS // GDUT-HWD 5-Class Telemetry",
+  "tags": ["aegis-vms", "gdut-hwd", "yolo11s", "gpu", "microservices"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 3,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Pipeline Throughput (FPS)",
+      "gridPos": {"h": 5, "w": 4, "x": 0, "y": 0},
+      "targets": [{"expr": "aegis_cctv_fps", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "fps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "orange", "value": 20},
+              {"color": "green", "value": 25}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Inference Latency (ms)",
+      "gridPos": {"h": 5, "w": 4, "x": 4, "y": 0},
+      "targets": [{"expr": "aegis_cctv_inference_latency_ms", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "orange", "value": 30},
+              {"color": "red", "value": 45}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Active Personnel On-Site",
+      "gridPos": {"h": 5, "w": 4, "x": 8, "y": 0},
+      "targets": [{"expr": "aegis_cctv_active_workers", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{"color": "blue", "value": null}]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Gallery Persistent IDs",
+      "gridPos": {"h": 5, "w": 4, "x": 12, "y": 0},
+      "targets": [{"expr": "aegis_cctv_gallery_personnel_total", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{"color": "blue", "value": null}]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Active Bare-Head Violations",
+      "gridPos": {"h": 5, "w": 4, "x": 16, "y": 0},
+      "targets": [{"expr": "aegis_cctv_violations_active", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "red", "value": 1}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Compliance Rate (%)",
+      "gridPos": {"h": 5, "w": 4, "x": 20, "y": 0},
+      "targets": [{"expr": "aegis_cctv_compliance_rate_pct", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "orange", "value": 80},
+              {"color": "green", "value": 95}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Gateway DB Status (1=OK)",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 5},
+      "targets": [{"expr": "aegis_gateway_db_connected{job=\"aegis-api-gateway\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "green", "value": 1}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "AI Circuit Breaker (0=CLOSED)",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 5},
+      "targets": [{"expr": "aegis_gateway_circuit_breaker_open{job=\"aegis-api-gateway\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "red", "value": 1}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Gateway -> AI RTT (ms)",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 5},
+      "targets": [{"expr": "aegis_gateway_ai_latency_ms{job=\"aegis-api-gateway\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "orange", "value": 150},
+              {"color": "red", "value": 500}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Gateway CPU (%)",
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 5},
+      "targets": [{"expr": "aegis_gateway_cpu_percent{job=\"aegis-api-gateway\"}", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "percent"}}
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Inference FPS, Latency & Gateway RTT",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 9},
+      "targets": [
+        {"expr": "aegis_cctv_fps", "legendFormat": "AI FPS", "refId": "A"},
+        {"expr": "aegis_cctv_inference_latency_ms", "legendFormat": "AI Infer (ms)", "refId": "B"},
+        {"expr": "aegis_gateway_ai_latency_ms{job=\"aegis-api-gateway\"}", "legendFormat": "Gateway Proxy RTT (ms)", "refId": "C"}
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Tracked Personnel & Bare-Head Violations",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 9},
+      "targets": [
+        {"expr": "aegis_cctv_active_workers", "legendFormat": "Active On-Site", "refId": "A"},
+        {"expr": "aegis_cctv_violations_active", "legendFormat": "Active Violations", "refId": "B"},
+        {"expr": "aegis_cctv_gallery_personnel_total", "legendFormat": "Gallery Memory IDs", "refId": "C"}
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Gateway & Inference HTTP Request Rate (RPS) + Errors",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 17},
+      "targets": [
+        {"expr": "rate(aegis_gateway_http_requests_total{job=\"aegis-api-gateway\"}[1m])", "legendFormat": "Gateway RPS", "refId": "A"},
+        {"expr": "rate(aegis_cctv_http_requests_total[1m])", "legendFormat": "AI Node RPS", "refId": "B"},
+        {"expr": "aegis_gateway_http_errors_total{job=\"aegis-api-gateway\"}", "legendFormat": "Gateway 5xx", "refId": "C"},
+        {"expr": "aegis_cctv_http_errors_total", "legendFormat": "AI Node 5xx", "refId": "D"}
+      ]
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Node CPU Utilization (%)",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 17},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}},
+      "targets": [
+        {"expr": "aegis_cctv_cpu_percent", "legendFormat": "AI Node CPU %", "refId": "A"},
+        {"expr": "aegis_gateway_cpu_percent{job=\"aegis-api-gateway\"}", "legendFormat": "Gateway CPU %", "refId": "B"}
+      ]
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Node Memory & CUDA VRAM Footprint (MB)",
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 17},
+      "fieldConfig": {"defaults": {"unit": "mbytes", "min": 0}},
+      "targets": [
+        {"expr": "aegis_cctv_ram_used_mb", "legendFormat": "AI Node RAM (MB)", "refId": "A"},
+        {"expr": "aegis_cctv_cuda_vram_allocated_mb", "legendFormat": "CUDA VRAM (MB)", "refId": "B"},
+        {"expr": "aegis_gateway_ram_used_mb{job=\"aegis-api-gateway\"}", "legendFormat": "Gateway RAM (MB)", "refId": "C"}
+      ]
+    }
+  ]
+}

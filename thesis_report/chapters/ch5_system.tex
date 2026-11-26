@@ -1,0 +1,173 @@
+\chapter{System Design and Implementation}
+\label{chap:system}
+
+To satisfy Stages 1 and 2 of the Review 3 defense checklist (\textit{UI/UX, Packaging, Inference Optimization, MLOps \& DevOps}), Group GFA26AI17 engineered the \textbf{AEGIS-CCTV VMS Safety Suite}---a production-hardened, single-container edge surveillance application tailored to run our \texttt{GDUT-HWD} five-class helmet and color detectors in real time. Every component described below is verified directly against \texttt{src/}, \texttt{docker-compose.edge-simulation.yml}, and \nolinkurl{.github/workflows/ci.yml}.
+
+\section{AI Model Integration}
+
+\subsection{Seven-Layer Industrial VMS Architecture}
+
+Rather than coupling video decoding, PyTorch CUDA forward passes, alert I/O, and HTTP rendering inside a monolithic script, AEGIS-CCTV separates responsibilities across seven decoupled software layers (illustrated in Figure~\ref{fig:ch5_vms_arch}): (1) \textbf{Video Ingestion Layer} (1080p/4K MP4/RTSP capture with intelligent downscaling to $\le 1920$ px longest side and stride-2 decimation on 60 FPS streams); (2) \textbf{AI Inference \& Dynamic Taxonomy Layer} (\nolinkurl{src/engine/detector.py} + \nolinkurl{custom_ablation_modules.py}); (3) \textbf{Tracking \& Spatial Compliance Layer} (\nolinkurl{src/engine/bytetrack.py}, \texttt{reid\_tracker.py}, \nolinkurl{spatial_safety.py}); (4) \textbf{Asynchronous Alerting \& Forensic I/O Layer} (\nolinkurl{src/alerting/alert_manager.py}, \texttt{telegram\_bot.py}, \texttt{zalo\_bot.py}); (5) \textbf{FastAPI ASGI Control Plane} (\texttt{src/web/app.py} + pure ASGI telemetry middleware); (6) \textbf{Enterprise Warm-Sand Web UI} (\nolinkurl{src/web/templates/dashboard.html}); and (7) \textbf{MLOps \& Observability Layer} (Docker Edge Compose, Prometheus \texttt{/metrics}, GitHub Actions CI/CD).
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{\begin{tikzpicture}[
+  node distance=0.55cm and 0.65cm,
+  layer/.style={rectangle, rounded corners=3pt, draw=fptblue, fill=slatehdr, thick, align=center, font=\footnotesize\bfseries, minimum height=0.88cm, minimum width=3.9cm},
+  subbox/.style={rectangle, rounded corners=2pt, draw=gray!70, fill=white, align=center, font=\scriptsize, minimum height=0.72cm, minimum width=3.1cm},
+  arrow/.style={-{Stealth[length=2.4mm]}, thick, color=fptblue!85!black}
+]
+  \node[layer, fill=blue!8] (ingest) {1. CCTV Ingestion Layer\\{\scriptsize RTSP / 1080p--4K / Smart Downscale}};
+  \node[layer, fill=orange!10, right=1.0cm of ingest] (ai) {2. AI Detector \& Dynamic Taxonomy\\{\scriptsize GDUT 5-Class (\texttt{Rep-YOLO11s}) / Hot-Swap}};
+  \node[layer, fill=green!10, right=1.0cm of ai] (safety) {3. Spatial Safety \& Debounce FSM\\{\scriptsize Helmet-Only Mode / String-First Color / $K=8$}};
+
+  \node[layer, fill=red!8, below=0.95cm of safety] (alert) {4. Async Alerting \& Forensics\\{\scriptsize ThreadPool Snapshots + Telegram/Zalo}};
+  \node[layer, fill=blue!10, below=0.95cm of ai] (api) {5. FastAPI ASGI Control Plane\\{\scriptsize MJPEG \texttt{/video\_feed}, 22 REST Routes, ThreadPool}};
+  \node[layer, fill=yellow!12, below=0.95cm of ingest] (ui) {6. Enterprise Warm-Sand VMS UI\\{\scriptsize Live OSD, Image Audit, HITL Feedback, SLA}};
+
+  \node[layer, fill=gray!14, below=0.85cm of api, minimum width=12.9cm] (ops) {7. MLOps, Packaging \& Observability Layer\\{\scriptsize Single-Container Docker Edge (4 vCPU, 6144M RAM, NVIDIA CUDA) $\cdot$ Prometheus \texttt{/metrics} $\cdot$ GitHub Actions CI (108 \texttt{pytest})}};
+
+  \draw[arrow] (ingest) -- (ai);
+  \draw[arrow] (ai) -- (safety);
+  \draw[arrow] (safety) -- (alert);
+  \draw[arrow] (safety) -- (api);
+  \draw[arrow] (api) -- (ui);
+  \draw[arrow] (alert) -- (api);
+  \draw[arrow, dashed] (api) -- (ops);
+  \draw[arrow, dashed] (ui.south) -- ++(0,-0.45) -| ([xshift=-3.6cm]ops.north);
+  \draw[arrow, dashed] (alert.south) -- ++(0,-0.45) -| ([xshift=3.6cm]ops.north);
+\end{tikzpicture}}
+\caption{Seven-layer software architecture of the containerized \textbf{AEGIS-CCTV VMS Safety Suite} executing GDUT-HWD five-class inference on edge GPU hardware.}
+\label{fig:ch5_vms_arch}
+\end{figure}
+
+\subsection{Dynamic Taxonomy Adapter and Helmet-Only Operational Mode}
+
+A major engineering challenge during Capstone Review 2--3 was guaranteeing seamless operation when loading our five-class \texttt{GDUT-HWD} checkpoints (\texttt{\{0: 'blue', 1: 'white', 2: 'yellow', 3: 'red', 4: 'none'\}}), which contain head/helmet detections without full-body \texttt{person} or \texttt{safety\_vest} bounding boxes. In naive surveillance engines that hard-code \texttt{cls == 0} as \texttt{person}, loading a GDUT checkpoint misclassifies every \texttt{blue} helmet as a human body and crashes downstream relational rules.
+
+To eliminate this class of failure permanently, \texttt{SafetyObjectDetector} (\nolinkurl{src/engine/detector.py}) inspects \texttt{model.names} dynamically upon weight loading and sets two runtime flags: \nolinkurl{has_person_class} and \texttt{is\_helmet\_only}. When \nolinkurl{is_helmet_only == True}:
+\begin{enumerate}[leftmargin=1.8em, itemsep=2pt]
+  \item \textbf{Zero Person-Class Collision:} \texttt{cls == 0} (\texttt{blue}) is strictly retained as a positive helmet detection; \texttt{person\_arr} returns an empty $(0, 6)$ array so ByteTrack receives zero person inputs cleanly without runtime exceptions.
+  \item \textbf{Bypass Bipartite Person Attenuation:} Standard person-centric pipelines attenuate orphan helmet scores outside person boxes; in Helmet-Only mode, \texttt{pipeline.py} bypasses bipartite attenuation so distant helmets and bare heads (\texttt{none}) retain full detection sensitivity.
+  \item \textbf{Direct Head-Centric Compliance Evaluation:} \texttt{SpatialSafetyEngine} routes \texttt{blue}, \texttt{white}, \texttt{yellow}, and \texttt{red} detections to \texttt{COMPLIANT} status (recording color counts for live doughnut distribution charts) and routes \texttt{none} detections directly to \texttt{VIOLATION} (\nolinkurl{MISSING_SAFETY_HELMET}) under spatial proximity debouncing ($\Delta d_{\text{norm}} \le 0.08$).
+  \item \textbf{Visual Collision Prevention:} During OpenCV frame rendering, \nolinkurl{pipeline._render_annotations()} skips redundant equipment-box overlay loops in Helmet-Only mode, producing crisp 2 px industrial bounding boxes and dark translucent badges without overlapping text.
+\end{enumerate}
+
+\subsection{String-First Helmet Color Resolution and Stationary-Worker Protection}
+
+Forensic field testing uncovered two subtle production defects that were systematically diagnosed, resolved, and locked with dedicated regression tests:
+\begin{itemize}[leftmargin=1.8em, itemsep=3pt]
+  \item \textbf{Resolution of the GDUT Yellow-to-Blue Color Bug:} Earlier code evaluated an integer fallback map \texttt{HELMET\_COLOR\_MAP = \{2: "blue", ..., 6: "yellow"\}} before checking string class names via Python short-circuit \texttt{or}. Under GDUT-HWD (\texttt{cls=2} is \texttt{"yellow"}), every yellow helmet was erroneously overridden to \texttt{"blue"}. Listing~\ref{lst:ch5_color_fix} illustrates our permanent \textbf{String-First Color Resolution} fix in \nolinkurl{src/engine/spatial_safety.py}, verified by \nolinkurl{scripts/test_dynamic_taxonomy_gdut.py}.
+  \item \textbf{Stationary-Worker PPE Preservation:} Earlier background-clutter filtering tagged static non-person detections stationary for $>30$ frames as furniture and suppressed them. On construction sites, welders, electricians, and supervisors routinely remain stationary for minutes; suppressing static helmets caused bounding boxes to vanish and triggered false violation floods. We permanently removed static-furniture suppression for all PPE classes and added \nolinkurl{tests/test_stationary_worker_ppe.py} verifying 100 consecutive stationary frames with zero lost boxes and zero false alerts.
+\end{itemize}
+
+\begin{lstlisting}[language=Python, caption={String-First Helmet Color Resolution Preventing GDUT \texttt{cls=2} Misclassification (\nolinkurl{src/engine/spatial_safety.py}).}, label={lst:ch5_color_fix}]
+def resolve_helmet_color(cls_id: int, raw_name: str) -> str:
+    """Resolve helmet color strictly from model taxonomy string first."""
+    name_clean = str(raw_name or "").strip().lower()
+    # 1. Explicit guard: never treat non-helmet classes as helmets
+    if any(tok in name_clean for tok in ("vest", "person", "worker", "human", "none")):
+        return ""
+    # 2. String-First resolution (immune to cross-dataset class-ID shifts)
+    for color_key in ("yellow", "blue", "white", "red", "green"):
+        if color_key in name_clean:
+            return color_key
+    # 3. Integer fallback only when model metadata provides no semantic name
+    if not name_clean or name_clean.isdigit():
+        return HELMET_COLOR_MAP.get(int(cls_id), "")
+    return ""
+\end{lstlisting}
+
+\subsection{Zero-Downtime Model Hot-Swap and Concurrency Safety}
+
+Operators can switch checkpoints live without restarting the Docker container via either the Web UI Control Panel (\nolinkurl{POST /api/switch_model}) or the one-click utility script \nolinkurl{switch_to_gdut.bat}. Early deployment testing revealed two concurrency hazards under simultaneous browser requests (\texttt{GET /}, \texttt{/video\_feed}, \texttt{/api/metrics}, \texttt{/api/status}): (1) unsynchronized lazy pipeline initialization spawned duplicate CUDA contexts, blacking out the MJPEG feed; and (2) declaring lock-acquiring endpoints as \texttt{async def} blocked Uvicorn's main \texttt{asyncio} event loop.
+
+We resolved both faults permanently via \textbf{Double-Checked Locking} (\texttt{threading.Lock()}) inside \nolinkurl{_LazyPipelineProxy} (\nolinkurl{src/engine/pipeline.py}) and converting lock-acquiring FastAPI routes (\texttt{get\_metrics}, \texttt{get\_status}, \texttt{switch\_model}, \nolinkurl{switch_video_source}, \nolinkurl{predict_single_image}) to synchronous \texttt{def} handlers automatically offloaded by Starlette/FastAPI onto dedicated worker threads. As verified in \nolinkurl{test_api_switch_model_hot_swap}, swapping weights clears stale tracker buffers, updates \texttt{is\_helmet\_only}, and resumes inference in under 1.5 seconds without dropping active MJPEG viewers.
+
+\section{Data Flow and Processing}
+
+\subsection{End-to-End Inference, Debouncing, and Alerting Sequence}
+
+Figure~\ref{fig:ch5_sequence} charts the temporal execution sequence from CCTV frame acquisition through debounced violation dispatch and Human-in-the-Loop feedback capture.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{\begin{tikzpicture}[
+  font=\scriptsize,
+  actor/.style={rectangle, draw=fptblue, fill=slatehdr, thick, rounded corners=2pt, minimum width=2.0cm, minimum height=0.6cm, align=center, font=\scriptsize\bfseries},
+  msg/.style={-{Stealth[length=2mm]}, thick, color=fptblue!85!black},
+  ret/.style={-{Stealth[length=2mm]}, dashed, color=gray!80!black}
+]
+  \node[actor] (cam) at (0, 0) {CCTV / Video\\Thread};
+  \node[actor] (det) at (3.2, 0) {Rep-YOLO11s\\(CUDA GDUT)};
+  \node[actor] (fsm) at (6.4, 0) {Safety FSM\\($K=8$, 30s)};
+  \node[actor] (io)  at (9.6, 0) {Alert / Disk\\ThreadPool};
+  \node[actor] (ui)  at (12.8, 0) {FastAPI \&\\VMS Browser};
+
+  \foreach \x in {0, 3.2, 6.4, 9.6, 12.8} {
+    \draw[gray!60, densely dashed] (\x, -0.35) -- (\x, -6.5);
+  }
+
+  \draw[msg] (0, -0.9) -- node[above, yshift=-1pt] {BGR Frame ($\le 1920$px)} (3.2, -0.9);
+  \draw[ret] (3.2, -1.6) -- node[above, yshift=-1pt] {5-Cls Detections + \texttt{infer\_ms}} (6.4, -1.6);
+  \draw[msg] (6.4, -2.35) -- node[above, yshift=-1pt] {String-First Color + Streak $k \leftarrow k+1$} (6.4, -2.35);
+  \node[draw=orange!80!black, fill=orange!10, rounded corners=2pt, align=center] at (6.4, -2.55) {Check $k \ge 8$ frames\\\& cooldown $> 30$s};
+  \draw[msg] (6.4, -3.5) -- node[above, yshift=-1pt] {Trigger \texttt{MISSING\_HELMET} + Crop} (9.6, -3.5);
+  \draw[msg] (9.6, -4.2) -- node[above, yshift=-1pt] {Async JPEG Snapshot + TG/Zalo POST} (12.8, -4.2);
+  \draw[msg] (0, -4.9) -- node[above, yshift=-1pt] {Annotated JPEG (Zero-Copy Buffer)} (12.8, -4.9);
+  \draw[ret] (12.8, -5.75) -- node[above, yshift=-1pt] {\nolinkurl{POST /api/feedback} (Confirm / False / Edit)} (9.6, -5.75);
+\end{tikzpicture}}
+\caption{End-to-end execution sequence diagram for real-time GDUT-HWD inference, symmetrical violation debouncing, non-blocking alert dispatch, and Human-in-the-Loop feedback logging.}
+\label{fig:ch5_sequence}
+\end{figure}
+
+\subsection{Symmetrical Debounce Finite State Machine (FSM)}
+
+In dynamic construction footage, single-frame occlusions (e.g., a beam momentarily crossing a helmet) would flood safety channels if alerts fired instantaneously. Our \textbf{Symmetrical Debounce FSM} (\nolinkurl{src/engine/spatial_safety.py}) enforces two hysteresis bounds:
+\begin{itemize}[leftmargin=1.8em, itemsep=2pt]
+  \item \textbf{Activation Threshold ($K = 8$ consecutive frames):} A bare-head (\texttt{none}) detection matched within normalized spatial radius $\Delta d_{\text{norm}} \le 0.08$ must persist for $K = 8$ consecutive processed frames before transitioning from \texttt{TENTATIVE} to \nolinkurl{CONFIRMED_VIOLATION}.
+  \item \textbf{Reset Hysteresis ($R = 2$ frames) and Per-Entity Cooldown ($T_{\text{cool}} = 30\text{ s}$):} Two consecutive compliant frames reset the streak counter cleanly, while a 30-second cooldown window prevents repeated Telegram/Zalo notifications for the same persistent incident.
+  \item \textbf{Non-Blocking Forensic Snapshot Generation:} Upon state transition to \nolinkurl{CONFIRMED_VIOLATION}, a dedicated \nolinkurl{ThreadPoolExecutor(max_workers=2)} asynchronously composites a high-resolution JPEG evidence snapshot featuring a top severity banner and Picture-in-Picture (PiP) zoomed crop around the violating head, preserving smooth video frame pacing.
+\end{itemize}
+
+\subsection{Image Audit Modal and Human-in-the-Loop (HITL) Feedback}
+
+To satisfy Review 3 Stage 1 Items 1.1 and 1.3 (interactive input upload, visual bounding-box output, history storage, and ground-truth feedback), the Web UI exposes two dedicated workflows backed by FastAPI endpoints in \texttt{src/web/app.py}:
+\begin{enumerate}[leftmargin=1.8em, itemsep=2pt]
+  \item \textbf{Single-Image Audit (\nolinkurl{POST /api/predict_image}):} Safety engineers upload any JPEG/PNG site photograph through the \textit{Image Audit} modal. The backend decodes the image in memory, executes the active GDUT detector, draws color-coded boxes (crimson for \texttt{none}, emerald for compliant helmets) with confidence labels, and returns both structured JSON detections (bounding boxes, classes, \texttt{inference\_ms}) and a Base64-encoded annotated JPEG for immediate browser preview.
+  \item \textbf{Human-in-the-Loop Operator Feedback (\nolinkurl{POST/GET /api/feedback}):} Every incident card in the live audit stream and every Image Audit result provides three one-click verdict buttons---\texttt{Confirm}, \texttt{False Positive}, and \texttt{Edit Label} (plus optional operator note). Submitted records append atomically as structured JSON Lines into \nolinkurl{Output/operator_feedback.jsonl} with UTC timestamp, model path, snapshot filename, and corrected label, creating an auditable dataset for future Active Learning cycles.
+\end{enumerate}
+
+\section{Deployment Strategy}
+
+\subsection{Single-Container Docker Edge Hardware Simulation}
+
+A deliberate architectural decision documented in our deployment audit was packaging the full inference engine, spatial safety FSM, MJPEG streamer, and Web UI inside \textbf{one cohesive GPU-enabled Docker container} rather than splitting inference and UI across multiple containers that serialize raw 1080p frames over loopback HTTP/gRPC. Zero-copy shared-memory frame buffering eliminates inter-container serialization overhead and avoids GPU VRAM duplication on 4--8 GB edge devices.
+
+Using \texttt{docker-compose.edge-simulation.yml} (reproduced in full in Appendix D), the container emulates Jetson Orin Nano / Xavier NX edge ceilings on standard workstations: \texttt{cpus: "4.0"}, \texttt{memory: 6144M} (with \texttt{2048M} reservation), \nolinkurl{PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128}, NVIDIA CUDA GPU passthrough, read-only mounts for \texttt{video\_test/} and \nolinkurl{custom_ablation_modules.py}, port mapping \texttt{8080:8000}, and a native Docker \texttt{healthcheck} probing \nolinkurl{http://localhost:8000/api/metrics} every 30 seconds.
+
+\noindent\textbf{FP32 Numerical Stability Guard (\texttt{USE\_HALF=False}):} In \texttt{docker-compose.edge-simulation.yml}, the default container runtime sets \texttt{USE\_HALF=False} when running unfused FP32 checkpoints containing \texttt{CoordConv} coordinate linear spaces and \texttt{BiFormerBlockLite} attention softmax, preventing half-precision NaN overflow on legacy CUDA toolkits. Whenever FP16 acceleration is enabled during optimization benchmarks (Chapter~\ref{chap:results}), we apply \nolinkurl{torch.cuda.amp.autocast(dtype=torch.float16)} over FP32 master weights so attention softmax executes safely in FP32 while convolutions leverage Tensor Cores.
+
+\subsection{One-Click Operations and Automated GitHub Actions CI/CD}
+
+For reliable field handoff and live Review 3 demonstration, two Windows batch orchestrators wrap Docker operations:
+\begin{itemize}[leftmargin=1.8em, itemsep=2pt]
+  \item \nolinkurl{start_docker_edge.bat}: Verifies Docker CLI availability, auto-starts Docker Desktop if inactive, launches \texttt{docker compose -f docker-compose.edge-simulation.yml up -d}, runs an \textbf{Automated CUDA Healthcheck Wait Loop} polling \texttt{curl.exe} against \nolinkurl{http://localhost:8080/api/metrics} until HTTP \texttt{200 OK} confirms GPU warm-up completion, and launches the browser automatically.
+  \item \nolinkurl{switch_to_gdut.bat}: Issues an instant \nolinkurl{POST /api/switch_model} call loading \nolinkurl{rep_yolo11s_gdut_a6_deploy.pt} and verifying \nolinkurl{"is_helmet_only": true} in JSON response.
+\end{itemize}
+
+Continuous Integration is automated via \nolinkurl{.github/workflows/ci.yml} on every push and pull request to \texttt{main} across two chained jobs: (1) \texttt{lint-and-test} installs Python 3.10 dependencies, executes static syntax compilation (\texttt{python -m compileall -q src tests scripts}), and runs the entire 108-case \texttt{pytest tests -v} suite in weightless CI stub mode (where \texttt{SafetyObjectDetector} falls back cleanly to a deterministic zero-weight stub when git-ignored \texttt{.pt} binaries are absent); and (2) \texttt{docker-build-check} validates both \texttt{docker-compose.yml} and \texttt{docker-compose.edge-simulation.yml} schemas via \texttt{docker compose config -q}.
+
+\section{Scalability and Maintenance}
+
+\subsection{Prometheus \texttt{/metrics} Telemetry and Zero-Copy ASGI Middleware}
+
+To satisfy Review 3 Stage 2 Item 2.3 (production monitoring and logging), \texttt{src/web/app.py} integrates a custom zero-copy ASGI middleware (\nolinkurl{_TelemetryASGIMiddleware}) avoiding Starlette \texttt{BaseHTTPMiddleware} body-buffering overhead. Every HTTP request increments thread-safe counters (\nolinkurl{_HTTP_REQUESTS_TOTAL}, \nolinkurl{_HTTP_ERRORS_TOTAL}) while \nolinkurl{_collect_host_telemetry()} samples process CPU utilization, Resident Set Size (RSS RAM MB via \texttt{psutil}), and live PyTorch CUDA VRAM allocation.
+
+The \texttt{GET /metrics} endpoint exposes ten standard Prometheus text-format gauges and counters (\nolinkurl{text/plain; version=0.0.4}) ready for direct Prometheus scraping and Grafana dashboard visualization: \texttt{aegis\_cctv\_fps}, \nolinkurl{aegis_cctv_inference_latency_ms}, \nolinkurl{aegis_cctv_workers_active}, \nolinkurl{aegis_cctv_compliance_rate_pct}, \nolinkurl{aegis_cctv_total_alerts}, \nolinkurl{aegis_cctv_cpu_percent}, \nolinkurl{aegis_cctv_ram_used_mb}, \nolinkurl{aegis_cctv_cuda_vram_allocated_mb}, \nolinkurl{aegis_cctv_http_requests_total}, and \nolinkurl{aegis_cctv_http_errors_total}. Simultaneously, \nolinkurl{GET /api/benchmark/summary} feeds live host telemetry, RTX 3050 Before/After optimization records, multi-stream scaling profiles, and FastAPI load-test metrics directly into the browser's \textit{Runtime \& SLA} inspection modal.
+
+\subsection{Enterprise VMS Ergonomics, Multi-Stream Scaling, and Active Learning}
+
+Following faculty UX feedback during Review 2, the frontend dashboard (\nolinkurl{src/web/templates/dashboard.html}) was redesigned into an ergonomic \textbf{Warm-Sand Enterprise VMS} palette (\texttt{\#FAF8F5} canvas, \texttt{\#FFFFFF} cards with \texttt{\#E7E3DC} hairline borders, \texttt{\#1C1917} high-contrast \texttt{tabular-nums} monospace telemetry, and a matte obsidian \texttt{\#0B0F17} CCTV bezel modeled after Milestone XProtect and Siemens Siveillance), removing all decorative emoji and non-essential header clutter while preserving 100\% backend API compatibility.
+
+For site-wide scalability, the micro-batching engine processes $N \in \{1, 2, 4, 8\}$ concurrent 1080p streams per edge node (benchmarked quantitatively in Chapter~\ref{chap:results}); scaling beyond a single GPU node simply replicates the stateless Docker container behind a reverse proxy (Nginx/Traefik) partitioned by camera zone. Long-term model maintenance follows a structured Active Learning loop: operator verdicts logged in \nolinkurl{Output/operator_feedback.jsonl} paired with archived violation snapshots identify site-specific hard negatives (e.g., unusual sun hats or dark caps mistaken for \texttt{none}) for periodic color-safe fine-tuning without altering the core software stack.

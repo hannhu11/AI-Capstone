@@ -1,0 +1,6 @@
+model,stage,device,precision,batch,latency_ms,fps,vram_mb,ckpt_mb,speedup_vs_before,accuracy_delta
+Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls),CPU 4-Thread FP32,CPU (4 threads),FP32,1,307.08,3.3,0.0,36.55,1.0,CPU FP32 Ref
+Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls),Before (Loop BiFormer FP32),NVIDIA GeForce RTX 3050 Laptop GPU,FP32,1,11.92,83.9,222.5,36.55,1.0,GPU FP32 Ref
+Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls),After-1 (Vec BiFormer + RepConv FP32),NVIDIA GeForce RTX 3050 Laptop GPU,FP32,1,11.46,87.3,222.5,36.55,1.04,Exact Reparameterized FP32
+Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls),After-2 (+ CUDA AMP FP16),NVIDIA GeForce RTX 3050 Laptop GPU,FP16-AMP,1,10.05,99.5,217.5,36.55,1.19,"B=1: Delta 0 boxes (12/12, conf diff 0.00036)"
+Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls),After-3 (Micro-Batch N=4 AMP FP16),NVIDIA GeForce RTX 3050 Laptop GPU,FP16-AMP,4,6.9,144.9,295.3,36.55,1.73,"N=4: Delta 0 boxes (12/12, conf diff 0.00032)"

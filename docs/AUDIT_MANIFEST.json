@@ -1,0 +1,414 @@
+{
+  "repo": "https://github.com/hannhu11/AI-Capstone",
+  "scope": "AEGIS-CCTV Enterprise VMS v2.3 (GDUT-HWD 5-Class Clean-Room Export)",
+  "total_files": 82,
+  "total_size_mb": 4.802,
+  "max_single_file_mb": 0.827,
+  "files": [
+    {
+      "path": ".dockerignore",
+      "size_bytes": 296,
+      "sha256": "a47a0ac77bd53734c4b2fb79218ac1c9c939a7f63f7b548a69f5887bc3948a9c"
+    },
+    {
+      "path": ".env.example",
+      "size_bytes": 1103,
+      "sha256": "eacf4dc437ba28306676ec41c450145b6c9cc40d33816cd9b8228508f972e768"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "size_bytes": 1306,
+      "sha256": "5cee2baa1b196d6e1986ddc7a37abec12f163eb7fe756f172bf81cebe40c4890"
+    },
+    {
+      "path": ".gitignore",
+      "size_bytes": 469,
+      "sha256": "1dac278242fcc4968bf30c0cdbb4f2a22677f0e9398b7b911b05a14133f308f6"
+    },
+    {
+      "path": "custom_ablation_modules.py",
+      "size_bytes": 16811,
+      "sha256": "9ab266f428c119d4f7117713754354f51857a8bfba96f4664d8bdf29b5c918a3"
+    },
+    {
+      "path": "deploy/nginx/nginx.conf",
+      "size_bytes": 2669,
+      "sha256": "055654abd2a4eb7f9c09c88afece444ac0f12aa99c87d6ee1fe4975d6009dd25"
+    },
+    {
+      "path": "docker-compose.edge-simulation.yml",
+      "size_bytes": 2356,
+      "sha256": "22476201d6e5cf7e76d41598328cb1b3717a743cbcdc4cd53c292c5da8a14745"
+    },
+    {
+      "path": "docker-compose.enterprise.yml",
+      "size_bytes": 6622,
+      "sha256": "d83378354fb8a723bd2cef8033255a1a0ea2cc4ae00f31359761bab9b4cc3d86"
+    },
+    {
+      "path": "Dockerfile",
+      "size_bytes": 2143,
+      "sha256": "ec6eacf75f39807305c8e215ba7e0a8783c523cd006c56d7c88f227bf692c968"
+    },
+    {
+      "path": "Dockerfile.gateway",
+      "size_bytes": 1468,
+      "sha256": "d1b2ae336ce38bdf922f7be307c457d433c81a8ecd8094ca7e47b164bb6aaadc"
+    },
+    {
+      "path": "docs/CHANGELOG_GDUT_VMS.md",
+      "size_bytes": 5619,
+      "sha256": "ffa301b3968144734ec2cbdcd10c91a67e3e36c1d9adf167389089b90a746e85"
+    },
+    {
+      "path": "docs/research_baselines/01_KET_QUA_A1_A6.md",
+      "size_bytes": 28442,
+      "sha256": "af37c34b0b442353da6e8a934082ef4f49fff13dcaac3099d865e460e6ef0de0"
+    },
+    {
+      "path": "docs/research_baselines/02_PHUONG_PHAP_VA_KIEN_TRUC.md",
+      "size_bytes": 58355,
+      "sha256": "2a0aae51ff18933ba4a7eecc344d8cc443baabfcff52596836ee5301c4f0edc0"
+    },
+    {
+      "path": "docs/research_baselines/BASELINE_AUDIT_B1_B2_REVIEW3.md",
+      "size_bytes": 15404,
+      "sha256": "cecc8d1cabe22e594c6818cbe6503b64975d9520ef46cbb85e3d55ba9392b513"
+    },
+    {
+      "path": "docs/research_baselines/DANH_SACH_KAGGLE_CHINH_THUC.md",
+      "size_bytes": 5029,
+      "sha256": "11aa2f1972e71bf0569802fff5ab5bcff2ae7aa934e289b7a9cd55d489e4ba19"
+    },
+    {
+      "path": "docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md",
+      "size_bytes": 5592,
+      "sha256": "b080b3eb4d9e4268026ec1f23f6f952592b4f70fc7bbbe62c5f504ab4f53c66d"
+    },
+    {
+      "path": "docs/ui_screenshots/01_1920x1080_main.png",
+      "size_bytes": 867393,
+      "sha256": "d86c90c12301432f370026ae87f866235e394a107cf82f474c3b0f98f5b6c78e"
+    },
+    {
+      "path": "docs/ui_screenshots/02_1366x768_compact.png",
+      "size_bytes": 418913,
+      "sha256": "8950428d0e112708acc3bb5dbd62fb78d5ab888448fa6cb4e9fa7e15ce72ed43"
+    },
+    {
+      "path": "docs/ui_screenshots/03_runtime_sla_4tables_modal.png",
+      "size_bytes": 459050,
+      "sha256": "664a9b6e0cab7e423a56c5590efd924984941b26be0f5edff4eb33a1ce810c25"
+    },
+    {
+      "path": "docs/ui_screenshots/03b_runtime_sla_loadtest.png",
+      "size_bytes": 476001,
+      "sha256": "cc88c3ef00287faa859140d292f7247935fedcf248488c32c988bf28a8db8e58"
+    },
+    {
+      "path": "docs/ui_screenshots/04_webcam_c960_canvas_mode.png",
+      "size_bytes": 782250,
+      "sha256": "ef5f83213389545bb0e0a726ea24c8200ca418bb30cba5c120a887456c3291b4"
+    },
+    {
+      "path": "docs/ui_screenshots/05_solo_focus_and_export.png",
+      "size_bytes": 808146,
+      "sha256": "f1ff760ef1bb7a56d1a5193c77252b1bcd43cf5746934b12317fe5ee68732e5c"
+    },
+    {
+      "path": "docs/ui_screenshots/06_grafana_live_monitoring.png",
+      "size_bytes": 148494,
+      "sha256": "f676cf27a35e061d370b260ce1420d26cf2ee780bc11138bf618807d75253330"
+    },
+    {
+      "path": "monitoring/grafana/dashboards/aegis_vms_overview.json",
+      "size_bytes": 7898,
+      "sha256": "18e38adad69351654e64df2d969c7c5ec29603d9b7e88851d865a398cfb8c25b"
+    },
+    {
+      "path": "monitoring/grafana/provisioning/dashboards/dashboard.yml",
+      "size_bytes": 211,
+      "sha256": "69a3619111a86e2a6ae91e85aa007dbb337d776a6559fd4814819f66465f8f18"
+    },
+    {
+      "path": "monitoring/grafana/provisioning/datasources/prometheus.yml",
+      "size_bytes": 199,
+      "sha256": "bfe8f8143a13130d22243e9ec1064f32089e88da8761712ec3e20eabbd15e0e9"
+    },
+    {
+      "path": "monitoring/prometheus.yml",
+      "size_bytes": 501,
+      "sha256": "166a8efd5776ae7c5ff3a51a7052675ee78864ce9e23b1d8d22edc5bb36ca460"
+    },
+    {
+      "path": "Output/load_test_enterprise_docker.json",
+      "size_bytes": 938,
+      "sha256": "49abb084d268205987f04d7b72d0f3f536a4e88fc996b1290a72a68302eb002f"
+    },
+    {
+      "path": "Output/load_test_results.json",
+      "size_bytes": 937,
+      "sha256": "eddb32a3511db307bd97ad28536354d3376b314656bf6586bb389b4b5ce21fb3"
+    },
+    {
+      "path": "Output/operational_multistream/rtx3050_gdut_a6_batched_multistream_results.json",
+      "size_bytes": 1465,
+      "sha256": "c84aef7e0816ed9fca3a0b8cc27ecaa9c19cd6bcb2b3363e22808e7a551e1eca"
+    },
+    {
+      "path": "Output/task3_eval_opt/gdut_a6_switch_to_deploy_benchmark.json",
+      "size_bytes": 724,
+      "sha256": "0161ba27b7d873168e6a9cda2d9e289074578d81f120a7c1836ad7f76772f393"
+    },
+    {
+      "path": "Output/task3_eval_opt/gdut_vms_end2end_reid_benchmark.json",
+      "size_bytes": 2300,
+      "sha256": "4700975b0e62b09deca4dc035319ca67f8696211b154aece6755070fff059d38"
+    },
+    {
+      "path": "Output/task3_eval_opt/optimization_benchmark_table.csv",
+      "size_bytes": 918,
+      "sha256": "40ca5fc3977e1415c47de39fead959352697d19f454f60a6fb19d8a29bd268bc"
+    },
+    {
+      "path": "Output/task3_eval_opt/optimization_benchmark_table.json",
+      "size_bytes": 3049,
+      "sha256": "9f78f9e2724dfbd468a434963d564551a6c64d507dac669a3d87f0ba7316b4d2"
+    },
+    {
+      "path": "README.md",
+      "size_bytes": 6245,
+      "sha256": "ec07944ac941e150912f1b1dbd7876dd7cc5177c53c59998b7f4bb1136653ea5"
+    },
+    {
+      "path": "requirements_docker.txt",
+      "size_bytes": 416,
+      "sha256": "b39feb769a65f73cf0ffc4f25d27bbd6135d6a0795bbd35bf7e3b404749cc6c5"
+    },
+    {
+      "path": "scripts/ablation_factory.py",
+      "size_bytes": 15971,
+      "sha256": "06d83cb9eef582c366c51c5f3dc74c6bb7cd4e94a0e18a39be4ed61be97ac008"
+    },
+    {
+      "path": "scripts/benchmark_gdut_vms_end2end.py",
+      "size_bytes": 14209,
+      "sha256": "c3c7896ff7884fdc38755718a11b0b0e42299c789b12dbeb23f2a533bcc7ec74"
+    },
+    {
+      "path": "scripts/benchmark_multistream_batched_rtx3050.py",
+      "size_bytes": 4594,
+      "sha256": "29e99d9657ef7b0e0305c26ce5724f238388a18b01817e6d0a080380b3fd5b68"
+    },
+    {
+      "path": "scripts/benchmark_task3_optimization.py",
+      "size_bytes": 12955,
+      "sha256": "2a47ac2872ded034cd02111feb5993e743ffea4a14c7bc0a0b65f97b8c2cc9ba"
+    },
+    {
+      "path": "scripts/export_gdut_a6_deploy.py",
+      "size_bytes": 6185,
+      "sha256": "bc5761e9324cb3eafd5f8fed33ff63bf995759a490526531935e7df709e4ce37"
+    },
+    {
+      "path": "scripts/load_test_api.py",
+      "size_bytes": 3900,
+      "sha256": "40a11c18db7f13ed241e5edd050100ab3c4df69b5dd711f88bee97f69033fc3f"
+    },
+    {
+      "path": "scripts/run_local_dashboard.py",
+      "size_bytes": 2344,
+      "sha256": "0d9ee3c56f346bf41b2da60c4593674293513412abcddf5093e2917318d85db7"
+    },
+    {
+      "path": "scripts/sync_public_audit_repo.py",
+      "size_bytes": 21397,
+      "sha256": "ba75722e9db3ea555847162c64251885ad749d123d9680b7105eb1b70760d84c"
+    },
+    {
+      "path": "scripts/test_dynamic_taxonomy_gdut.py",
+      "size_bytes": 6868,
+      "sha256": "935cb8a6eb9e337d1dba17c055d659b8ee5ce27085aea59a2574c871eac28d1b"
+    },
+    {
+      "path": "snapshots/.gitkeep",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "src/alerting/alert_manager.py",
+      "size_bytes": 8662,
+      "sha256": "cd25b90c943bd081b7c21ad9c72cfe360c746f758697ddb9ee92e98ff6d54d5b"
+    },
+    {
+      "path": "src/alerting/telegram_bot.py",
+      "size_bytes": 7629,
+      "sha256": "92db304dc6644a8249bbf414a88ee62944247d527d64db6b888e0cd50330e04c"
+    },
+    {
+      "path": "src/alerting/zalo_bot.py",
+      "size_bytes": 7716,
+      "sha256": "00f42455fb8c154a15525f71b59fc5afd603f15adc47a51f40292af7aa0811ea"
+    },
+    {
+      "path": "src/config.py",
+      "size_bytes": 14244,
+      "sha256": "9482c842bbc4a646c0aa605f586e8865d621d9e7b0c6acca716a5f1e13d8f724"
+    },
+    {
+      "path": "src/db/__init__.py",
+      "size_bytes": 167,
+      "sha256": "19549b703f4fba763359d21988f532775a3ca596b189a5853259781abc6733d0"
+    },
+    {
+      "path": "src/db/database.py",
+      "size_bytes": 18818,
+      "sha256": "06ec7afbec17aedcec2d7091de43f90f1f9015fe39df4ec9c66b74e7d4b5318a"
+    },
+    {
+      "path": "src/engine/bytetrack.py",
+      "size_bytes": 23845,
+      "sha256": "0683720344eea1c9893d3ec80e187bee8628fcfdb4287a7f25ebcca0592fb7d5"
+    },
+    {
+      "path": "src/engine/detector.py",
+      "size_bytes": 10977,
+      "sha256": "3cd7e75f497d2b6aa715f73d67772579dfbd86d72a4872573b0e57d721015431"
+    },
+    {
+      "path": "src/engine/gdut_reid.py",
+      "size_bytes": 52648,
+      "sha256": "b8f7882e30258739edbdcb5a0faa97092adb7a6d54be9891f65570eb10c5f05b"
+    },
+    {
+      "path": "src/engine/kalman_tracker.py",
+      "size_bytes": 5041,
+      "sha256": "218e926e5d0ccfcdf115b04ec40a791da4f28f6c8dac2e5a9c23d5409a92defa"
+    },
+    {
+      "path": "src/engine/pipeline.py",
+      "size_bytes": 64116,
+      "sha256": "1a4fe4d7ca8e528af38b76d2d3cc12754f0b6d50af8f2880fecf3f4199e2de9b"
+    },
+    {
+      "path": "src/engine/reid_tracker.py",
+      "size_bytes": 34250,
+      "sha256": "e2492a5c77c093a8deb9302c6c7637aef40f3664c4d6474d6bbb8d59d8593b5c"
+    },
+    {
+      "path": "src/engine/spatial_safety.py",
+      "size_bytes": 44324,
+      "sha256": "b32e2d2b8393a5dc4e991aca7b7fb89e1191901924c052861ced1ac63da09da6"
+    },
+    {
+      "path": "src/web/app.py",
+      "size_bytes": 51229,
+      "sha256": "f48e7bde98c7dcb679759a58bf4ebd12a0ff536137bef566dfb340cc9e1d5b75"
+    },
+    {
+      "path": "src/web/gateway_client.py",
+      "size_bytes": 4803,
+      "sha256": "516908cc20447347e2b33a8d2dcc6a1102e54ba72da78ffb581f8e4998262930"
+    },
+    {
+      "path": "src/web/templates/dashboard.html",
+      "size_bytes": 106330,
+      "sha256": "195f3d612b71dcc6b32e5a01f097a4cd3ac796696b951a027609870a26e27fbe"
+    },
+    {
+      "path": "tests/test_cctv_forensic_fixes.py",
+      "size_bytes": 15195,
+      "sha256": "42acf5b6937592a388fe31c34461efa00583db119915df9e6f6d8a36b4c903d5"
+    },
+    {
+      "path": "tests/test_gdut_enterprise_reid_and_controls.py",
+      "size_bytes": 32332,
+      "sha256": "559f42bbe66193010850aef9415678c65b485587ec665fdc58f7b945eaa94465"
+    },
+    {
+      "path": "tests/test_persistent_tracking_focus.py",
+      "size_bytes": 9553,
+      "sha256": "e0e38a41d0090ed1a17fd73c2407a31af4cf94634971a572ea6a7bcb6c0dd9b9"
+    },
+    {
+      "path": "tests/test_reid_anti_hijack_and_consolidation.py",
+      "size_bytes": 10763,
+      "sha256": "404c50bb36ac60dbc91d8ff9a7db0a7c06af085a3d62a2ca6bca9213e3a6ca5e"
+    },
+    {
+      "path": "tests/test_stationary_worker_ppe.py",
+      "size_bytes": 8907,
+      "sha256": "a25ae0ecaa9f0f82c3011a7d85dbe41a1eeb50ddea29d292627d434116ab324a"
+    },
+    {
+      "path": "tests/test_task3_ui_api.py",
+      "size_bytes": 3726,
+      "sha256": "e90d13e588cfd7e1d3ce9b71b98a414719adb085c270767da76774d48ca83902"
+    },
+    {
+      "path": "tests/test_tracking_and_alert_engine.py",
+      "size_bytes": 18110,
+      "sha256": "9b2b07b4f1d0645a45b6be9d2ccce3e4d5f8abeb6c55f1bd31396b7e8ea7fb36"
+    },
+    {
+      "path": "thesis_report/chapters/ch1_intro.tex",
+      "size_bytes": 23522,
+      "sha256": "84aca3d766d2e5acdc7b547e02e968e0f81c712cd0187a6c210c9dd419a90319"
+    },
+    {
+      "path": "thesis_report/chapters/ch2_pmp.tex",
+      "size_bytes": 19684,
+      "sha256": "c2c7906c44329f571aea332c5f09837f818ca99013d4ebeb9e9c390ddb0adfe8"
+    },
+    {
+      "path": "thesis_report/chapters/ch3_sota.tex",
+      "size_bytes": 24130,
+      "sha256": "17f7ddceaf443b9abbb8865eb98baec79ed25d72cdb25d40dec5f82b3e0dda20"
+    },
+    {
+      "path": "thesis_report/chapters/ch4_methodology.tex",
+      "size_bytes": 41965,
+      "sha256": "741c8dd5f15a3b0cbb4739746f8b3b483e43e29b1bc957b31058bb3400954604"
+    },
+    {
+      "path": "thesis_report/chapters/ch5_system.tex",
+      "size_bytes": 21834,
+      "sha256": "f6926ee443b7309a8f9ddb61b40b414fef8c08298d529a170f0bdf4503419d72"
+    },
+    {
+      "path": "thesis_report/chapters/ch6_results.tex",
+      "size_bytes": 49679,
+      "sha256": "dc21f40ad296c85015090686a8de29772e1f331654aa90a175d4a44bfe4fb734"
+    },
+    {
+      "path": "thesis_report/chapters/ch7_conclusion.tex",
+      "size_bytes": 7455,
+      "sha256": "34db83481f87b39f2a690009218bbc0e0232ee3d7fb9ccc7cc8375802ffa3c2b"
+    },
+    {
+      "path": "thesis_report/chapters/ch9_appendices.tex",
+      "size_bytes": 21496,
+      "sha256": "51ace54141f7d816952ca8bd2fc33b23a979e4ed22fab9f81b4729650b3817eb"
+    },
+    {
+      "path": "thesis_report/chapters/frontmatter.tex",
+      "size_bytes": 26948,
+      "sha256": "bb76268cdd02e585e9f9bb42b8e9bc88eae20b9aec9445354a47550a30c9b470"
+    },
+    {
+      "path": "thesis_report/main.tex",
+      "size_bytes": 6739,
+      "sha256": "cd7d18bd61dd620fcdce906b25081edf076790ead3d93c0cca18c8e12d7098e1"
+    },
+    {
+      "path": "thesis_report/references.bib",
+      "size_bytes": 10137,
+      "sha256": "6dfdda5c36c9577ac0a00b85aae4b31f2e18b603c420ad7a8e3b44b6e104545b"
+    },
+    {
+      "path": "video_test/.gitkeep",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

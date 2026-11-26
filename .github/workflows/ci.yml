@@ -1,0 +1,47 @@
+name: Capstone AI CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest httpx fastapi uvicorn websockets pydantic numpy opencv-python-headless ultralytics psutil pyyaml scipy sqlalchemy python-multipart python-dotenv requests --no-cache-dir
+
+      - name: Syntax and static import check
+        run: |
+          python -m compileall -q src tests scripts
+
+      - name: Run Unit and Integration Tests
+        env:
+          MODEL_PATH: ci_stub_missing.pt
+          CUDA_VISIBLE_DEVICES: "-1"
+        run: |
+          pytest tests -v
+
+  docker-build-check:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose configuration
+        run: |
+          docker compose -f docker-compose.edge-simulation.yml config -q
+          docker compose -f docker-compose.enterprise.yml config -q

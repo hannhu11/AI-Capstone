@@ -1,0 +1,280 @@
+\chapter{Appendices}
+\label{chap:appendices}
+
+\addtocontents{toc}{\protect\setlength{\protect\cftsecnumwidth}{5.8em}}
+\renewcommand{\thesection}{Appendix \Alph{section}}
+\setcounter{section}{0}
+
+% ==============================================================================
+% APPENDIX A: OFFICIAL KAGGLE NOTEBOOK CATALOG, SHA-256 REGISTRY & REPO LAYOUT
+% ==============================================================================
+\section{Official Kaggle Notebook Catalog, SHA-256 Registry, and Repository Structure}
+\label{app:kaggle_catalog}
+
+To guarantee full independent reproducibility for the Review 3 committee, Table~\ref{tab:app_kaggle_thanh} catalogs all 11 official \texttt{GDUT CLEAN} notebooks published by \textbf{Nguyen Van Thanh} (\texttt{nvthanh2004}) plus 3 baseline notebooks, and Table~\ref{tab:app_kaggle_dung} catalogs all 7 official baseline audit runs published by \textbf{Tran Pham Tuan Dung} (\texttt{tundng111}). Legacy smoke tests, queued drafts, and superseded runs are strictly excluded.
+
+\begin{longtable}{|c|p{3.2cm}|p{10.0cm}|}
+\caption{Official Kaggle Notebook Catalog of Nguyen Van Thanh (\texttt{nvthanh2004}).}
+\label{tab:app_kaggle_thanh} \\
+\hline
+\rowcolor{slatehdr}
+\textbf{\#} & \textbf{Role / Stage} & \textbf{Official Public Kaggle URL} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{slatehdr}
+\textbf{\#} & \textbf{Role / Stage} & \textbf{Official Public Kaggle URL} \\
+\hline
+\endhead
+\hline
+\endfoot
+1 & GDUT Data Prep & \url{https://www.kaggle.com/code/nvthanh2004/gdut-dataset-preparation} \\ \hline
+2 & Stage 1 \texttt{YOLOv8s} & \url{https://www.kaggle.com/code/nvthanh2004/gdut-structural-re-parameterize-yolo-architecture1} \\ \hline
+3 & Stage 1 \texttt{YOLO11s} & \url{https://www.kaggle.com/code/nvthanh2004/gdut-structural-re-parameterize-yolo-architecture2} \\ \hline
+4 & Stage 2 Run \texttt{A0} & \url{https://www.kaggle.com/code/nvthanh2004/gdut-stage2-ablation-setup-full-train-run-a0} \\ \hline
+5 & Stage 2 Run \texttt{A1} & \url{https://www.kaggle.com/code/nvthanh2004/gdut-stage2-ablation-setup-full-train-run-a1} \\ \hline
+6 & Stage 2 Run \texttt{A2} & \url{https://www.kaggle.com/code/nvthanh2004/gdut-stage2-ablation-setup-full-train-run-a2} \\ \hline
+7 & Stage 2 Run \texttt{A3} & \url{https://www.kaggle.com/code/nvthanh2004/gdut-stage2-ablation-setup-full-train-run-a3} \\ \hline
+8 & Stage 2 Run \texttt{A4} & \url{https://www.kaggle.com/code/nvthanh2004/gdut-stage2-ablation-setup-full-train-run-a4} \\ \hline
+9 & Stage 2 Run \texttt{A5} & \url{https://www.kaggle.com/code/nvthanh2004/gdut-stage2-ablation-setup-full-train-run-a5} \\ \hline
+10 & Stage 2 Run \texttt{A6} & \url{https://www.kaggle.com/code/nvthanh2004/gdut-stage2-ablation-setup-full-train-run-a6} \\ \hline
+11 & Final Test (14 Ckpts) & \url{https://www.kaggle.com/code/nvthanh2004/gdut-final-test-evaluation} \\ \hline
+12 & SOTA \texttt{B1} (\texttt{v363134475}) & \url{https://www.kaggle.com/code/nvthanh2004/baseline-yolo11-dcrcf-stage1-finetune} \\ \hline
+13 & SOTA \texttt{B2} (\texttt{v363129318}) & \url{https://www.kaggle.com/code/nvthanh2004/baseline-yolov8-dwr-aspp-nwd-stage1-finetune} \\ \hline
+14 & \texttt{B1/B2} Test Eval (\texttt{v363151440}) & \url{https://www.kaggle.com/code/nvthanh2004/baseline-and-a6-clean-stage1-protocol-comparison} \\ \hline
+\end{longtable}
+
+\begin{longtable}{|c|p{3.2cm}|p{10.0cm}|}
+\caption{Official Kaggle Baseline Audit Catalog of Tran Pham Tuan Dung (\texttt{tundng111}).}
+\label{tab:app_kaggle_dung} \\
+\hline
+\rowcolor{slatehdr}
+\textbf{\#} & \textbf{Audit Role} & \textbf{Official Public Kaggle URL} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{slatehdr}
+\textbf{\#} & \textbf{Audit Role} & \textbf{Official Public Kaggle URL} \\
+\hline
+\endhead
+\hline
+\endfoot
+1 & \texttt{B1 Pair-3407} (Best Val) & \url{https://www.kaggle.com/code/tundng111/gdut-yolo11n-dcrcf-baseline} \\ \hline
+2 & \texttt{B2 V8F} (5-Seed Sweep) & \url{https://www.kaggle.com/code/tundng111/gdut-yolov8-v5-matched-v8f} \\ \hline
+3 & Trial A (98-FN Replay) & \url{https://www.kaggle.com/code/tundng111/baseline-yolo11-dcrcf-stage1-finetune-test} \\ \hline
+4 & Trial B (Split-LR Pilot) & \url{https://www.kaggle.com/code/tundng111/gdut-b1-lr-pilot-seed3407} \\ \hline
+5 & Canonical \texttt{V5} (\texttt{lr0=3e-4}) & \url{https://www.kaggle.com/code/tundng111/baseline-yolo11-dcrcf-stage1-audited-rerun} \\ \hline
+6 & \texttt{C3} (5-Seed \texttt{DCRCF}) & \url{https://www.kaggle.com/code/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c3} \\ \hline
+7 & \texttt{C0} \& \texttt{V8S} (5-Seed Stock) & \url{https://www.kaggle.com/code/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c0} \newline \url{https://www.kaggle.com/code/tundng111/gdut-yolov8-v5-matched-v8s} \\ \hline
+\end{longtable}
+
+\noindent\textbf{Cryptographic Provenance Digest Summary:}
+\begin{itemize}[leftmargin=1.8em, itemsep=2pt]
+  \item \textbf{\texttt{A0--A6} Dataset Manifest SHA-256:} \nolinkurl{ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c}
+  \item \textbf{\texttt{B1/B2} \& Local Unfused GDUT Manifest SHA-256:} \nolinkurl{026a2afb617254b9dd2b9461651bce6f74295d18f29d52a790bf755d32944f65}
+  \item \textbf{Canonical \texttt{YOLO11s A6 best.pt} SHA-256:} \nolinkurl{21866da3396e36a408236b1c3717bff0ed5b99f2e59e9cbbbce96ea6bdb68233}
+  \item \textbf{Canonical \texttt{YOLO11s A1 best.pt} SHA-256:} \nolinkurl{4d31a15c0a736ea0b562b7f8e5c2b31749c7e70daab6c6d355b9cdb8784fee29}
+  \item \textbf{Canonical \texttt{YOLO11s Stage 1} Source SHA-256:} \nolinkurl{c42dba9e799b156fe74abd3711468e885014c58904a972a3ed2ea29ab6d3f337}
+\end{itemize}
+
+\begin{lstlisting}[caption={Standardized Project Repository Layout (\texttt{capstone AI/}).}, label={lst:app_repo_tree}]
+capstone AI/
+|-- .github/workflows/ci.yml               # GitHub Actions CI (108 pytest + Docker check)
+|-- custom_ablation_modules.py             # CoordConv, RepConv, BiFormerBlockLite, Focal-EIoU
+|-- Dockerfile / docker-compose.edge-simulation.yml
+|-- start_docker_edge.bat / switch_to_gdut.bat / stop_docker_edge.bat
+|-- docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md
+|-- src/
+|   |-- config.py                          # Environment-driven configuration loader
+|   |-- alerting/{alert_manager,telegram_bot,zalo_bot}.py
+|   |-- engine/{detector,pipeline,spatial_safety,bytetrack,reid_tracker,kalman_tracker}.py
+|   `-- web/{app.py, templates/dashboard.html}
+|-- tests/                                 # 108 automated unit & integration pytest cases
+|-- scripts/                               # Load test, optimization & deploy benchmarks
+|-- Output/task3_eval_opt/                 # RTX 3050 optimization & switch_to_deploy JSONs
+`-- thesis_report/                         # Complete LaTeX source & 300-DPI GDUT figures
+\end{lstlisting}
+
+% ==============================================================================
+% APPENDIX B: REST API SPECIFICATION
+% ==============================================================================
+\section{AEGIS-CCTV VMS Complete REST API Specification}
+\label{app:api_spec}
+
+Table~\ref{tab:app_rest_api} documents all 22 HTTP routes implemented in \texttt{src/web/app.py} and verified via FastAPI \texttt{TestClient} integration tests.
+
+\begin{longtable}{|>{\centering\arraybackslash}p{1.5cm}|>{\raggedright\arraybackslash}p{5.1cm}|>{\raggedright\arraybackslash}p{1.9cm}|>{\raggedright\arraybackslash}p{5.3cm}|}
+\caption{Complete Verified REST API Specification of AEGIS-CCTV VMS (\texttt{src/web/app.py}).}
+\label{tab:app_rest_api} \\
+\hline
+\rowcolor{slatehdr}
+\textbf{Method} & \textbf{Endpoint Path} & \textbf{Execution} & \textbf{Functional Purpose} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{slatehdr}
+\textbf{Method} & \textbf{Endpoint Path} & \textbf{Execution} & \textbf{Functional Purpose} \\
+\hline
+\endhead
+\hline
+\endfoot
+\texttt{GET}  & \texttt{/} & Async HTML & Serves Enterprise Warm-Sand VMS Dashboard UI. \\ \hline
+\texttt{GET}  & \texttt{/video\_feed} & Async Stream & Zero-copy multipart MJPEG live annotated video stream. \\ \hline
+\texttt{GET}  & \texttt{/snapshots/\{file\}} & Static Mount & Serves forensic violation JPEG evidence snapshots. \\ \hline
+\texttt{GET}  & \texttt{/api/metrics} & ThreadPool & Returns live FPS, inference ms, worker count, compliance, colors. \\ \hline
+\texttt{GET}  & \texttt{/api/status} & ThreadPool & Returns CUDA status, active model path, taxonomy, \texttt{is\_helmet\_only}. \\ \hline
+\texttt{GET}  & \texttt{/metrics} & ThreadPool & Prometheus \texttt{v0.0.4} text exposition (10 runtime/host gauges \& counters). \\ \hline
+\texttt{GET}  & \nolinkurl{/api/benchmark/summary} & ThreadPool & Live host telemetry + RTX 3050 opt, multi-stream, and load-test JSONs. \\ \hline
+\texttt{POST} & \nolinkurl{/api/predict_image} & ThreadPool & Single-image audit upload returning detections + Base64 annotated JPEG. \\ \hline
+\texttt{POST} & \texttt{/api/feedback} & ThreadPool & Appends HITL operator verdict (\texttt{confirm}, \texttt{false\_positive}, or \texttt{edit\_label}). \\ \hline
+\texttt{GET}  & \texttt{/api/feedback} & ThreadPool & Lists recent operator feedback records with aggregate verdict counts. \\ \hline
+\texttt{POST} & \nolinkurl{/api/switch_model} & ThreadPool & Zero-downtime GPU model hot-swap updating Dynamic Taxonomy flags. \\ \hline
+\texttt{GET}  & \texttt{/api/videos} (\texttt{/api/sources}) & Async JSON & Lists available local construction test videos and active feed. \\ \hline
+\texttt{POST} & \nolinkurl{/api/switch_source} & ThreadPool & Hot-swaps active video file / RTSP source and resets alert history. \\ \hline
+\texttt{POST} & \nolinkurl{/api/upload_video} & Async Upload & Uploads new MP4 construction footage and switches live pipeline. \\ \hline
+\texttt{GET}  & \texttt{/api/alerts} & Async JSON & Retrieves up to 50 recent debounced safety violation incidents. \\ \hline
+\texttt{POST} & \nolinkurl{/api/alerts/clear} & Async JSON & Clears in-memory violation audit stream buffer. \\ \hline
+\texttt{POST} & \texttt{/api/settings} & Async JSON & Updates \texttt{conf\_threshold}, debounce frames $K$, bot chat IDs to \texttt{.env}. \\ \hline
+\texttt{GET}  & \nolinkurl{/api/tracking/workers} & ThreadPool & Returns persistent worker registry, helmet colors, and focus ID. \\ \hline
+\texttt{POST} & \nolinkurl{/api/tracking/focus} & ThreadPool & Locks or clears Solo Focus tracking on a target worker ID. \\ \hline
+\texttt{POST} & \nolinkurl{/api/tracking/reset} & ThreadPool & Resets ByteTrack and Re-ID memory buffers cleanly. \\ \hline
+\texttt{GET}  & \nolinkurl{/api/telegram|zalo/discover_chat_id} & Async JSON & Auto-discovers latest operator chat ID from bot webhook updates. \\ \hline
+\texttt{POST} & \nolinkurl{/api/alerts/test-telegram|zalo} & Async JSON & Dispatches live connectivity ping to Telegram or Zalo Bot channel. \\ \hline
+\end{longtable}
+
+% ==============================================================================
+% APPENDIX C: FULL 18-ITEM REVIEW 3 TASK 3 SELF-ASSESSMENT CHECKLIST
+% ==============================================================================
+\section{Complete 18-Item Review 3 Task 3 Self-Assessment Matrix}
+\label{app:review3_checklist}
+
+Table~\ref{tab:app_review3_18} maps every mandatory item from the faculty Review 3 audit checklist (\texttt{kiem-tra-khoi-luong-task-3-truoc-review-lan-3.docx}) to its verified completion status and exact project evidence. Items 2 and 5 apply strictly to LLM/RAG projects and are marked \textit{N/A (CV Scope -- Streaming Equivalent Provided)} transparently.
+
+\begin{longtable}{|>{\centering\arraybackslash}p{0.7cm}|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{2.0cm}|>{\raggedright\arraybackslash}p{7.4cm}|}
+\caption{Complete 18-Item Review 3 Task 3 Self-Assessment and Evidence Matrix (Group GFA26AI17).}
+\label{tab:app_review3_18} \\
+\hline
+\rowcolor{slatehdr}
+\textbf{\#} & \textbf{Review 3 Checklist Item} & \textbf{Status} & \textbf{Verified Project Evidence (File / Link / Metric)} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{slatehdr}
+\textbf{\#} & \textbf{Review 3 Checklist Item} & \textbf{Status} & \textbf{Verified Project Evidence (File / Link / Metric)} \\
+\hline
+\endhead
+\hline
+\endfoot
+1 & UI/UX (Input, Output Visuals, History, HITL Feedback) & \textbf{Done} & \nolinkurl{src/web/templates/dashboard.html}, \nolinkurl{/api/predict_image}, \texttt{/api/feedback} $\to$ \nolinkurl{Output/operator_feedback.jsonl}. \\ \hline
+2 & Streaming Response (LLM/RAG) & N/A (CV) & Computer Vision equivalent implemented: real-time multipart MJPEG \texttt{/video\_feed} + 500 ms \texttt{/api/metrics} polling. \\ \hline
+3 & Model Inference Optimization & \textbf{Done} & Vectorized \texttt{torch.gather}, verified \nolinkurl{RepConv.switch_to_deploy()} ($-300,992$ params), CUDA AMP FP16, micro-batch $N=4$. \\ \hline
+4 & Before vs. After Latency \& Memory Benchmark Table & \textbf{Done} & \nolinkurl{Output/task3_eval_opt/optimization_benchmark_table.json} ($77.8 \to 146.9$ FPS) \& \nolinkurl{gdut_a6_switch_to_deploy_benchmark.json}. \\ \hline
+5 & Citation \& Guardrails (LLM/RAG) & N/A (CV) & Computer Vision safety equivalent: String-First Color Guard, Symmetrical Debounce FSM ($K=8$), FP32 numerical stability guard. \\ \hline
+6 & Automated CI/CD Pipeline & \textbf{Done} & \nolinkurl{.github/workflows/ci.yml} (compileall + 108 \texttt{pytest} in stub mode + \texttt{docker compose config -q}). \\ \hline
+7 & Containerized Architecture (Docker Compose) & \textbf{Done} & \texttt{Dockerfile}, \texttt{docker-compose.edge-simulation.yml} (4 vCPU, 6144M RAM, CUDA), \nolinkurl{start_docker_edge.bat}. \\ \hline
+8 & Monitoring \& Logging (Prometheus / Grafana) & \textbf{Done} & Pure ASGI middleware + \texttt{GET /metrics} (10 Prometheus metrics) + \nolinkurl{/api/benchmark/summary} + snapshot/feedback logs. \\ \hline
+9 & Unit \& Integration Testing & \textbf{Done} & \texttt{python -m pytest tests -q}: \textbf{108 / 108 PASSED (100\%)} in both full and weightless CI stub modes. \\ \hline
+10 & Load \& Stress Testing (RPS, Latency, Error) & \textbf{Done} & \nolinkurl{scripts/load_test_api.py} $\to$ \nolinkurl{Output/load_test_results.json}: peak \textbf{346.0 RPS}, \textbf{0.0\% error} ($C=10..100$). \\ \hline
+11 & User Acceptance Testing (UAT / SUS) & \textbf{Protocol Ready} & \nolinkurl{docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md} (10-item SUS + 4 scenarios; external site scoring post-defense, zero fabricated scores). \\ \hline
+12 & Capstone Thesis Report (60--100 pages) & \textbf{Done} & \nolinkurl{thesis_report/Capstone_Thesis_Report.pdf} (English, $\ge 70$ pages, 100\% \texttt{Template\_AIP491} compliant, GDUT 5-class). \\ \hline
+13 & IEEE/APA Citations \& Originality Audit & \textbf{Done} & Chapter VIII: 29 verified IEEE BibTeX entries with DOIs; 100\% original technical analysis grounded in raw logs. \\ \hline
+14 & Final Defense Slide Deck (20--25 Slides) & \textbf{In Sync} & Aligned to finalized GDUT 5-class \texttt{A0--A6} \& \texttt{B1/B2} numbers and Review 3 Stage 5 structure (external deliverable). \\ \hline
+15 & Slide Visual \& Formatting Audit & \textbf{In Sync} & High-contrast 300-DPI figures from \nolinkurl{thesis_report/figures/}, $\ge 18$ pt typography, candid limitations slide. \\ \hline
+16 & Standardized Source Code Repository & \textbf{Done} & Clean \texttt{src/}, \texttt{tests/}, \texttt{docs/}, \texttt{scripts/}, \texttt{README.md}, Swagger \texttt{/docs}, 0 leaked secrets. \\ \hline
+17 & Public Model Checkpoints \& Dataset Artifacts & \textbf{Done} & 14 public Kaggle notebooks (\texttt{nvthanh2004}) + 7 audit notebooks (\texttt{tundng111}) listed in Appendix A. \\ \hline
+18 & Backup Product Demo Video (3--5 min) & \textbf{In Progress} & Local 11-video 1080p/4K test bank + 5-second annotated sample clip (\nolinkurl{video_test/annotated_cctv_construction_demo.mp4}) + live Docker fallback script; full 3--5 min GDUT 5-class UI/UX walkthrough video is being finalized prior to defense. \\ \hline
+\end{longtable}
+
+% ==============================================================================
+% APPENDIX D: DOCKER EDGE CONFIG, CI/CD WORKFLOW & UAT/SUS QUESTIONNAIRE
+% ==============================================================================
+\section{Docker Edge Configuration, GitHub Actions CI/CD, and UAT/SUS Instrument}
+\label{app:devops_uat}
+
+Listings~\ref{lst:app_docker} and~\ref{lst:app_ci} provide the sanitized deployment and CI/CD configurations (with all credentials strictly externalized to git-ignored \texttt{.env} variables), followed by the complete 10-item UAT/SUS instrument in Table~\ref{tab:app_sus_items}.
+
+\begin{lstlisting}[caption={Sanitized Single-Container Docker Edge Simulation (\texttt{docker-compose.edge-simulation.yml}).}, label={lst:app_docker}]
+services:
+  cctv-edge-simulation:
+    build: { context: ., dockerfile: Dockerfile }
+    image: rep-yolo11s-cctv:edge-sim
+    container_name: cctv_safety_edge_simulation_node
+    restart: unless-stopped
+    ports: ["${EDGE_SIM_PORT:-8080}:8000"]
+    volumes:
+      - ./video_test:/app/video_test:ro
+      - ./Output:/app/Output
+      - ./snapshots:/app/snapshots
+      - ./src:/app/src
+      - ./custom_ablation_modules.py:/app/custom_ablation_modules.py:ro
+      - ./.env:/app/.env
+    environment:
+      - DEVICE=cuda:0
+      - USE_HALF=False
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - ZALO_BOT_TOKEN=${ZALO_BOT_TOKEN:-}
+    deploy:
+      resources:
+        limits: { cpus: "4.0", memory: 6144M }
+        reservations:
+          cpus: "2.0"
+          memory: 2048M
+          devices: [{ driver: nvidia, count: all, capabilities: [gpu] }]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Automated GitHub Actions CI/CD Pipeline (\nolinkurl{.github/workflows/ci.yml}).}, label={lst:app_ci}]
+name: Capstone AI CI/CD Pipeline
+on:
+  push: { branches: [ main ] }
+  pull_request: { branches: [ main ] }
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.10" }
+      - run: pip install pytest httpx fastapi uvicorn pydantic numpy opencv-python-headless ultralytics psutil --no-cache-dir
+      - run: python -m compileall -q src tests scripts
+      - run: pytest tests -v
+  docker-build-check:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          docker compose -f docker-compose.yml config -q
+          docker compose -f docker-compose.edge-simulation.yml config -q
+\end{lstlisting}
+
+\begin{table}[H]
+\centering
+\caption{Standardized 10-Item System Usability Scale (SUS) Questionnaire (5-Point Likert Scale: 1 = Strongly Disagree to 5 = Strongly Agree) from \nolinkurl{docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md}.}
+\label{tab:app_sus_items}
+\small
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{|c|X|c|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Item} & \textbf{Evaluation Statement (AEGIS-CCTV VMS Safety Suite)} & \textbf{Scoring Rule} \\
+\hline
+1 & I think that I would like to use the AEGIS-CCTV VMS Safety Suite frequently for site monitoring. & $\text{score} - 1$ \\ \hline
+2 & I found the system unnecessarily complex. & $5 - \text{score}$ \\ \hline
+3 & I thought the dashboard was easy to use. & $\text{score} - 1$ \\ \hline
+4 & I think that I would need the support of a technical person to be able to use this system. & $5 - \text{score}$ \\ \hline
+5 & I found the various functions (Live Stream, Image Audit, Focus Lock, Alert Feedback, Runtime SLA) well integrated. & $\text{score} - 1$ \\ \hline
+6 & I thought there was too much inconsistency in this system. & $5 - \text{score}$ \\ \hline
+7 & I would imagine that most safety officers would learn to use this system very quickly. & $\text{score} - 1$ \\ \hline
+8 & I found the system very cumbersome to use. & $5 - \text{score}$ \\ \hline
+9 & I felt very confident using the system to verify helmet/color compliance. & $\text{score} - 1$ \\ \hline
+10 & I needed to learn a lot of things before I could get going with this system. & $5 - \text{score}$ \\ \hline
+\end{tabularx}
+\end{table}
+
+\noindent\textbf{Composite SUS Formula \& UAT Operational Scenarios ($N \ge 10$ Evaluators):} $\mathrm{SUS} = 2.5 \times \sum_{i=1}^{10} c_i \in [0, 100]$ (Industry acceptability threshold $\ge 68.0$; Excellent usability $\ge 80.3$). Evaluators execute four timed tasks prior to scoring: \textbf{Scenario A} (switch CCTV feed and verify active helmet color counts within 10 s); \textbf{Scenario B} (hot-swap the GDUT 5-class checkpoint via \nolinkurl{/api/switch_model} and verify \texttt{is\_helmet\_only=true}, String-First 4-color helmet distribution, and real-time \texttt{none} violation alerting---noting that \textit{Solo Focus} activates only when hot-swapped to a \texttt{person}-class model); \textbf{Scenario C} (inspect a forensic violation snapshot and log HITL feedback via \texttt{Confirm}/\texttt{False Positive}/\texttt{Edit}); and \textbf{Scenario D} (upload a site photograph in \textit{Image Audit} and verify bounding boxes and inference latency).

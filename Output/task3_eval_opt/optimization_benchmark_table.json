@@ -1,0 +1,118 @@
+{
+  "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+  "torch_version": "2.0.0+cu118",
+  "records": [
+    {
+      "model": "Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)",
+      "stage": "CPU 4-Thread FP32",
+      "device": "CPU (4 threads)",
+      "precision": "FP32",
+      "batch": 1,
+      "latency_ms": 307.08,
+      "fps": 3.3,
+      "vram_mb": 0.0,
+      "ckpt_mb": 36.55,
+      "speedup_vs_before": 1.0,
+      "accuracy_delta": "CPU FP32 Ref"
+    },
+    {
+      "model": "Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)",
+      "stage": "Before (Loop BiFormer FP32)",
+      "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "precision": "FP32",
+      "batch": 1,
+      "latency_ms": 11.92,
+      "fps": 83.9,
+      "vram_mb": 222.5,
+      "ckpt_mb": 36.55,
+      "speedup_vs_before": 1.0,
+      "accuracy_delta": "GPU FP32 Ref"
+    },
+    {
+      "model": "Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)",
+      "stage": "After-1 (Vec BiFormer + RepConv FP32)",
+      "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "precision": "FP32",
+      "batch": 1,
+      "latency_ms": 11.46,
+      "fps": 87.3,
+      "vram_mb": 222.5,
+      "ckpt_mb": 36.55,
+      "speedup_vs_before": 1.04,
+      "accuracy_delta": "Exact Reparameterized FP32"
+    },
+    {
+      "model": "Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)",
+      "stage": "After-2 (+ CUDA AMP FP16)",
+      "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "precision": "FP16-AMP",
+      "batch": 1,
+      "latency_ms": 10.05,
+      "fps": 99.5,
+      "vram_mb": 217.5,
+      "ckpt_mb": 36.55,
+      "speedup_vs_before": 1.19,
+      "accuracy_delta": "B=1: Delta 0 boxes (12/12, conf diff 0.00036)"
+    },
+    {
+      "model": "Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)",
+      "stage": "After-3 (Micro-Batch N=4 AMP FP16)",
+      "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "precision": "FP16-AMP",
+      "batch": 4,
+      "latency_ms": 6.9,
+      "fps": 144.9,
+      "vram_mb": 295.3,
+      "ckpt_mb": 36.55,
+      "speedup_vs_before": 1.73,
+      "accuracy_delta": "N=4: Delta 0 boxes (12/12, conf diff 0.00032)"
+    }
+  ],
+  "video_parity_fp32_vs_amp_fp16": {
+    "Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)": {
+      "frames": 12,
+      "frame_indices": [
+        180,
+        200,
+        220,
+        240,
+        260,
+        280,
+        300,
+        320,
+        340,
+        360,
+        380,
+        400
+      ],
+      "fp32_boxes": 12,
+      "fp16_amp_boxes": 12,
+      "max_abs_count_delta": 0,
+      "mean_conf_diff": 0.00033
+    }
+  },
+  "video_parity_fp32_vs_amp_fp16_batch4": {
+    "Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)": {
+      "frames": 12,
+      "frame_indices": [
+        180,
+        200,
+        220,
+        240,
+        260,
+        280,
+        300,
+        320,
+        340,
+        360,
+        380,
+        400
+      ],
+      "fp32_boxes": 12,
+      "fp16_amp_boxes": 12,
+      "max_abs_count_delta": 0,
+      "mean_conf_diff": 0.00032,
+      "batch": 4
+    }
+  }
+}
