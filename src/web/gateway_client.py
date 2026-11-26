@@ -92,8 +92,8 @@ class InferenceCircuitBreakerClient:
             if resp.status_code >= 500:
                 self._record_failure()
                 raise RuntimeError(f"AI Inference returned HTTP {resp.status_code}")
-            self._record_success(latency_ms)
             if resp.status_code >= 400:
+                self._record_success(latency_ms)
                 try:
                     if resp.headers.get("content-type", "").startswith("application/json"):
                         detail = resp.json().get("detail", resp.text)
@@ -102,12 +102,17 @@ class InferenceCircuitBreakerClient:
                 except Exception:
                     detail = resp.text
                 return {"_http_error": resp.status_code, "detail": detail}
-            return resp.json()
+            payload = resp.json()
+            self._record_success(latency_ms)
+            return payload
         except CircuitBreakerOpenError:
             raise
         except Exception as exc:
             self._record_failure()
             raise RuntimeError(f"AI Inference unavailable: {exc}") from exc
+
+    def close(self):
+        self._client.close()
 
     def status_dict(self) -> Dict[str, Any]:
         with self._lock:

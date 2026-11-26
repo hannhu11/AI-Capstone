@@ -58,11 +58,11 @@ Monitoring:
 
 | Tier | Runtime Precision / Config | Mean Latency | Throughput | p95 Latency | Peak VRAM | Notes |
 |---|---|---:|---:|---:|---:|---|
-| 1. Pure GDUT-A6 Detector | Strict FP32 (`TF32=False`) | `16.87 ms` | `59.3 FPS` | `17.82 ms` | `106.1 MB` | Baseline Ref (12/12 boxes) |
-| 2. Pure GDUT-A6 Detector **[Default B=1]** | `TF32 FP32` (`TF32=True`) | `11.52 ms` | `86.8 FPS` | `12.13 ms` | `215.0 MB` | TensorCore TF32 (-5.35ms vs Strict) [Fastest B=1] |
-| 3. Pure GDUT-A6 Detector | Selective AMP FP16 (`TF32=False`) | `12.37 ms` | `80.8 FPS` | `16.49 ms` | `210.2 MB` | Delta=0 boxes, conf diff=0.00033 |
-| 4. End-to-End + 3-Strip Non-Biometric Re-ID | `TF32 FP32`, `use_deep=False` | `15.34 ms` | `65.2 FPS` | `17.66 ms` | `215.0 MB` | `det=12.71ms + strip_reid=2.63ms` |
-| 5. Full VMS + Multi-Layer MobileNetV3 Re-ID | `TF32 FP32`, `use_deep=True` (`refresh=30`) | `15.55 ms` | `64.3 FPS` | `18.17 ms` | `218.6 MB` | `+0.21ms` avg (`4 calls`: extract=`19.69ms`, steady=`15.41ms`) |
+| 1. Pure GDUT-A6 Detector | Strict FP32 (`TF32=False`) | `17.11 ms` | `58.4 FPS` | `17.92 ms` | `106.1 MB` | Baseline Ref (12/12 boxes) |
+| 2. Pure GDUT-A6 Detector **[Default B=1]** | `TF32 FP32` (`TF32=True`) | `12.05 ms` | `83.0 FPS` | `14.06 ms` | `215.0 MB` | TensorCore TF32 (-5.06ms vs Strict) [Fastest B=1] |
+| 3. Pure GDUT-A6 Detector | Selective AMP FP16 (`TF32=False`) | `13.29 ms` | `75.2 FPS` | `15.65 ms` | `210.2 MB` | Delta=0 boxes, conf diff=0.00033 |
+| 4. End-to-End + 3-Strip Non-Biometric Re-ID | `TF32 FP32`, `use_deep=False` | `15.17 ms` | `65.9 FPS` | `18.03 ms` | `215.0 MB` | `det=12.46ms + strip_reid=2.7ms` |
+| 5. Full VMS + Multi-Layer MobileNetV3 Re-ID | `TF32 FP32`, `use_deep=True` (`refresh=30`) | `15.33 ms` | `65.2 FPS` | `18.57 ms` | `218.6 MB` | `+0.16ms` avg (`4 calls`: extract=`20.27ms`, steady=`15.16ms`) |
 
 - **RepConv Structural Reparameterization (`gdut_a6_switch_to_deploy_benchmark.json`, Strict FP32 `TF32=False`):** 6 layers (`[1, 3, 5, 7, 17, 20]`), `9,788,575 -> 9,487,583` parameters (`-300,992`), FP32 max diff `7.93e-4`.
 - **FP32 vs AMP FP16 Video Parity & Tensor Speed (`optimization_benchmark_table.json`, 12 frames):**
@@ -80,11 +80,12 @@ Monitoring:
 ---
 
 ## 4. Kaggle Reproducibility & 1-to-1 Forensic Audit Evidence
-- **13 Official Kaggle Notebooks & Raw Outputs (`notebooks/gdut_official_kaggle/`):** Verified read-only via Kaggle API (`11` `nvthanh2004` Prep/S1/A0–A6/FinalTest + `2` `tundng111` B1/B2 notebooks, raw `summary.csv`, `validation_summary.csv`, `A6_*_per_class.json`, `b1_control_summary.json`, `final_test_execution_log.txt`, and `raw_kaggle_outputs_summary.json`).
-- **Forensic Cross-Verification (`66/67 MATCH, 1 honest nuance`):** [Kaggle Forensic Verification Report](docs/KAGGLE_FORENSIC_VERIFICATION_REPORT.md) | [Consolidated Code & Metrics Audit Snapshot](docs/AUDIT_CODE_SNAPSHOT.md).
+- **16 Official Kaggle Notebooks & Raw Outputs (`notebooks/gdut_official_kaggle/`):** Verified read-only 1-to-1 via Kaggle API (`11` `nvthanh2004` Prep/S1/A0–A6/FinalTest + `5` `tundng111` `B1 Pair-3407`, `B2 V8F`, `C3`, `C0`, `V8S` notebooks, raw `summary.csv`, `validation_summary.csv`, `A6_*_per_class.json`, `b1_control_summary.json`, `final_test_execution_log.txt`, and `raw_kaggle_outputs_summary.json`).
+- **Re-ID Architecture Note:** Native GDUT 5-class runs **`src/engine/gdut_reid.py`** (`Confirm-Before-Mint` `min_confirm_hits=6`, **Two-Stage Gate** skipping `MobileNetV3` `deep_extractor.extract()` for noise unless `dist_norm <= 0.25` or `max_strip_sim >= 0.45`, and 15-frame TTL `hijack_excluded_ids`); `src/engine/reid_tracker.py` is retained strictly as a legacy compatibility fallback/histogram helper.
+- **Forensic Cross-Verification (`69/70 MATCH, 1 MISMATCH — B2 V8F precision rounding 90.2447% -> 90.24% & ddof=0 vs ddof=1`):** [Kaggle Forensic Verification Report](docs/KAGGLE_FORENSIC_VERIFICATION_REPORT.md) | [Consolidated Code & Metrics Audit Snapshot](docs/AUDIT_CODE_SNAPSHOT.md).
 
 ## 5. Visual Evidence & Operational Limitations
-- UI & Monitoring Screenshots (v2.4):
+- UI & Monitoring Screenshots (v2.5):
   - [Enterprise Dashboard 1920×1080](docs/ui_screenshots/01_1920x1080_main.png) | [Compact 1366×768](docs/ui_screenshots/02_1366x768_compact.png)
   - [Runtime & SLA Tables 1–3](docs/ui_screenshots/03_runtime_sla_4tables_modal.png) | [Runtime & SLA Dual Load Tests 4A/4B](docs/ui_screenshots/03b_runtime_sla_loadtest.png)
   - [C960 Ultra Binary WebSocket Webcam Mode](docs/ui_screenshots/04_webcam_c960_canvas_mode.png) | [Solo Focus Lock & CSV Export](docs/ui_screenshots/05_solo_focus_and_export.png)

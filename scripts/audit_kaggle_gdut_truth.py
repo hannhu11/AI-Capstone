@@ -43,6 +43,9 @@ OFFICIAL_NOTEBOOKS: List[Tuple[str, str, str]] = [
     ("nvthanh2004", "gdut-final-test-evaluation", "Official 1,587-Image Test Evaluation (14 Ckpts)"),
     ("tundng111", "gdut-yolo11n-dcrcf-baseline", "Baseline B1 Control/Treatment & 98-FN Audit"),
     ("tundng111", "gdut-yolov8-v5-matched-v8f", "Baseline B2 5-Seed Matched V8F Audit"),
+    ("tundng111", "gdut-yolo11n-dcrcf-matched-ablation-c3", "Baseline B1 5-Seed Matched C3 Audit"),
+    ("tundng111", "gdut-yolo11n-dcrcf-matched-ablation-c0", "Stock YOLO11n 5-Seed Matched C0 Control"),
+    ("tundng111", "gdut-yolov8-v5-matched-v8s", "Stock YOLOv8s 5-Seed Matched V8S Control"),
 ]
 
 LIGHT_EXTS = {".csv", ".json", ".yaml", ".yml", ".txt", ".log", ".md", ".py"}
@@ -154,7 +157,7 @@ def _pull_notebook_and_outputs(
         all_files: List[Dict[str, Any]] = []
         page_token: Optional[str] = None
         for page_i in range(25):
-            params: Dict[str, Any] = {"userName": user, "kernelSlug": slug}
+            params: Dict[str, Any] = {"userName": user, "kernelSlug": slug, "pageSize": 200}
             if page_token:
                 params["pageToken"] = page_token
             r_out = session.get(
@@ -402,6 +405,24 @@ def _extract_kaggle_metrics_and_verify() -> Dict[str, Any]:
         if rm_p.exists() and b2_fp is None:
             rm_data = json.loads(rm_p.read_text(encoding="utf-8"))
             b2_fp = rm_data.get("inputs", {}).get("manifest_sha256") or rm_data.get("dataset_fingerprint")
+
+    def _load_tundng_5seed(slug: str, sub: str, prefix: str) -> Tuple[Dict[str, Any], Optional[str]]:
+        base_d = OUT_ROOT / "tundng111" / f"{slug}_outputs" / sub
+        seeds_d: Dict[str, Any] = {}
+        fp_val: Optional[str] = None
+        for seed in ("3407", "3408", "3409", "3410", "3411"):
+            mp = base_d / f"{prefix}-{seed}" / "validation" / "metrics.json"
+            rp = base_d / f"{prefix}-{seed}" / "run_manifest.json"
+            if mp.exists():
+                seeds_d[seed] = json.loads(mp.read_text(encoding="utf-8"))
+            if rp.exists() and fp_val is None:
+                rd = json.loads(rp.read_text(encoding="utf-8"))
+                fp_val = rd.get("inputs", {}).get("manifest_sha256") or rd.get("dataset_fingerprint")
+        return seeds_d, fp_val
+
+    c3_seeds, c3_fp = _load_tundng_5seed("gdut-yolo11n-dcrcf-matched-ablation-c3", "v5-matched-c3", "C3")
+    c0_seeds, c0_fp = _load_tundng_5seed("gdut-yolo11n-dcrcf-matched-ablation-c0", "v5-matched-c0", "C0")
+    v8s_seeds, v8s_fp = _load_tundng_5seed("gdut-yolov8-v5-matched-v8s", "v5-matched-v8s", "V8S")
 
     # =========================================================================
     # COMPREHENSIVE 1-TO-1 FORENSIC CROSS-VERIFICATION
@@ -708,6 +729,34 @@ def _extract_kaggle_metrics_and_verify() -> Dict[str, Any]:
         "MATCH" if b2_exact_p_match else "MISMATCH",
     )
 
+    def _audit_5seed_control(name_tag: str, seeds_map: Dict[str, Any], fp_v: Optional[str], exp_mean95: float, exp_psd95: float):
+        assert len(seeds_map) == 5, f"Expected 5 seeds for {name_tag}, got {len(seeds_map)}"
+        vals_95 = [m["metrics"]["mAP50_95"] * 100.0 for m in seeds_map.values()]
+        vals_50 = [m["metrics"]["mAP50"] * 100.0 for m in seeds_map.values()]
+        m95 = statistics.mean(vals_95)
+        p95 = statistics.pstdev(vals_95)
+        s95 = statistics.stdev(vals_95)
+        m50 = statistics.mean(vals_50)
+        p50 = statistics.pstdev(vals_50)
+        s50 = statistics.stdev(vals_50)
+        ok = (
+            abs(round(m95, 3) - exp_mean95) < 0.002
+            and abs(round(p95, 3) - exp_psd95) < 0.002
+            and fp_v == expected_b2_fp
+        )
+        add_check(
+            "8. Dung Baselines (tundng111)",
+            f"{name_tag} 5-Seed Val mAP50-95 & mAP50 (seeds 3407..3411)",
+            f"mAP50-95={exp_mean95:.3f}±{exp_psd95:.3f}% (fp={expected_b2_fp[:12]}...)",
+            f"pstdev(ddof=0): mAP50-95={m95:.3f}±{p95:.3f}%, mAP50={m50:.3f}±{p50:.3f}% (fp={str(fp_v)[:12]}...); sample stdev(ddof=1): ±{s95:.3f}/±{s50:.3f}%",
+            "MATCH" if ok else "MISMATCH",
+        )
+        return m95, p95, s95, m50
+
+    c3_m95, c3_p95, c3_s95, _ = _audit_5seed_control("B1 C3 Matched DCRCF", c3_seeds, c3_fp, 57.283, 0.173)
+    c0_m95, c0_p95, c0_s95, _ = _audit_5seed_control("C0 Stock YOLO11n", c0_seeds, c0_fp, 58.812, 0.082)
+    v8s_m95, v8s_p95, v8s_s95, _ = _audit_5seed_control("V8S Stock YOLOv8s", v8s_seeds, v8s_fp, 61.414, 0.074)
+
     # Dynamic high-precision Test numbers from summary.csv (zero hardcoding!)
     y11_a1_50 = float(test_by_key[("yolo11s", "A1")]["metrics/mAP50(B)"]) * 100.0
     y11_a1_95 = float(test_by_key[("yolo11s", "A1")]["metrics/mAP50-95(B)"]) * 100.0
@@ -723,11 +772,12 @@ def _extract_kaggle_metrics_and_verify() -> Dict[str, Any]:
     forensic_findings = [
         {
             "severity": "HONEST_NUANCE",
-            "title": "All 11 `nvthanh2004` + 2 `tundng111` notebooks pulled with 100% HTTP 200; A0-A6 & B1 numbers match raw Kaggle artifacts.",
+            "title": "All 11 `nvthanh2004` + 5 `tundng111` (16 total) notebooks pulled with 100% HTTP 200; A0-A6, B1 Control, C3, C0 & V8S match raw Kaggle artifacts.",
             "detail": (
                 "Direct 1-to-1 verification against Kaggle `run_manifest.json`, `evaluation.json`, `initialization_check.json`, "
-                "`results.csv`, `test_evaluation/summary.csv`, `A6_*_per_class.json`, `execution_log.txt`, and `B1 control/summary.json` "
-                "confirms zero fabricated metrics across A0-A6 Val/Test rows and B1/B2 artifacts (1 honest precision/SD-convention mismatch flagged on B2)."
+                "`results.csv`, `test_evaluation/summary.csv`, `A6_*_per_class.json`, `execution_log.txt`, and `B1/B2/C3/C0/V8S` `metrics.json` "
+                f"confirms exact agreement across A0-A6, B1 Control, `C3` ({c3_m95:.3f}±{c3_p95:.3f}%), `C0` ({c0_m95:.3f}±{c0_p95:.3f}%), and `V8S` ({v8s_m95:.3f}±{v8s_p95:.3f}%) "
+                "(1 honest precision/SD-convention mismatch flagged on B2 V8F)."
             ),
         },
         {
@@ -788,6 +838,9 @@ def _extract_kaggle_metrics_and_verify() -> Dict[str, Any]:
         "b1_dung": {"control": b1_ctrl, "treatment": b1_treat, "none_error_breakdown": b1_ctrl_err},
         "b2_dung_5seed": b2_seeds,
         "b2_dataset_fingerprint": b2_fp,
+        "c3_dung_5seed": c3_seeds,
+        "c0_dung_5seed": c0_seeds,
+        "v8s_dung_5seed": v8s_seeds,
         "checks": checks,
         "forensic_findings": forensic_findings,
     }
@@ -808,7 +861,7 @@ def _write_markdown_report(audit: Dict[str, Any]):
         "",
         f"> **Generated (UTC):** `{audit['generated_at']}`",
         "> **Verification Policy:** Zero trust in secondary `.md` summaries until independently verified 1-to-1 against public Read-Only Kaggle notebooks (`.ipynb`), raw `run_manifest.json`, `results.csv`, `initialization_check.json`, `architecture_rank_0.json`, `test_evaluation/summary.csv`, `*_per_class.json`, and raw Kaggle `execution_log.txt`.",
-        f"> **Audit Score:** **`{matches}/{total}` checks MATCHED (`{mismatches}` mismatches)** across all 11 official `nvthanh2004` notebooks and 2 primary `tundng111` baseline notebooks.",
+        f"> **Audit Score:** **`{matches}/{total}` checks MATCHED (`{mismatches}` mismatches)** across all 11 official `nvthanh2004` notebooks and 5 `tundng111` baseline/control notebooks (16 total).",
         "",
         "---",
         "",

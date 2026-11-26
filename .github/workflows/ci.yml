@@ -17,14 +17,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+          cache: "pip"
+          cache-dependency-path: "requirements.txt"
 
-      - name: Install dependencies
+      - name: Install CPU PyTorch & project dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest httpx fastapi uvicorn websockets pydantic numpy opencv-python-headless ultralytics psutil pyyaml scipy sqlalchemy python-multipart python-dotenv requests --no-cache-dir
+          pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          pip install --no-cache-dir -r requirements.txt ruff
 
-      - name: Syntax and static import check
+      - name: Syntax, lint, and static import check
         run: |
+          ruff check --select E9,F63,F7,F82 src tests
           python -m compileall -q src tests scripts
 
       - name: Run Unit and Integration Tests
@@ -42,7 +46,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate Docker Compose configuration
+      - name: Validate Docker Compose configuration & build slim Gateway image
         run: |
           docker compose -f docker-compose.edge-simulation.yml config -q
           docker compose -f docker-compose.enterprise.yml config -q
+          docker build -f Dockerfile.gateway -t aegis-gateway:ci-check .

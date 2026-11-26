@@ -1,7 +1,7 @@
 \chapter{Results and Discussion}
 \label{chap:results}
 
-This chapter reports the complete, unvarnished empirical evidence of Capstone Project \textbf{FA26AI16} across four evaluation pillars corresponding directly to Review 3 Stages 1, 3, and 4: (1) SOTA baseline reproduction and five-seed forensic auditing (\texttt{B1} and \texttt{B2}); (2) controlled seven-branch ablations (\texttt{A0--A6}) across \texttt{YOLO11s} and \texttt{YOLOv8s} on both validation (316 images) and official test (1,587 images) splits; (3) Before-vs-After inference optimization on RTX 3050---including our dedicated \nolinkurl{RepConv.switch_to_deploy()} equivalence benchmark---and multi-stream edge hardware profiling; and (4) software verification (108 \texttt{pytest} cases), FastAPI load/stress testing, field CCTV testing, and the UAT/SUS protocol. Validation and official test splits are kept strictly separated throughout.
+This chapter reports the complete, unvarnished empirical evidence of Capstone Project \textbf{FA26AI16} across four evaluation pillars corresponding directly to Review 3 Stages 1, 3, and 4: (1) SOTA baseline reproduction and five-seed forensic audits (\texttt{B1} and \texttt{B2}) cross-verified 1-to-1 against 16 public Kaggle notebooks (\texttt{69/70 MATCH}); (2) controlled seven-branch ablations (\texttt{A0--A6}) across \texttt{YOLO11s} and \texttt{YOLOv8s} on both validation (316 images) and official test (1,587 images) splits; (3) Before-vs-After inference optimization on RTX 3050, paired end-to-end VMS Strip vs. MobileNetV3 Re-ID latency profiling, dedicated \nolinkurl{RepConv.switch_to_deploy()} equivalence benchmarking, and multi-stream scaling; and (4) software verification (131 CPU \texttt{pytest} cases; 130 passed, 1 skipped in weightless CI stub mode), Dual Load Testing (in-process ASGI and 6-container Enterprise Docker), field CCTV testing, and the UAT/SUS protocol. Validation and official test splits are kept strictly separated throughout.
 
 \section{Results and Analysis}
 
@@ -50,7 +50,7 @@ All 18 core baseline modules (\nolinkurl{baseline_model.py} \texttt{e2dd3140}, \
 \textbf{B1 (SOTA)} & \texttt{YOLO11n-DCRCF} (Thanh) & 3407 & 89.85 & \textbf{81.53} & 88.86 & 57.47 & AP50--95: \textbf{51.40\%}, R@0.25: \textbf{75.99\%} \\ \hline
 \textbf{B1 (Dung Best)} & \texttt{YOLO11n-DCRCF} (\texttt{Pair Control}) & 3407 & \textbf{91.65} & 78.77 & 88.86 & \textbf{57.78} & AP50--95: 51.08\%, R@0.287: 75.74\% (P 83.61\%) \\ \hline
 \textbf{B2 (SOTA)} & \texttt{YOLOv8s-DWR-ASPP-NWD} (Thanh) & 3407 & \textbf{90.35} & \textbf{86.90} & \textbf{92.13} & \textbf{61.06} & Single-seed anchor (Test: 57.98\%) \\ \hline
-\textbf{B2 (Dung 5-Seed)} & \texttt{YOLOv8s-DWR-ASPP-NWD} (\texttt{V8F}) & 3407--3411 & 90.25 $\pm$ 0.94 & 86.47 $\pm$ 0.58 & 91.82 $\pm$ 0.17 & 60.78 $\pm$ 0.35 & AP50--95: \textbf{55.01\%}, R@0.25: \textbf{83.93\%} (P 84.18\%) \\ \hline
+\textbf{B2 (Dung 5-Seed)} & \texttt{YOLOv8s-DWR-ASPP-NWD} (\texttt{V8F}) & 3407--3411 & 90.24 $\pm$ 0.94 & 86.47 $\pm$ 0.58 & 91.82 $\pm$ 0.17 & 60.78 $\pm$ 0.35 & AP50--95: \textbf{55.01\%}, R@0.25: \textbf{83.93\%} (P 84.18\%) \\ \hline
 \end{tabular}
 }
 \end{table}
@@ -70,11 +70,13 @@ All 18 core baseline modules (\nolinkurl{baseline_model.py} \texttt{e2dd3140}, \
 \textbf{Trial B} (Split LR pilot) & Two param groups: $1\times 10^{-4}$ old, $3\times 10^{-4}$ new \texttt{SBA/DCNv2} & Overall mAP@50--95 $+0.13$ pp, but \texttt{none} Recall drops \textbf{$-2.97$ pp} ($306 \to 294$ TP). & \textbf{FAIL} -- harms bare-head safety recall. \\ \hline
 \textbf{Canonical \texttt{V5}} (\texttt{tuned}) & Global \texttt{lr0 = 3e-4} across full network & Val $57.75\%$ ($+0.28$ pp vs. Thanh); \texttt{none} R@0.25 rises to $77.72\%$ ($+8$ TP), but \texttt{none} FP jumps $61 \to 88$ ($+27$ FP, P $78.11\%$) and total R falls $-1.18$ pp ($81.53\% \to 80.35\%$). & Precision--Recall trade-off only; no net gain. \\ \hline
 \textbf{\texttt{Pair-3407}} (\texttt{Control} vs. \texttt{Treatment}) & \nolinkurl{GradScaler(init_scale=16.0)}; \texttt{Treatment} adds \texttt{pos\_weight=1.5} on \texttt{none} & \texttt{Control}: $57.78\%$ (P $+1.80$ pp to $91.65\%$, R $-2.76$ pp to $78.77\%$); \texttt{Treatment}: drops to $57.28\%$ ($-0.50$ pp; \texttt{none} AP $51.08\% \to 50.41\%$). & \texttt{pos\_weight} fails $\le 0.10$ pp gate; \texttt{Control} lowers safety Recall. \\ \hline
-\textbf{\texttt{C3} vs. \texttt{C0}} (5 seeds \texttt{3407--3411}) & Matched 5-seed \texttt{YOLO11n-DCRCF} vs. Stock \texttt{YOLO11n} & \texttt{C3}: $57.283 \pm 0.173\%$ vs. Stock \texttt{C0}: \textbf{$58.812 \pm 0.082\%$} (\textbf{$-1.529$ pp} loss; \texttt{none} AP $51.16\%$ vs. $52.93\%$). & \textbf{Definitive:} DCRCF underperforms Stock on GDUT. \\ \hline
-\textbf{\texttt{V8F} vs. \texttt{V8S}} (5 seeds \texttt{3407--3411}) & Matched 5-seed \texttt{YOLOv8s-DWR-ASPP-NWD} vs. Stock \texttt{YOLOv8s} & \texttt{V8F}: $60.781 \pm 0.353\%$ vs. Stock \texttt{V8S}: \textbf{$61.414 \pm 0.074\%$} (\textbf{$-0.633$ pp} loss, losing 4/5 seeds; mAP@50 loses 5/5 seeds $-0.488$ pp). & \textbf{Preserved unmodified} as SOTA Baseline 2. \\ \hline
+\textbf{\texttt{C3} vs. \texttt{C0}} (5 seeds \texttt{3407--3411}) & Matched 5-seed \texttt{YOLO11n-DCRCF} vs. Stock \texttt{YOLO11n} & \texttt{C3}: $57.283 \pm 0.173\%$ mAP@50--95 ($88.528 \pm 0.224\%$ mAP@50) vs. Stock \texttt{C0}: \textbf{$58.812 \pm 0.082\%$} ($90.274 \pm 0.071\%$ mAP@50; \textbf{$-1.529$ pp} loss). & \textbf{Definitive:} DCRCF underperforms Stock on GDUT. \\ \hline
+\textbf{\texttt{V8F} vs. \texttt{V8S}} (5 seeds \texttt{3407--3411}) & Matched 5-seed \texttt{YOLOv8s-DWR-ASPP-NWD} vs. Stock \texttt{YOLOv8s} & \texttt{V8F}: $60.781 \pm 0.353\%$ mAP@50--95 ($91.820 \pm 0.168\%$ mAP@50) vs. Stock \texttt{V8S}: \textbf{$61.414 \pm 0.074\%$} ($92.308 \pm 0.224\%$ mAP@50; \textbf{$-0.633$ pp} loss). & \textbf{Preserved unmodified} as SOTA Baseline 2. \\ \hline
 \end{tabular}
 }
 \end{table}
+
+\noindent\textbf{Statistical Dispersion Convention \& 16-Notebook Forensic Verification Note (\texttt{69/70 MATCH}):} An automated 1-to-1 verification script (\nolinkurl{scripts/audit_kaggle_gdut_truth.py}) re-checked every metric directly from the 16 public Kaggle notebooks (\texttt{11 nvthanh2004} + \texttt{5 tundng111}) against raw \texttt{metrics.json}, \nolinkurl{run_manifest.json}, and \texttt{summary.csv} outputs, confirming \textbf{69/70 exact matches} and surfacing one precision-rounding discrepancy (\texttt{V8F} 5-seed mean Precision in early markdown notes read $90.25\%$, whereas exact \texttt{metrics.json} aggregation yields \textbf{$90.2447\% \approx 90.24\%$}). All five-seed ``$\pm$'' spreads in Table~\ref{tab:ch6_b1_b2_table2} and Table~\ref{tab:ch6_dcrcf_trials} follow the raw audit convention using population standard deviation ($\sigma_{\text{pop}}$, \texttt{ddof=0}); under unbiased sample standard deviation ($s$, \texttt{ddof=1}, $n=5$), the corresponding intervals are $\pm 1.05 / \pm 0.65 / \pm 0.19 / \pm 0.394$ (\texttt{V8F}), $\pm 0.193 / \pm 0.250\%$ (\texttt{C3}), $\pm 0.092 / \pm 0.079\%$ (\texttt{C0}), and $\pm 0.083 / \pm 0.250\%$ (\texttt{V8S}), leaving all statistical rankings unchanged.
 
 \subsubsection{Forensic Decomposition of 98 Bare-Head False Negatives in B1 and Root Causes}
 
@@ -262,7 +264,7 @@ Tables~\ref{tab:ch6_test_y11}, \ref{tab:ch6_test_v8}, and~\ref{tab:ch6_test_delt
 \label{fig:ch6_ablation_val_test}
 \end{figure}
 
-\noindent\textbf{Cross-Benchmark Standing Against SOTA Baselines \texttt{B1} and \texttt{B2}:} Comparing official 1,587-image test accuracy across our full model suite reveals a clear hierarchy: \texttt{YOLO11s A1} leads at \textbf{89.8\% mAP@50 / 59.1\% mAP@50--95}, followed by \texttt{YOLO11s A6} at \textbf{88.9\% / 58.1\%} and \texttt{YOLOv8s A1} at \textbf{88.7\% / 57.8\%}---all decisively outperforming reproduced \textbf{Baseline 1} (\texttt{YOLO11n-DCRCF}: $84.36\% / 54.37\%$, $+4.54$ to $+5.44$ pp mAP@50 gain) and surpassing \textbf{Baseline 2} (\texttt{YOLOv8s-DWR-ASPP-NWD}: $88.19\% / 57.98\%$) while using far fewer parameters ($9.49\text{M}$ deployed \texttt{YOLO11s A6} vs. $16.29\text{M}$ \texttt{B2}) and lower latency.
+\noindent\textbf{Four-Decimal Precision Tie-Breaker (\nolinkurl{test_evaluation/summary.csv}) \& Standing Against \texttt{B1}/\texttt{B2}:} While the 1-decimal logs in Table~\ref{tab:ch6_test_v8} display an apparent $88.7\%$ mAP@50 tie between \texttt{YOLOv8s A1} and \texttt{A3}, extracting full 4-decimal percentages directly from Kaggle's \nolinkurl{test_evaluation/summary.csv} resolves \texttt{YOLOv8s A1} at \textbf{88.7328\%} (\texttt{57.7618\%} mAP@50--95) strictly ahead of \texttt{YOLOv8s A3} at \textbf{88.7305\%} (\texttt{57.1614\%}, $+0.0023$ pp), alongside \texttt{YOLO11s A1 = 89.7616\%} (\texttt{59.0804\%}), \texttt{YOLO11s A6 = 88.9379\%} (\texttt{58.0825\%}), and \texttt{YOLOv8s A6 = 88.3692\%} (\texttt{57.3711\%}). Comparing official 1,587-image test accuracy across our full model suite confirms a clear hierarchy: \texttt{YOLO11s A1} leads at \textbf{89.76\% / 59.08\%}, followed by \texttt{YOLO11s A6} at \textbf{88.94\% / 58.08\%} and \texttt{YOLOv8s A1} at \textbf{88.73\% / 57.76\%}---all decisively outperforming reproduced \textbf{Baseline 1} (\texttt{YOLO11n-DCRCF}: $84.36\% / 54.37\%$, $+4.58$ to $+5.40$ pp mAP@50 gain) and surpassing \textbf{Baseline 2} (\texttt{YOLOv8s-DWR-ASPP-NWD}: $88.19\% / 57.98\%$) while using far fewer parameters ($9.49\text{M}$ deployed \texttt{YOLO11s A6} vs. $16.29\text{M}$ \texttt{B2}) and lower latency.
 
 \subsubsection{Per-Class Test Analysis of A6 Across All Five Classes}
 
@@ -391,7 +393,7 @@ Crucially, Figure~\ref{fig:ch6_init_epochs}(b) refutes any claim that \texttt{A6
 
 \subsubsection{Progressive RTX 3050 Optimization Ladder (GDUT-A6)}
 
-To fulfill Review 3 Stage 1 Items 1.4 and 1.5 with verifiable hardware measurements, we benchmarked our deployed \texttt{Rep-YOLO11s-GDUT-A6} checkpoint across a five-stage optimization ladder on an edge-class \textbf{NVIDIA GeForce RTX 3050 Laptop GPU} (4 GB VRAM, PyTorch \texttt{2.0.0+cu118}) in \nolinkurl{Output/task3_eval_opt/optimization_benchmark_table.json}. Table~\ref{tab:ch6_opt_ladder} demonstrates that replacing Python region loops in \texttt{BiFormerBlockLite} with vectorized \texttt{torch.gather}, enabling CUDA AMP FP16 over FP32 master weights, and applying micro-batching ($N=4$) reduces per-frame inference latency from \textbf{12.86 ms (77.8 FPS)} to \textbf{6.81 ms/frame (146.9 FPS, $1.89\times$ GPU speedup; $46.4\times$ over 4-thread CPU)} with \textbf{0 box-count deviation} verified across 12 real construction video frames (\nolinkurl{fp32_boxes = 2}, \nolinkurl{fp16_amp_boxes = 2}, \nolinkurl{max_abs_count_delta = 0}).
+To fulfill Review 3 Stage 1 Items 1.4 and 1.5 with verifiable hardware measurements, we benchmarked our deployed \texttt{Rep-YOLO11s-GDUT-A6} checkpoint across a five-stage optimization ladder on an edge-class \textbf{NVIDIA GeForce RTX 3050 Laptop GPU} (4 GB VRAM, PyTorch \texttt{2.0.0+cu118}) in \nolinkurl{Output/task3_eval_opt/optimization_benchmark_table.json}. Table~\ref{tab:ch6_opt_ladder} demonstrates that replacing Python region loops in \texttt{BiFormerBlockLite} with vectorized \texttt{torch.gather}, enabling CUDA AMP FP16 over FP32 master weights, and applying micro-batching ($N=4$) reduces per-frame inference latency from \textbf{13.62 ms (73.4 FPS)} to \textbf{8.46 ms/frame (118.2 FPS, $1.61\times$ GPU speedup; $35.2\times$ over 4-thread CPU at $297.69$ ms)} with \textbf{0 box-count deviation} verified across 12 real construction video frames (\nolinkurl{fp32_boxes = 12}, \nolinkurl{fp16_amp_boxes = 12}, \nolinkurl{max_abs_count_delta = 0}, mean confidence diff \textbf{0.00033} at $B=1$ and \textbf{0.00032} at $N=4$).
 
 \begin{table}[htbp]
 \centering
@@ -399,17 +401,17 @@ To fulfill Review 3 Stage 1 Items 1.4 and 1.5 with verifiable hardware measureme
 \label{tab:ch6_opt_ladder}
 \resizebox{\textwidth}{!}{%
 \renewcommand{\arraystretch}{1.20}
-\begin{tabular}{|l|l|c|r|r|r|r|}
+\begin{tabular}{|l|l|c|r|r|r|r|l|}
 \hline
 \rowcolor{slatehdr}
-\textbf{Optimization Stage} & \textbf{Hardware / Precision} & \textbf{Batch} & \textbf{Latency (ms/f)} & \textbf{FPS} & \textbf{VRAM (MB)} & \textbf{Speedup vs. Before} \\
+\textbf{Optimization Stage} & \textbf{Hardware / Precision} & \textbf{Batch} & \textbf{Latency (ms/f)} & \textbf{FPS} & \textbf{VRAM (MB)} & \textbf{Speedup} & \textbf{Box / Conf Parity (12 Frames)} \\
 \hline
-CPU Reference (4-Thread) & CPU FP32 & 1 & 315.69 & 3.2 & 0.0 & $0.04\times$ \\ \hline
-\textbf{Before} (Loop BiFormer) & RTX 3050 FP32 & 1 & 12.86 & 77.8 & 282.3 & $1.00\times$ \\ \hline
-\textbf{After-1} (+ Vec \texttt{torch.gather} + RepConv) & RTX 3050 FP32 & 1 & 11.93 & 83.8 & 282.3 & $1.08\times$ \\ \hline
-\textbf{After-2} (+ CUDA AMP FP16) & RTX 3050 FP16-AMP & 1 & 10.50 & 95.2 & \textbf{278.0} & $1.22\times$ \\ \hline
+CPU Reference (4-Thread) & CPU FP32 & 1 & 297.69 & 3.4 & 0.0 & $0.05\times$ & CPU FP32 Ref \\ \hline
+\textbf{Before} (Loop BiFormer) & RTX 3050 FP32 (TF32) & 1 & 13.62 & 73.4 & 222.5 & $1.00\times$ & GPU FP32 Ref (12/12 boxes) \\ \hline
+\textbf{After-1} (+ Vec \texttt{torch.gather} + RepConv) & RTX 3050 FP32 (TF32) & 1 & 13.28 & 75.3 & 222.5 & $1.03\times$ & Exact Reparameterized FP32 \\ \hline
+\textbf{After-2} (+ CUDA AMP FP16) & RTX 3050 FP16-AMP & 1 & 12.08 & 82.8 & \textbf{217.5} & $1.13\times$ & $\Delta=0$ boxes (conf diff $0.00033$) \\ \hline
 \rowcolor{slatehdr}
-\textbf{After-3 (Micro-Batch $N=4$)} & \textbf{RTX 3050 FP16-AMP} & \textbf{4} & \textbf{6.81} & \textbf{146.9} & 341.0 & \textbf{$1.89\times$} \\ \hline
+\textbf{After-3 (Micro-Batch $N=4$)} & \textbf{RTX 3050 FP16-AMP} & \textbf{4} & \textbf{8.46} & \textbf{118.2} & 295.3 & \textbf{$1.61\times$} & $\Delta=0$ boxes (conf diff $0.00032$) \\ \hline
 \end{tabular}
 }
 \end{table}
@@ -439,7 +441,32 @@ Peak Allocated VRAM (FP32 / AMP FP16) & 167.44 / 216.04 MB & 169.99 / 222.35 MB 
 }
 \end{table}
 
-\noindent\textbf{Technical Reconciliation of FP32 Latency Between Table~\ref{tab:ch6_opt_ladder} (\texttt{11.93 ms}) and Table~\ref{tab:ch6_repconv_deploy} (\texttt{23.973 ms}):} Notice that single-batch FP32 latency in Table~\ref{tab:ch6_repconv_deploy} ($23.973\text{ ms}$) is approximately double the \texttt{After-1} FP32 figure in Table~\ref{tab:ch6_opt_ladder} ($11.93\text{ ms}$). This difference stems strictly from CUDA precision-backend flags and runtime serialization rather than model discrepancy: (1) Table~\ref{tab:ch6_opt_ladder} benchmarked the exported \nolinkurl{rep_yolo11s_gdut_a6_deploy.pt} checkpoint under PyTorch \texttt{2.0.0}'s default configuration (\nolinkurl{cudnn.allow_tf32 = True}), which routes cuDNN $3\times 3$ convolutions onto Ampere Tensor Cores using 19-bit TensorFloat-32 (TF32) arithmetic alongside vectorized \texttt{torch.gather} in \nolinkurl{custom_ablation_modules.BiFormerBlockLite}; (2) conversely, Table~\ref{tab:ch6_repconv_deploy} explicitly enforced \nolinkurl{allow_tf32 = False} for both cuDNN and cuBLAS on the raw \nolinkurl{GDUT_A6_YOLO11s_best.pt} training checkpoint so that output parity ($6.28 \times 10^{-6}$ mean abs diff) reflects strict IEEE-754 23-bit mantissa FP32 execution on standard SIMT cores without TF32 mantissa truncation. Re-benchmarking \nolinkurl{GDUT_A6_YOLO11s_best.pt} on the identical RTX 3050 under \nolinkurl{cudnn.allow_tf32 = True} confirms a \texttt{switch\_to\_deploy()} speedup from \textbf{15.145 ms (66.03 FPS)} to \textbf{14.107 ms (70.89 FPS, $-6.85\%$ latency)}, reconciling both benchmarks transparently (with the minor $2.18\text{ ms}$ residual vs. $11.93\text{ ms}$ attributable to laptop GPU thermal/clock variance and raw training wrapper vs. standalone exported \texttt{DetectionModel}).
+\noindent\textbf{Technical Reconciliation of FP32 Latency Between Table~\ref{tab:ch6_opt_ladder} (\texttt{13.28 ms}) and Table~\ref{tab:ch6_repconv_deploy} (\texttt{23.973 ms}):} Single-batch FP32 latency in Table~\ref{tab:ch6_repconv_deploy} ($23.973\text{ ms}$) is higher than \texttt{After-1} in Table~\ref{tab:ch6_opt_ladder} ($13.28\text{ ms}$) due strictly to precision flags: Table~\ref{tab:ch6_opt_ladder} runs PyTorch \texttt{2.0.0}'s default \nolinkurl{cudnn.allow_tf32 = True} (19-bit TensorFloat-32 on Ampere Tensor Cores), whereas Table~\ref{tab:ch6_repconv_deploy} enforces \nolinkurl{allow_tf32 = False} so output parity ($6.28 \times 10^{-6}$) reflects strict IEEE-754 23-bit mantissa FP32 execution. Benchmarking \nolinkurl{GDUT_A6_YOLO11s_best.pt} under \nolinkurl{cudnn.allow_tf32 = True} confirms a \nolinkurl{switch_to_deploy()} speedup from $15.145\text{ ms}$ ($66.03\text{ FPS}$) to \textbf{14.107 ms} ($70.89\text{ FPS}$, $-6.85\%$), matching \texttt{After-1} ($13.28\text{ ms}$) within $0.83\text{ ms}$ of laptop thermal variance and raw training wrapper overhead.
+
+\subsubsection{Paired End-to-End VMS \& Non-Biometric Upper-Torso Re-ID Benchmark}
+
+To eliminate cross-run thermal drift when measuring Re-ID cost inside the live VMS loop, \nolinkurl{scripts/benchmark_gdut_vms_end2end.py} evaluates a within-frame alternating paired protocol ($n=120$ shared detections at $1920\times 1080$, \nolinkurl{Output/task3_eval_opt/gdut_vms_end2end_reid_benchmark.json}). Table~\ref{tab:ch6_e2e_paired} verifies that full 5-stage VMS tracking with 3-strip HSV/Lab + HOG matching adds $2.70\text{ ms}$ over pure detection ($15.17\text{ ms}$ total, \textbf{65.9 FPS}), while activating \texttt{MobileNetV3-Small} deep extraction (\texttt{refresh = 30}, gated by the Two-Stage Gate) executes 4 deep extractions across 120 frames ($20.27\text{ ms}$ on extract frames vs. $15.16\text{ ms}$ on steady frames), adding only \textbf{$+0.16$ ms amortized latency} ($15.33\text{ ms}$ mean, \textbf{65.2 FPS}, $2.6\times$ above the 25 FPS SLA).
+
+\begin{table}[htbp]
+\centering
+\caption{Five-Tier Paired End-to-End 1080p VMS + Non-Biometric Re-ID Benchmark on RTX 3050 (\nolinkurl{gdut_vms_end2end_reid_benchmark.json}).}
+\label{tab:ch6_e2e_paired}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{|l|r|r|r|r|r|l|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Pipeline Tier} & \textbf{Mean (ms)} & \textbf{p95 (ms)} & \textbf{p99 (ms)} & \textbf{FPS} & \textbf{VRAM (MB)} & \textbf{Paired Parity / Overhead Note} \\
+\hline
+1. Detector Strict FP32 (\texttt{TF32=False}) & 17.11 & 17.92 & 18.58 & 58.4 & \textbf{106.1} & Baseline Ref (12/12 boxes) \\ \hline
+2. Detector TF32 FP32 (\texttt{TF32=True}) & \textbf{12.05} & \textbf{14.06} & \textbf{15.23} & \textbf{83.0} & 215.0 & $-5.06$ ms vs. Strict FP32 [Fastest $B=1$] \\ \hline
+3. Detector Selective AMP FP16 & 13.29 & 15.65 & 16.47 & 75.2 & 210.2 & $\Delta=0$ boxes, conf diff $0.00033$ \\ \hline
+4. TF32 + ByteTrack + 3-Strip Re-ID ($n=120$) & 15.17 & 18.03 & 18.45 & 65.9 & 215.0 & \texttt{det}=12.46 ms + \texttt{strip}=2.70 ms \\ \hline
+\rowcolor{slatehdr}
+5. Full VMS + MobileNetV3 Deep Re-ID ($n=120$) & 15.33 & 18.57 & 19.42 & 65.2 & 218.6 & \textbf{$+0.16$ ms avg} (4 calls: $20.27$ vs. $15.16$ ms) \\ \hline
+\end{tabular}
+}
+\end{table}
 
 \subsubsection{Multi-Stream 1080p Edge Scaling and Embedded Roofline Projection}
 
@@ -466,38 +493,43 @@ Table~\ref{tab:ch6_multistream} reports full end-to-end batched multi-stream pro
 
 Memory consumption stays remarkably compact---under \textbf{706 MB VRAM} even at 8 simultaneous 1080p streams (with $N=1$ at 40.9 FPS and $N=2$ at 25.8 FPS/stream meeting the 25 FPS SLA)---meaning an NVIDIA Jetson Orin Nano (8 GB unified memory, 40 TOPS INT8 / 20 TFLOPS FP16, 15W TDP) or Xavier NX easily accommodates the full single-container Docker stack with ample headroom for 1--2 full-rate 25 FPS channels or 4 channels at 12--15 FPS industrial CCTV sampling.
 
-\subsection{Software Verification, API Load/Stress Testing, Field Audit, and UAT/SUS}
+\subsection{Software Verification, Dual Load/Stress Testing, Field Audit, and UAT/SUS}
 
 \begin{enumerate}[leftmargin=1.8em, itemsep=4pt]
-  \item \textbf{Automated Unit and Integration Verification (\texttt{pytest}):} Executing \texttt{python -m pytest tests -q} on CPU (\nolinkurl{CUDA_VISIBLE_DEVICES=-1}) passes \textbf{108 / 108 tests (100\%)} in 24.98 seconds (and passes 108/108 in weightless CI stub mode \nolinkurl{MODEL_PATH=ci_stub_missing.pt}). Test coverage spans Dynamic Taxonomy GDUT adaptation (\texttt{cls=2} $\to$ \texttt{yellow}), 100-frame stationary-worker PPE retention, ByteTrack/Re-ID anti-hijack, 8-frame violation debouncing, FastAPI endpoints (\texttt{/api/metrics}, \texttt{/metrics}, \nolinkurl{/api/predict_image}, \texttt{/api/feedback}, \nolinkurl{/api/switch_model}), and mocked Telegram/Zalo dispatchers.
-  \item \textbf{FastAPI Concurrency Load and Stress Testing:} Benchmarking the live ASGI server via \nolinkurl{scripts/load_test_api.py} (\nolinkurl{Output/load_test_results.json}) across $C \in \{10, 25, 50, 100\}$ concurrent users (1,400 total HTTP requests across telemetry, status, alerts, and workers endpoints) demonstrates sustained throughput peaking at \textbf{346.0 RPS} ($C=25$) and holding \textbf{320.4 RPS} at $C=100$ with \textbf{0 HTTP errors (0.0\% failure rate)} across every concurrency tier (Table~\ref{tab:ch6_load_test} and Figure~\ref{fig:ch6_opt_load}).
-  \item \textbf{Real-World Construction CCTV Video Testing:} Verified smooth end-to-end execution across our 11-video repository in \texttt{video\_test/} spanning 1080p and 4K UHD construction scenes (\nolinkurl{construction_site_workers_1080p.mp4}, \nolinkurl{10810476-hd_1920_1080_30fps.mp4}, \nolinkurl{13921040-uhd_3840_2160_30fps.mp4}, \texttt{brickmasonry 11.mp4}, \texttt{concreting 10.mp4}), confirming stable real-time HUD telemetry, instant hot-swap via \nolinkurl{switch_to_gdut.bat}, and zero crashes under 4K automatic downscaling.
-  \item \textbf{User Acceptance Testing (UAT) and SUS Protocol:} A standardized 10-item System Usability Scale (SUS) questionnaire~\cite{brooke1996sus} (5-point Likert, $\text{SUS} = 2.5 \sum c_i \in [0, 100]$, target $\ge 68.0$) paired with four timed operational scenarios (Camera Switch; GDUT 5-Class Hot-Swap via \nolinkurl{/api/switch_model} verifying \nolinkurl{is_helmet_only=true}, String-First 4-color helmet distribution, and \texttt{none} violation alerting [with \textit{Solo Focus} activating only when hot-swapped to a \texttt{person}-class model]; Evidence Lightbox + HITL Feedback; and Image Audit Upload) is packaged in \nolinkurl{docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md} and reproduced verbatim in Appendix D. Consistent with our zero-fabrication commitment, because external construction-officer field trials ($N \ge 10$) are scheduled post-defense, no synthetic SUS score is fabricated here.
+  \item \textbf{Automated Unit and Integration Verification (\texttt{pytest}):} Executing \texttt{python -m pytest tests -q} on CPU (\nolinkurl{CUDA_VISIBLE_DEVICES=-1}) passes \textbf{131 / 131 tests (100\%)} in 132.07 seconds (and passes \textbf{130 passed, 1 skipped} in 12.65 seconds in weightless CI stub mode \nolinkurl{MODEL_PATH=nonexistent_ci_stub.pt}, where 1 video/weight-dependent test skips gracefully). Test coverage spans Dynamic Taxonomy GDUT adaptation (\texttt{cls=2} $\to$ \texttt{yellow}), Confirm-Before-Mint (\texttt{min\_confirm\_hits=6}) and Two-Stage Gate non-biometric Upper-Torso Re-ID with 15-frame TTL \nolinkurl{hijack_excluded_ids}, 100-frame stationary-worker PPE retention, 8-frame violation debouncing, Circuit Breaker \texttt{HALF\_OPEN} single-probe transitions, Binary WebSocket \texttt{/ws/webcam} framing, Role-by-Color APIs (\texttt{/api/roles}), PostgreSQL persistence fallback, FastAPI endpoints, and optimization JSON parity consistency.
+  \item \textbf{Dual API Concurrency Load and Stress Testing (4A In-Process vs. 4B 6-Container Docker):} Benchmarking via \nolinkurl{scripts/load_test_api.py} across $C \in \{10, 25, 50, 100\}$ concurrent clients (1,400 requests per tier across telemetry, status, alerts, and workers routes) confirms \textbf{0 HTTP errors (0.0\% failure)} in both configurations: (a) \textbf{4A In-Process ASGI} (\nolinkurl{Output/load_test_results.json}) sustains \textbf{446.7--501.1 RPS} (p95 $30.56$--$199.25$ ms); and (b) \textbf{4B 6-Container Enterprise Docker Stack} (\nolinkurl{Output/load_test_enterprise_docker.json}) sustains \textbf{260.8--225.2 RPS} (p95 $69.09$--$480.67$ ms) through Nginx $\to$ Gateway proxy hops and PostgreSQL-backed telemetry (Table~\ref{tab:ch6_load_test} and Figure~\ref{fig:ch6_opt_load}).
+  \item \textbf{Real-World Construction CCTV Video \& Live Observability Verification:} Verified smooth end-to-end execution across our local test videos in \texttt{video\_test/} spanning 1080p and 4K UHD construction scenes (\nolinkurl{construction_site_workers_1080p.mp4}, \nolinkurl{10810476-hd_1920_1080_30fps.mp4}, \nolinkurl{13921040-uhd_3840_2160_30fps.mp4}, \texttt{brickmasonry 11.mp4}, \texttt{concreting 10.mp4}) as well as synthetic Y4M WebRTC feeds over \texttt{/ws/webcam} (35 ms RTT). During live 6-container streaming, Prometheus scraped Linux cgroup v2 working-set RAM at \textbf{86.7--91.2 MB} for \texttt{api-gateway} (matching \texttt{docker stats} at \texttt{86.48 MiB}) and \textbf{3,020.6 MB} (\texttt{2.950 GiB}) for \texttt{ai-inference} (matching \texttt{2.944 GiB}).
+  \item \textbf{User Acceptance Testing (UAT) and SUS Protocol:} A standardized 10-item System Usability Scale (SUS) questionnaire~\cite{brooke1996sus} (5-point Likert, $\text{SUS} = 2.5 \sum c_i \in [0, 100]$, target $\ge 68.0$) paired with four timed operational scenarios (Camera Switch \& Solo Focus locking directly on GDUT 5-class head detections via \texttt{\#viewportFocusBadge} and CSV export; GDUT 5-Class Hot-Swap via \nolinkurl{/api/switch_model}; Evidence Lightbox + HITL Feedback; and Image Audit Upload) is packaged in \nolinkurl{docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md} and reproduced in Appendix D. External safety-officer field scoring ($N \ge 10$) remains scheduled post-defense; zero synthetic SUS scores are fabricated.
 \end{enumerate}
 
 \begin{table}[htbp]
 \centering
-\caption{FastAPI Concurrency Load and Stress Benchmark (\nolinkurl{scripts/load_test_api.py}, \nolinkurl{Output/load_test_results.json}).}
+\caption{Dual API Concurrency Load Benchmark: 4A In-Process ASGI vs. 4B 6-Container Enterprise Docker (\nolinkurl{load_test_results.json} \& \nolinkurl{load_test_enterprise_docker.json}).}
 \label{tab:ch6_load_test}
 \small
 \renewcommand{\arraystretch}{1.18}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{|c|r|r|r|r|r|r|r|r|}
+\begin{tabular}{|l|c|r|r|r|r|r|r|r|r|}
 \hline
 \rowcolor{slatehdr}
-\textbf{Concurrency ($C$)} & \textbf{Requests} & \textbf{Wall (s)} & \textbf{Throughput (RPS)} & \textbf{Avg (ms)} & \textbf{p50 (ms)} & \textbf{p95 (ms)} & \textbf{p99 (ms)} & \textbf{Error (\%)} \\
+\textbf{Deployment Profile} & \textbf{Concurrency ($C$)} & \textbf{Requests} & \textbf{Wall (s)} & \textbf{RPS} & \textbf{Avg (ms)} & \textbf{p50 (ms)} & \textbf{p95 (ms)} & \textbf{p99 (ms)} & \textbf{Err (\%)} \\
 \hline
-10  & 200 & 0.737 & 271.3 & 35.24  & 27.59  & 69.26  & 80.25  & \textbf{0.0} \\ \hline
-25  & 300 & 0.867 & \textbf{346.0} & 68.02  & 52.57  & 125.08 & 129.32 & \textbf{0.0} \\ \hline
-50  & 400 & 1.265 & 316.3 & 147.96 & 137.76 & 257.07 & 294.87 & \textbf{0.0} \\ \hline
-100 & 500 & 1.561 & 320.4 & 277.46 & 266.44 & 371.11 & 436.89 & \textbf{0.0} \\ \hline
+4A In-Process ASGI & 10  & 200 & 0.448 & 446.7 & 21.89  & 22.35  & 30.56  & 32.50  & \textbf{0.0} \\ \hline
+4A In-Process ASGI & 25  & 300 & 0.615 & 487.9 & 48.27  & 48.42  & 58.05  & 61.74  & \textbf{0.0} \\ \hline
+4A In-Process ASGI & 50  & 400 & 0.881 & 454.1 & 101.27 & 97.01  & 150.70 & 169.97 & \textbf{0.0} \\ \hline
+4A In-Process ASGI & 100 & 500 & 0.998 & \textbf{501.1} & 173.34 & 187.83 & 199.25 & 200.31 & \textbf{0.0} \\ \hline
+\hline
+4B 6-Container Docker & 10  & 200 & 0.767 & \textbf{260.8} & 37.04  & 30.72  & 69.09  & 76.32  & \textbf{0.0} \\ \hline
+4B 6-Container Docker & 25  & 300 & 1.169 & 256.6 & 92.65  & 89.83  & 133.69 & 146.90 & \textbf{0.0} \\ \hline
+4B 6-Container Docker & 50  & 400 & 1.680 & 238.1 & 196.97 & 198.47 & 250.91 & 267.62 & \textbf{0.0} \\ \hline
+4B 6-Container Docker & 100 & 500 & 2.220 & 225.2 & 394.80 & 422.74 & 480.67 & 500.78 & \textbf{0.0} \\ \hline
 \end{tabular}}
 \end{table}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.98\textwidth]{figures/fig_gdut_optimization_and_multistream.png}
-\caption{Production optimization and load verification: (a) Progressive RTX 3050 speedup of \texttt{Rep-YOLO11s-GDUT-A6} reaching 146.9 FPS ($1.89\times$, $5.9\times$ above 25 FPS SLA); (b) FastAPI concurrent load throughput peaking at 346.0 RPS with 0.0\% errors up to $C=100$.}
+\caption{Production optimization and load verification: (a) Progressive RTX 3050 speedup of \texttt{Rep-YOLO11s-GDUT-A6} reaching 118.2 FPS ($8.46$ ms/frame, $1.61\times$ GPU speedup, $4.7\times$ above 25 FPS SLA); (b) Dual concurrent load throughput comparing 4A In-Process ASGI (up to 501.1 RPS) and 4B 6-Container Enterprise Docker (225.2--260.8 RPS) with 0.0\% errors up to $C=100$.}
 \label{fig:ch6_opt_load}
 \end{figure}
 
@@ -515,7 +547,7 @@ Synthesizing all quantitative evidence allows us to answer \textbf{RQ1--RQ4} can
     \item \textit{Focal-EIoU Localization Trade-off:} On tiny ambiguous bare heads (\texttt{none}), down-weighting low-IoU regressions via $\mathrm{IoU}^{0.5}$ did not surpass CIoU in mAP@50--95 (\texttt{A4} matched \texttt{A0} on test mAP@50--95 at $58.5\%$ / $57.2\%$).
     \item \textit{Role of Scientific Ablation:} An ablation study exists to test design hypotheses objectively---not to force a maximal-complexity model to win every column. On a 1,265-scene dataset, clean data engineering (\texttt{A1}) often dominates added architectural parameters.
   \end{enumerate}
-  \item \textbf{Answer to RQ4 (Edge Optimization and VMS Reliability):} Vectorizing \texttt{BiFormerBlockLite}, verifying \nolinkurl{RepConv.switch_to_deploy()} ($-300,992$ params, $-6.3\%$ AMP FP16 latency, $6.28 \times 10^{-6}$ mean diff), enabling CUDA AMP FP16, and micro-batching ($N=4$) drove \texttt{Rep-YOLO11s-GDUT-A6} to \textbf{146.9 FPS} ($6.81$ ms/frame) on RTX 3050 with zero detection drift, while AEGIS-CCTV passed 108/108 tests and sustained 346.0 RPS with 0.0\% HTTP failures.
+  \item \textbf{Answer to RQ4 (Edge Optimization and VMS Reliability):} Vectorizing \texttt{BiFormerBlockLite}, verifying \nolinkurl{RepConv.switch_to_deploy()} ($-300,992$ params, $-6.3\%$ AMP FP16 latency, $6.28 \times 10^{-6}$ mean diff), enabling CUDA AMP FP16, and micro-batching ($N=4$) drove \texttt{Rep-YOLO11s-GDUT-A6} to \textbf{118.2 FPS} ($8.46$ ms/frame, $1.61\times$ GPU speedup, $\Delta=0$ boxes) on RTX 3050, while paired end-to-end VMS + MobileNetV3 Re-ID executes at \textbf{65.2 FPS} ($15.33$ ms, $+0.16$ ms amortized over 3-strip Re-ID). Simultaneously, AEGIS-CCTV passed 131/131 CPU \texttt{pytest} cases (130 passed, 1 skipped in stub mode), matched Linux cgroup working-set RAM in Prometheus/Grafana, and sustained 446.7--501.1 RPS in-process and 225.2--260.8 RPS across 6 Docker containers with 0.0\% HTTP failures.
 \end{itemize}
 
 \section{Recommendations}

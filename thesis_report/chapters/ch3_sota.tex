@@ -105,8 +105,8 @@ Additional 2025--2026 helmet literature confirms strong community interest in li
 Four recent technological shifts directly enable the systems architecture engineered in Chapter V:
 \begin{itemize}[leftmargin=1.8em, itemsep=3pt]
   \item \textbf{Mixed-Precision Tensor Cores and Structural Fusion:} Modern edge GPUs (NVIDIA Ampere/Ada architectures including RTX 3050 and Jetson Orin) execute FP16 tensor operations via PyTorch Automatic Mixed Precision (\texttt{torch.cuda.amp.autocast}) at $1.5\times$--$2.0\times$ lower latency than FP32 while retaining FP32 accumulation in numerically sensitive layers (\texttt{CoordConv} grid generation and \texttt{BiFormer} attention softmax). Combined with \nolinkurl{RepConv.switch_to_deploy()} branch fusion and micro-batching ($N=4$), single-node GPUs comfortably serve multiple 1080p streams.
-  \item \textbf{Asynchronous Python Microservices (FastAPI + Uvicorn ASGI):} Moving from synchronous Flask prototypes to ASGI-native FastAPI decouples non-blocking HTTP telemetry, Prometheus \texttt{/metrics} scraping, and single-image audits from the background CUDA video inference thread via ThreadPool delegation and Double-Checked Locking.
-  \item \textbf{Containerized Edge Reproducibility (Docker + NVIDIA Container Toolkit):} Resource-constrained Docker Compose profiles (\texttt{cpus: "4.0"}, \texttt{memory: 6144M}, GPU passthrough) allow realistic edge hardware emulation on standard development workstations and guarantee deterministic one-click deployment.
+  \item \textbf{Asynchronous Microservices \& Binary WebSocket Transport (FastAPI + Nginx + PostgreSQL 16):} Decoupling the control-plane API Gateway (\texttt{api-gateway} with \texttt{HALF\_OPEN} single-probe Circuit Breaker and PostgreSQL 16 persistence) from GPU inference (\texttt{ai-inference}) behind Nginx enables fault-isolated telemetry, Prometheus/Grafana observability, Binary WebSocket (\texttt{/ws/webcam}) live webcam ingestion, and non-blocking image audits without stalling CUDA inference threads.
+  \item \textbf{Containerized Edge \& Multi-Service Reproducibility (Docker + NVIDIA Container Toolkit):} Resource-constrained Docker Compose profiles (\nolinkurl{docker-compose.enterprise.yml} for 6-microservice production VMS and \nolinkurl{docker-compose.edge-simulation.yml} for \texttt{cpus: "4.0"}, \texttt{memory: 6144M} single-node emulation) guarantee deterministic deployment.
   \item \textbf{Multi-Object Tracking and Temporal Debouncing:} Pairing frame-level detectors with ByteTrack~\cite{zhang2022bytetrack} or spatial proximity debouncing ($K=8$ consecutive frames + 30s cooldown) transforms noisy frame-by-frame detections into reliable incident logs suitable for industrial alerting over Telegram and Zalo webhooks.
 \end{itemize}
 
@@ -136,7 +136,7 @@ YOLO-DCRCF (Zhao 2025~\cite{zhao2025yolodcrcf}) & 2-class SHWD / power grid & St
 YOLOv8-CGS / RFAConv (2025--2026~\cite{wu2025advancing,wang2026yolov11ncoalmine}) & 2-class helmet/head & Standard HSV jitter & Single backbone & No VMS, no Docker, no load test & None \\
 \hline
 \rowcolor{slatehdr}
-\textbf{Project FA26AI16 (Ours -- AEGIS-CCTV)} & \textbf{5-class GDUT-HWD (4 colors + none)} & \textbf{SHA-256 dedup (3,168 clean) + \texttt{hsv\_h/s=0}} & \textbf{2 backbones (\texttt{A0--A6}) + 5-seed \texttt{B1/B2} audit} & \textbf{Docker Edge VMS, Hot-Swap, Telegram/Zalo, HITL} & \textbf{GitHub CI, 108 \texttt{pytest}, 346 RPS, Prometheus} \\
+\textbf{Project FA26AI16 (Ours -- AEGIS-CCTV v2.5)} & \textbf{5-class GDUT-HWD (4 colors + none)} & \textbf{SHA-256 dedup (3,168 clean) + \texttt{hsv\_h/s=0}} & \textbf{2 backbones (\texttt{A0--A6}) + 5-seed \texttt{B1/B2/C0/V8S}} & \textbf{6-Microservice Docker VMS, Two-Stage Re-ID, Hot-Swap, TG/Zalo} & \textbf{GitHub CI (\texttt{ruff}), 131 \texttt{pytest}, 501/261 RPS, Grafana} \\
 \hline
 \end{tabular}
 }

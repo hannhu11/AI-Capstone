@@ -147,8 +147,41 @@ class _TelemetryASGIMiddleware:
 app.add_middleware(_TelemetryASGIMiddleware)
 
 
+def _get_container_working_set_mb() -> float:
+    """
+    Returns container working-set memory in MB matching `docker stats` inside Linux containers
+    (cgroup v2 `memory.current - inactive_file`, or cgroup v1 fallback), falling back to process RSS.
+    """
+    try:
+        cg2_cur = Path("/sys/fs/cgroup/memory.current")
+        if cg2_cur.exists():
+            cur = int(cg2_cur.read_text(encoding="utf-8").strip())
+            inactive_file = 0
+            cg2_stat = Path("/sys/fs/cgroup/memory.stat")
+            if cg2_stat.exists():
+                for line in cg2_stat.read_text(encoding="utf-8").splitlines():
+                    if line.startswith("inactive_file "):
+                        inactive_file = int(line.split()[1])
+                        break
+            return round(max(0, cur - inactive_file) / (1024 * 1024), 1)
+        cg1_cur = Path("/sys/fs/cgroup/memory/memory.usage_in_bytes")
+        if cg1_cur.exists():
+            cur = int(cg1_cur.read_text(encoding="utf-8").strip())
+            inactive_file = 0
+            cg1_stat = Path("/sys/fs/cgroup/memory/memory.stat")
+            if cg1_stat.exists():
+                for line in cg1_stat.read_text(encoding="utf-8").splitlines():
+                    if line.startswith("total_inactive_file "):
+                        inactive_file = int(line.split()[1])
+                        break
+            return round(max(0, cur - inactive_file) / (1024 * 1024), 1)
+    except Exception:
+        pass
+    return round(_PROCESS.memory_info().rss / (1024 * 1024), 1)
+
+
 def _collect_host_telemetry() -> Dict[str, Any]:
-    mem_mb = round(_PROCESS.memory_info().rss / (1024 * 1024), 1)
+    mem_mb = _get_container_working_set_mb()
     cpu_pct = round(psutil.cpu_percent(interval=None), 1)
     vram_mb = (
         round(torch.cuda.memory_allocated(0) / (1024 * 1024), 1)

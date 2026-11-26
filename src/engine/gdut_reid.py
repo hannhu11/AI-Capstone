@@ -475,7 +475,7 @@ class UpperTorsoIdentityProfile:
         frame_idx: int,
         now_ts: float,
         deep_sig: Optional[np.ndarray] = None,
-        min_confirm_hits: int = 10,
+        min_confirm_hits: int = 6,
         min_confirm_frames: int = 24,
     ):
         self.last_box = np.asarray(head_box[:4], dtype=np.float32).copy()
@@ -598,7 +598,7 @@ class UpperTorsoReIDGallery:
         self._tentative_tracks: Dict[int, UpperTorsoIdentityProfile] = {}
         self.raw_to_canonical: Dict[int, int] = {}
         self.raw_conflict_streak: Dict[int, int] = {}
-        self.hijack_excluded_ids: Dict[int, int] = {}
+        self.hijack_excluded_ids: Dict[int, Tuple[int, int]] = {}
         self.next_id: int = 1
 
     def prewarm(self) -> bool:
@@ -728,6 +728,10 @@ class UpperTorsoReIDGallery:
             return []
 
         ts = float(now_ts if now_ts is not None else time.time())
+        fidx_int = int(frame_idx)
+        self.hijack_excluded_ids = {
+            k: v for k, v in self.hijack_excluded_ids.items() if fidx_int <= int(v[1])
+        }
         n_items = len(items)
         results: List[Optional[UpperTorsoIdentityProfile]] = [None] * n_items
         unmatched_indices: List[int] = []
@@ -788,7 +792,7 @@ class UpperTorsoReIDGallery:
                     else:
                         self.raw_to_canonical.pop(raw_track_id, None)
                         self.raw_conflict_streak.pop(raw_track_id, None)
-                        self.hijack_excluded_ids[raw_track_id] = cid
+                        self.hijack_excluded_ids[raw_track_id] = (cid, fidx_int + 15)
             elif raw_track_id in self._tentative_tracks:
                 tent = self._tentative_tracks[raw_track_id]
                 tent.update(
@@ -822,13 +826,38 @@ class UpperTorsoReIDGallery:
                 key=lambda prof: (not prof.is_confirmed, -prof.last_seen_ts),
             )
 
+            diag = float(np.hypot(frame_bgr.shape[1], frame_bgr.shape[0])) + 1e-5
             cand_deeps: Dict[int, Optional[np.ndarray]] = {}
             if inactive_candidates and self.deep_extractor.available:
-                for idx in unmatched_indices:
-                    cand_deeps[idx] = self.deep_extractor.extract(frame_bgr, prepared[idx][3])
+                for orig_idx in unmatched_indices:
+                    raw_id, hbox, _, roi, strip_sig, _ = prepared[orig_idx]
+                    is_promoted = orig_idx in promoted_candidates
+                    if is_promoted:
+                        cand_deeps[orig_idx] = self.deep_extractor.extract(frame_bgr, roi)
+                        continue
+                    c_cx = 0.5 * float(hbox[0] + hbox[2])
+                    c_cy = 0.5 * float(hbox[1] + hbox[3])
+                    excl_entry = self.hijack_excluded_ids.get(raw_id)
+                    excluded_cid = (
+                        excl_entry[0]
+                        if (excl_entry is not None and fidx_int <= int(excl_entry[1]))
+                        else None
+                    )
+                    coarse_eligible = False
+                    for prof in inactive_candidates:
+                        if excluded_cid is not None and prof.worker_id == excluded_cid:
+                            continue
+                        p_cx = 0.5 * float(prof.last_box[0] + prof.last_box[2])
+                        p_cy = 0.5 * float(prof.last_box[1] + prof.last_box[3])
+                        dist_norm = float(np.hypot(p_cx - c_cx, p_cy - c_cy)) / diag
+                        if dist_norm <= 0.25 or prof.max_strip_sim(strip_sig) >= 0.45:
+                            coarse_eligible = True
+                            break
+                    cand_deeps[orig_idx] = (
+                        self.deep_extractor.extract(frame_bgr, roi) if coarse_eligible else None
+                    )
 
             if inactive_candidates:
-                diag = float(np.hypot(frame_bgr.shape[1], frame_bgr.shape[0])) + 1e-5
                 num_u = len(unmatched_indices)
                 num_p = len(inactive_candidates)
                 score_mat = np.full((num_u, num_p), -1.0, dtype=np.float32)
@@ -849,7 +878,12 @@ class UpperTorsoReIDGallery:
                         if (tent is not None and tent.last_known_helmet_color)
                         else cls_norm
                     )
-                    excluded_cid = self.hijack_excluded_ids.get(raw_id)
+                    excl_entry = self.hijack_excluded_ids.get(raw_id)
+                    excluded_cid = (
+                        excl_entry[0]
+                        if (excl_entry is not None and fidx_int <= int(excl_entry[1]))
+                        else None
+                    )
                     c_deep = cand_deeps.get(orig_idx)
                     c_cx = 0.5 * float(hbox[0] + hbox[2])
                     c_cy = 0.5 * float(hbox[1] + hbox[3])

@@ -495,6 +495,12 @@ def main():
             "max_abs_count_delta": parity_summary["max_abs_count_delta"],
             "mean_conf_diff": parity_summary["mean_conf_diff"],
         }
+        for rec in opt_data.get("records", []):
+            if rec.get("model") == "Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)" and rec.get("stage") == "After-2 (+ CUDA AMP FP16)":
+                rec["accuracy_delta"] = (
+                    f"B=1: Delta {parity_summary['max_abs_count_delta']} boxes "
+                    f"({parity_summary['fp32_boxes']}/{parity_summary['amp_fp16_boxes']}, conf diff {parity_summary['mean_conf_diff']})"
+                )
         opt_path.write_text(json.dumps(opt_data, indent=2), encoding="utf-8")
         print(f"[UPDATED PARITY] {opt_path}")
 

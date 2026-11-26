@@ -52,7 +52,7 @@
       "vram_mb": 217.5,
       "ckpt_mb": 36.55,
       "speedup_vs_before": 1.13,
-      "accuracy_delta": "B=1: Delta 0 boxes (12/12, conf diff 0.00036)"
+      "accuracy_delta": "B=1: Delta 0 boxes (12/12, conf diff 0.00033)"
     },
     {
       "model": "Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)",

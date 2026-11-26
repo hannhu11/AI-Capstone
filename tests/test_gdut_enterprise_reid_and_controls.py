@@ -790,3 +790,98 @@ def test_detector_zero_ablation_factory_dependency():
     src_text = (_Path(__file__).resolve().parent.parent / "src" / "engine" / "detector.py").read_text(encoding="utf-8")
     assert "ablation_factory" not in src_text
     assert "from custom_ablation_modules import BiFormerSequentialWrapper" in src_text
+
+
+def test_reid_two_stage_gate_skips_deep_extract_for_far_low_sim_noise():
+    """1-frame far low-similarity noise must NOT invoke deep MobileNetV3 extraction in Step 2."""
+    import numpy as np
+    from src.engine.gdut_reid import UpperTorsoReIDGallery
+
+    frame = np.full((720, 1280, 3), 25, dtype=np.uint8)
+    # Worker A wears vivid orange-yellow clothing on left side (x: 60..220, y: 140..420)
+    frame[140:420, 60:220] = [20, 165, 240]
+    # Distant corner noise region with contrasting blue jacket (x: 1080..1240, y: 450..700)
+    frame[450:700, 1080:1240] = [210, 40, 20]
+
+    gal = UpperTorsoReIDGallery(ttl_seconds=600.0, sim_thresh=0.70, use_deep=False, min_confirm_hits=3, min_confirm_frames=6)
+    fake_calls = []
+
+    class _MockDeep:
+        available = True
+
+        def extract(self, _frame, _roi):
+            fake_calls.append(1)
+            vec = np.ones(712, dtype=np.float32)
+            return vec / float(np.linalg.norm(vec))
+
+    gal.deep_extractor = _MockDeep()
+
+    # Confirm Worker A across 3 frames -> minted as canonical ID #1
+    box_a = [100.0, 60.0, 180.0, 140.0]
+    for fidx in range(3):
+        profs = gal.associate_batch([(1, box_a, "yellow")], frame_bgr=frame, frame_idx=fidx, now_ts=100.0 + fidx * 0.04)
+        gal.update_frame_end([p.worker_id for p in profs if p.worker_id > 0], frame_idx=fidx, now_ts=100.0 + fidx * 0.04)
+    assert 1 in gal.profiles and len(fake_calls) == 1
+
+    # Worker A exits -> becomes inactive candidate
+    gal.update_frame_end([], frame_idx=5, now_ts=100.2)
+    assert gal.profiles[1].is_active is False
+
+    # Inject 1-frame far low-similarity noise on opposite corner (dist > 0.25 diag, distinct color)
+    calls_before_noise = len(fake_calls)
+    noise_box = [1120.0, 380.0, 1190.0, 450.0]
+    profs_n = gal.associate_batch([(99, noise_box, "blue")], frame_bgr=frame, frame_idx=6, now_ts=100.24)
+    assert len(profs_n) == 1 and profs_n[0].worker_id < 0
+    assert len(fake_calls) == calls_before_noise, f"Expected 0 deep calls on 1-frame noise, got {len(fake_calls) - calls_before_noise}"
+
+
+def test_hijack_excluded_ids_expires_after_ttl():
+    """hijack_excluded_ids must store (cid, expire_frame) with 15-frame TTL and prune expired locks."""
+    import numpy as np
+    from src.engine.gdut_reid import UpperTorsoReIDGallery
+
+    frame_a = np.full((720, 1280, 3), 20, dtype=np.uint8)
+    for y in range(160, 460, 8):
+        frame_a[y : y + 4, 180:360] = [30, 220, 250]  # bright yellow/orange horizontal stripes
+    frame_b = np.full((720, 1280, 3), 20, dtype=np.uint8)
+    for x in range(180, 360, 12):
+        frame_b[160:460, x : x + 4] = [230, 30, 20]  # contrasting blue vertical stripes -> sim < 0.22
+
+    gal = UpperTorsoReIDGallery(ttl_seconds=600.0, sim_thresh=0.70, use_deep=False, min_confirm_hits=3, min_confirm_frames=6)
+    box = [220.0, 80.0, 310.0, 160.0]
+    for fidx in range(4):
+        profs = gal.associate_batch([(7, box, "yellow")], frame_bgr=frame_a, frame_idx=fidx, now_ts=10.0 + fidx * 0.04)
+        gal.update_frame_end([p.worker_id for p in profs if p.worker_id > 0], frame_idx=fidx, now_ts=10.0 + fidx * 0.04)
+    assert gal.raw_to_canonical.get(7) == 1
+
+    # Sudden clothing divergence at frame 10 triggers anti-hijack break with TTL = 10 + 15 = 25
+    gal.associate_batch([(7, box, "blue")], frame_bgr=frame_b, frame_idx=10, now_ts=10.4)
+    assert 7 in gal.hijack_excluded_ids
+    cid_excl, exp_frame = gal.hijack_excluded_ids[7]
+    assert cid_excl == 1 and exp_frame == 25
+
+    # Still locked at frame 24, auto-pruned at frame 26
+    gal.associate_batch([], frame_bgr=frame_b, frame_idx=24, now_ts=10.96)
+    gal.update_frame_end([], frame_idx=24, now_ts=10.96)
+    gal.associate_batch([(8, [900.0, 90.0, 960.0, 150.0], "blue")], frame_bgr=frame_b, frame_idx=24, now_ts=10.96)
+    assert 7 in gal.hijack_excluded_ids
+    gal.associate_batch([(8, [900.0, 90.0, 960.0, 150.0], "blue")], frame_bgr=frame_b, frame_idx=26, now_ts=11.04)
+    assert 7 not in gal.hijack_excluded_ids
+
+
+def test_optimization_json_parity_internal_consistency():
+    """After-2 accuracy_delta string and video_parity_fp32_vs_amp_fp16.mean_conf_diff must match identically."""
+    import json as _json
+    from pathlib import Path as _Path
+
+    opt_path = _Path(__file__).resolve().parent.parent / "Output" / "task3_eval_opt" / "optimization_benchmark_table.json"
+    if not opt_path.exists():
+        return
+    data = _json.loads(opt_path.read_text(encoding="utf-8"))
+    vp = data.get("video_parity_fp32_vs_amp_fp16", {}).get("Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)", {})
+    after2 = next((r for r in data.get("records", []) if r.get("stage") == "After-2 (+ CUDA AMP FP16)"), None)
+    assert vp and after2 is not None
+    expected_token = f"conf diff {vp['mean_conf_diff']}"
+    assert expected_token in str(after2.get("accuracy_delta", "")), (
+        f"Mismatch between After-2 '{after2.get('accuracy_delta')}' and video_parity mean_conf_diff={vp['mean_conf_diff']}"
+    )

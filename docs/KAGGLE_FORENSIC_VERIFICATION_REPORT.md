@@ -1,8 +1,8 @@
 # Kaggle Forensic Verification Report — GDUT-HWD 5-Class (`nvthanh2004` + `tundng111`)
 
-> **Generated (UTC):** `2026-11-26T06:26:48.484357+00:00`
+> **Generated (UTC):** `2026-11-26T10:12:35.932046+00:00`
 > **Verification Policy:** Zero trust in secondary `.md` summaries until independently verified 1-to-1 against public Read-Only Kaggle notebooks (`.ipynb`), raw `run_manifest.json`, `results.csv`, `initialization_check.json`, `architecture_rank_0.json`, `test_evaluation/summary.csv`, `*_per_class.json`, and raw Kaggle `execution_log.txt`.
-> **Audit Score:** **`66/67` checks MATCHED (`1` mismatches)** across all 11 official `nvthanh2004` notebooks and 2 primary `tundng111` baseline notebooks.
+> **Audit Score:** **`69/70` checks MATCHED (`1` mismatches)** across all 11 official `nvthanh2004` notebooks and 5 `tundng111` baseline/control notebooks (16 total).
 
 ---
 
@@ -23,6 +23,9 @@
 | 11 | `nvthanh2004/gdut-final-test-evaluation` | v1 | 17 | 30 | [gdut-final-test-evaluation](https://www.kaggle.com/code/nvthanh2004/gdut-final-test-evaluation) |
 | 12 | `tundng111/gdut-yolo11n-dcrcf-baseline` | v1 | 29 | 74 | [gdut-yolo11n-dcrcf-baseline](https://www.kaggle.com/code/tundng111/gdut-yolo11n-dcrcf-baseline) |
 | 13 | `tundng111/gdut-yolov8-v5-matched-v8f` | v1 | 29 | 78 | [gdut-yolov8-v5-matched-v8f](https://www.kaggle.com/code/tundng111/gdut-yolov8-v5-matched-v8f) |
+| 14 | `tundng111/gdut-yolo11n-dcrcf-matched-ablation-c3` | v1 | 29 | 78 | [gdut-yolo11n-dcrcf-matched-ablation-c3](https://www.kaggle.com/code/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c3) |
+| 15 | `tundng111/gdut-yolo11n-dcrcf-matched-ablation-c0` | v7 | 29 | 78 | [gdut-yolo11n-dcrcf-matched-ablation-c0](https://www.kaggle.com/code/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c0) |
+| 16 | `tundng111/gdut-yolov8-v5-matched-v8s` | v1 | 29 | 78 | [gdut-yolov8-v5-matched-v8s](https://www.kaggle.com/code/tundng111/gdut-yolov8-v5-matched-v8s) |
 
 ---
 
@@ -67,8 +70,8 @@
 
 ## 4. Key Forensic Findings & Honest Nuances Discovered
 
-- **[HONEST_NUANCE] All 11 `nvthanh2004` + 2 `tundng111` notebooks pulled with 100% HTTP 200; A0-A6 & B1 numbers match raw Kaggle artifacts.**
-  Direct 1-to-1 verification against Kaggle `run_manifest.json`, `evaluation.json`, `initialization_check.json`, `results.csv`, `test_evaluation/summary.csv`, `A6_*_per_class.json`, `execution_log.txt`, and `B1 control/summary.json` confirms zero fabricated metrics across A0-A6 Val/Test rows and B1/B2 artifacts (1 honest precision/SD-convention mismatch flagged on B2).
+- **[HONEST_NUANCE] All 11 `nvthanh2004` + 5 `tundng111` (16 total) notebooks pulled with 100% HTTP 200; A0-A6, B1 Control, C3, C0 & V8S match raw Kaggle artifacts.**
+  Direct 1-to-1 verification against Kaggle `run_manifest.json`, `evaluation.json`, `initialization_check.json`, `results.csv`, `test_evaluation/summary.csv`, `A6_*_per_class.json`, `execution_log.txt`, and `B1/B2/C3/C0/V8S` `metrics.json` confirms exact agreement across A0-A6, B1 Control, `C3` (57.283±0.173%), `C0` (58.812±0.082%), and `V8S` (61.414±0.074%) (1 honest precision/SD-convention mismatch flagged on B2 V8F).
 - **[FINDING_1] Precision resolution gap in `01_KET_QUA_A1_A6.md`: Test CSV stores full precision (`A1_V8 = 88.7328%` vs `A3_V8 = 88.7305%`), whereas `.md` only showed 1 decimal (`88.7%` tie).**
   `01_KET_QUA_A1_A6.md` Section 5.2 noted that `A1` and `A3` tied at `88.7%` and could not be ranked without full floats; pulling `test_evaluation/summary.csv` from Kaggle recovers exact floats: `A1 YOLOv8s mAP50 = 88.7328%`, `A3 YOLOv8s mAP50 = 88.7305%` (A1 strictly higher by +0.0024 pp), and `A6 YOLO11s = 88.9379%` / `58.0825%`, `A6 YOLOv8s = 88.3692%` / `57.3711%`.
 - **[FINDING_2] Dataset manifest fingerprint nuance between Thanh's A0-A6 (`ce2a883e...`) and Dung's B2 (`026a2afb...`) is real and confirmed in manifests.**
@@ -153,3 +156,6 @@
 | 8. Dung Baselines (tundng111) | B1 Pair-3407 Control Val (P / R / mAP50 / mAP50-95) | 91.65 / 78.77 / 88.86 / 57.78% | 91.65 / 78.77 / 88.86 / 57.78% (OP: th=0.287, TP=306, FP=60, FN=98) | **MATCH** |
 | 8. Dung Baselines (tundng111) | B2 V8F run_manifest.inputs.manifest_sha256 Provenance | `026a2afb617254b9dd2b9461651bce6f74295d18f29d52a790bf755d32944f65` | `026a2afb617254b9dd2b9461651bce6f74295d18f29d52a790bf755d32944f65` (differs intentionally from Thanh A0-A6 `ce2a883e...` manifest hash) | **MATCH** |
 | 8. Dung Baselines (tundng111) | B2 V8F 5-Seed Mean +/- SD (seeds 3407..3411; P rounding & ddof=0 vs ddof=1) | P=90.25±0.94, R=86.47±0.58, mAP50=91.82±0.17, mAP50-95=60.781±0.353 | pstdev(ddof=0): P=90.2447% (90.24±0.94), R=86.47±0.58, mAP50=91.82±0.17, mAP50-95=60.781±0.353; sample stdev(ddof=1): ±1.05/±0.65/±0.19/±0.394 | **MISMATCH** |
+| 8. Dung Baselines (tundng111) | B1 C3 Matched DCRCF 5-Seed Val mAP50-95 & mAP50 (seeds 3407..3411) | mAP50-95=57.283±0.173% (fp=026a2afb6172...) | pstdev(ddof=0): mAP50-95=57.283±0.173%, mAP50=88.528±0.224% (fp=026a2afb6172...); sample stdev(ddof=1): ±0.193/±0.250% | **MATCH** |
+| 8. Dung Baselines (tundng111) | C0 Stock YOLO11n 5-Seed Val mAP50-95 & mAP50 (seeds 3407..3411) | mAP50-95=58.812±0.082% (fp=026a2afb6172...) | pstdev(ddof=0): mAP50-95=58.812±0.082%, mAP50=90.274±0.071% (fp=026a2afb6172...); sample stdev(ddof=1): ±0.092/±0.079% | **MATCH** |
+| 8. Dung Baselines (tundng111) | V8S Stock YOLOv8s 5-Seed Val mAP50-95 & mAP50 (seeds 3407..3411) | mAP50-95=61.414±0.074% (fp=026a2afb6172...) | pstdev(ddof=0): mAP50-95=61.414±0.074%, mAP50=92.308±0.224% (fp=026a2afb6172...); sample stdev(ddof=1): ±0.083/±0.250% | **MATCH** |

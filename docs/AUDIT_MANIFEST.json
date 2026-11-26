@@ -1,9 +1,9 @@
 {
   "repo": "https://github.com/hannhu11/AI-Capstone",
-  "scope": "AEGIS-CCTV Enterprise VMS v2.4 (GDUT-HWD 5-Class Clean-Room Export)",
-  "total_files": 105,
-  "total_size_mb": 6.338,
-  "max_single_file_mb": 0.8,
+  "scope": "AEGIS-CCTV Enterprise VMS v2.5 (GDUT-HWD 5-Class Clean-Room Export)",
+  "total_files": 108,
+  "total_size_mb": 6.827,
+  "max_single_file_mb": 0.783,
   "files": [
     {
       "path": ".dockerignore",
@@ -17,8 +17,8 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "size_bytes": 1340,
-      "sha256": "50b2c544026cc3e0075d8bbf89b758d1618a15e26517109e9f926cb1c174605b"
+      "size_bytes": 1566,
+      "sha256": "f9db7a3e9e7165262b56160ff2d84245d477cccb3a7182a1880c3cd63cda7d91"
     },
     {
       "path": ".gitignore",
@@ -57,8 +57,8 @@
     },
     {
       "path": "docs/AUDIT_CODE_SNAPSHOT.md",
-      "size_bytes": 88742,
-      "sha256": "43e92126f0f2547f619c5c579847298b93769db8fa4420f8b0aa125e0346cd74"
+      "size_bytes": 92423,
+      "sha256": "149b066dbf2d285c2ed8f433f10bc3ad2cc836e775a39f8b2a83a73c1b21c281"
     },
     {
       "path": "docs/CHANGELOG_GDUT_VMS.md",
@@ -67,8 +67,8 @@
     },
     {
       "path": "docs/KAGGLE_FORENSIC_VERIFICATION_REPORT.md",
-      "size_bytes": 22376,
-      "sha256": "8f5988067665d57ea8300d24ec6dd3fd9d973e94c36d8d6cf5bcebec45a1dfac"
+      "size_bytes": 23880,
+      "sha256": "02787ad1d49dd38b3ab8c296de9ba67447852c05256d64ca3a2e00bda1037937"
     },
     {
       "path": "docs/research_baselines/01_KET_QUA_A1_A6.md",
@@ -97,38 +97,38 @@
     },
     {
       "path": "docs/ui_screenshots/01_1920x1080_main.png",
-      "size_bytes": 804548,
-      "sha256": "6f95f3b6fba4eb4e459f3c932cc3ff93fbfb9451b2db1798f905f08f5c022b3e"
+      "size_bytes": 820737,
+      "sha256": "448925204f897a3421dc7a92c59b4465eb23db4e15e19a806308fa4eff010842"
     },
     {
       "path": "docs/ui_screenshots/02_1366x768_compact.png",
-      "size_bytes": 412927,
-      "sha256": "1afe0ac7477b8b37d36a6fe5146819b19b55cce8bce4ba5ec2446d55835d5f0b"
+      "size_bytes": 418396,
+      "sha256": "5ef55d10d4b16fd28692e685880993a70ab02f01d6007b6533dc3acd8066d087"
     },
     {
       "path": "docs/ui_screenshots/03_runtime_sla_4tables_modal.png",
-      "size_bytes": 483282,
-      "sha256": "532ef26868d9b63e9074eb69c1f561aab3741806388c76bdebd8c4602307beae"
+      "size_bytes": 468899,
+      "sha256": "941acbf0db8ee7df993d45474ec3f9ebf5849e2a7cf829b1559fcde09a7dbdd8"
     },
     {
       "path": "docs/ui_screenshots/03b_runtime_sla_loadtest.png",
-      "size_bytes": 479922,
-      "sha256": "f8f3e35c7c75abe2c9d393fe6eecd52bdc34bf6ed114fe18069ad8e4b03071b0"
+      "size_bytes": 468547,
+      "sha256": "340b17cbd4930f5fa0566b49cbb7a464bc5471db40cc1d9c2615765c42a46452"
     },
     {
       "path": "docs/ui_screenshots/04_webcam_c960_canvas_mode.png",
-      "size_bytes": 782614,
-      "sha256": "e0e0d993e39afd9e7adaa334a8aaf6cfcff3458d088750ff17b34ad5e2a47339"
+      "size_bytes": 782410,
+      "sha256": "cd1c48294541abdfd798a5480821082b4670a3f1740485f125b44b1517ef5640"
     },
     {
       "path": "docs/ui_screenshots/05_solo_focus_and_export.png",
-      "size_bytes": 839343,
-      "sha256": "c708bedad331d6d0c94bb4d06c18d8082f259eca5d858267e278063c303d518f"
+      "size_bytes": 817351,
+      "sha256": "194bdd6018deabc284ff1dc8d00a6088dd17ed940ed3d4e1f18b9ac58bf066a3"
     },
     {
       "path": "docs/ui_screenshots/06_grafana_live_monitoring.png",
-      "size_bytes": 152379,
-      "sha256": "41f08521a50ccedfb4c631b6b855a1ea73e4fe23bac4c13c62823284d1aeab5e"
+      "size_bytes": 147354,
+      "sha256": "ec1609ebdc0bdab957a1d43189cc984ce668e4bbe23ac11d55567c15c43d6c61"
     },
     {
       "path": "monitoring/grafana/dashboards/aegis_vms_overview.json",
@@ -237,8 +237,8 @@
     },
     {
       "path": "notebooks/gdut_official_kaggle/raw_kaggle_outputs_summary.json",
-      "size_bytes": 306031,
-      "sha256": "6296475e60e9ba37851d01f194d0822d41881efeaca8f6f2da3608c130045d45"
+      "size_bytes": 366634,
+      "sha256": "41a591f5d05a8130e3fe22c4435602be1c0d1c4192d2758ea8ab21d87fedb436"
     },
     {
       "path": "notebooks/gdut_official_kaggle/tundng111/gdut-yolo11n-dcrcf-baseline.ipynb",
@@ -246,9 +246,24 @@
       "sha256": "4b46934cf6e4cd0b299503d9fa5c7eacab395099550d270634ff02087ee38e6d"
     },
     {
+      "path": "notebooks/gdut_official_kaggle/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c0.ipynb",
+      "size_bytes": 154550,
+      "sha256": "27cf6bbbd8bd8917bfa3a6312f5c0134eb508f9453344ef7f983fb317877f346"
+    },
+    {
+      "path": "notebooks/gdut_official_kaggle/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c3.ipynb",
+      "size_bytes": 146366,
+      "sha256": "c7e1f4ee9eee26f886070e81129a95d69ad8fab8f1a9b5b7683a00ba1697f9cf"
+    },
+    {
       "path": "notebooks/gdut_official_kaggle/tundng111/gdut-yolov8-v5-matched-v8f.ipynb",
       "size_bytes": 147251,
       "sha256": "38e7fdd3180ebc2dfec167ba08c5bd00f382b7d1355cd851b65f6ba3af33ccf1"
+    },
+    {
+      "path": "notebooks/gdut_official_kaggle/tundng111/gdut-yolov8-v5-matched-v8s.ipynb",
+      "size_bytes": 147236,
+      "sha256": "1553139981acd6f08b76daf31aa267b5698f2aa73fb7861adde4a7e1b6cc1502"
     },
     {
       "path": "Output/load_test_enterprise_docker.json",
@@ -273,7 +288,7 @@
     {
       "path": "Output/task3_eval_opt/gdut_vms_end2end_reid_benchmark.json",
       "size_bytes": 2894,
-      "sha256": "1acbd6e6885836fd3f4a8f8cfe8bbf4dff1bc62e6d255d09204d3299cf1733de"
+      "sha256": "7558431cc5e251f9fdbf8f8806dc4e3b668c4c71fb7b346c0f3d9d9a28127145"
     },
     {
       "path": "Output/task3_eval_opt/optimization_benchmark_table.csv",
@@ -283,12 +298,12 @@
     {
       "path": "Output/task3_eval_opt/optimization_benchmark_table.json",
       "size_bytes": 3092,
-      "sha256": "c4eb8f3f164a0ba90a20c53eab73334a44b33ce0f0436c84cbf2c4e93e4de840"
+      "sha256": "8f6f17a5e25fa6828e7a51076080d184efc7e158f57103142d2a98165abea42b"
     },
     {
       "path": "README.md",
-      "size_bytes": 7297,
-      "sha256": "50086aa86e8d9853a1be3c30a0d12f58ce91c3d29deae7d38bff845c09335485"
+      "size_bytes": 7814,
+      "sha256": "34118908ffbf9176ac5375ee22ddfdb42ac376d6e2b8793535341ab1773a5add"
     },
     {
       "path": "requirements.txt",
@@ -302,13 +317,13 @@
     },
     {
       "path": "scripts/audit_kaggle_gdut_truth.py",
-      "size_bytes": 46423,
-      "sha256": "f88cfdf8c366c728a1ed5e4d2482a75a01974e9aa92b7051de78d0d9e2eb419a"
+      "size_bytes": 49701,
+      "sha256": "fea88d146cb867ee6b8435036b7e9fa15c33368e380bddfcac4726b80e405646"
     },
     {
       "path": "scripts/benchmark_gdut_vms_end2end.py",
-      "size_bytes": 22605,
-      "sha256": "e7e2d7fc98fd1997e5f6b2cc34b9f2fdf4bf96e2f9e2e7069b1b9a89735204fa"
+      "size_bytes": 23058,
+      "sha256": "d573f52e24670aab00fe0b0837e4827c97eea38d66e07a9350f0c0becdd20c0c"
     },
     {
       "path": "scripts/benchmark_multistream_batched_rtx3050.py",
@@ -337,8 +352,8 @@
     },
     {
       "path": "scripts/sync_public_audit_repo.py",
-      "size_bytes": 29123,
-      "sha256": "aaf377169e17bbe0545a46b9aead83139d1ff964789eaf21ff6dbf232363bf4c"
+      "size_bytes": 29640,
+      "sha256": "98fc786cfb5203d7baf89a6b7f234e8ce94fe53251fa951b32105f5ad49bf279"
     },
     {
       "path": "scripts/test_dynamic_taxonomy_gdut.py",
@@ -392,8 +407,8 @@
     },
     {
       "path": "src/engine/gdut_reid.py",
-      "size_bytes": 52720,
-      "sha256": "68c618f6ee509ddd4b5ad8ea0c9c18b7a7128b849b2f92715001bb5e689de794"
+      "size_bytes": 54547,
+      "sha256": "2e8970486225e7aaf4c78568714e83c6cb42575c4f935435acea65a0f8aa359e"
     },
     {
       "path": "src/engine/kalman_tracker.py",
@@ -417,13 +432,13 @@
     },
     {
       "path": "src/web/app.py",
-      "size_bytes": 51229,
-      "sha256": "f48e7bde98c7dcb679759a58bf4ebd12a0ff536137bef566dfb340cc9e1d5b75"
+      "size_bytes": 52754,
+      "sha256": "9f4aed736c0e268dd83422ff3f42c387eb59b7080868427e11af677c130fec10"
     },
     {
       "path": "src/web/gateway_client.py",
-      "size_bytes": 4803,
-      "sha256": "516908cc20447347e2b33a8d2dcc6a1102e54ba72da78ffb581f8e4998262930"
+      "size_bytes": 4933,
+      "sha256": "eb6046c192c6a993af31a8aebd380427ff973a9443b332c13d5ba49898c75772"
     },
     {
       "path": "src/web/templates/dashboard.html",
@@ -437,8 +452,8 @@
     },
     {
       "path": "tests/test_gdut_enterprise_reid_and_controls.py",
-      "size_bytes": 34320,
-      "sha256": "7b89d85634b085c3e987b30f6685f9fce70b00f1de38a9e79a0f1a022d8de9a5"
+      "size_bytes": 39285,
+      "sha256": "d66b15874268b8c32259618810161093c9b55be3858937630e5a9cd375bcea3d"
     },
     {
       "path": "tests/test_persistent_tracking_focus.py",
@@ -467,48 +482,48 @@
     },
     {
       "path": "thesis_report/chapters/ch1_intro.tex",
-      "size_bytes": 23522,
-      "sha256": "84aca3d766d2e5acdc7b547e02e968e0f81c712cd0187a6c210c9dd419a90319"
+      "size_bytes": 24735,
+      "sha256": "561328b72a2e291dc093e5b2eb8958cd0dccdb7c8fb768998f60c46ac4a61f8d"
     },
     {
       "path": "thesis_report/chapters/ch2_pmp.tex",
-      "size_bytes": 19684,
-      "sha256": "c2c7906c44329f571aea332c5f09837f818ca99013d4ebeb9e9c390ddb0adfe8"
+      "size_bytes": 20553,
+      "sha256": "0e7772c29f504da364a81fb4c8cbd7f9882a29cee9ffcd09c275adfdc0dbb5a8"
     },
     {
       "path": "thesis_report/chapters/ch3_sota.tex",
-      "size_bytes": 24130,
-      "sha256": "17f7ddceaf443b9abbb8865eb98baec79ed25d72cdb25d40dec5f82b3e0dda20"
+      "size_bytes": 24399,
+      "sha256": "cdbdc6cade22d22320fa645dd252ec04f7d738d396aa7372ea5c416797020206"
     },
     {
       "path": "thesis_report/chapters/ch4_methodology.tex",
-      "size_bytes": 41965,
-      "sha256": "741c8dd5f15a3b0cbb4739746f8b3b483e43e29b1bc957b31058bb3400954604"
+      "size_bytes": 42206,
+      "sha256": "bdcced7edcd34056f9d19a9afb4747e1fc9fe63d7b212edd555cf0da6d963b5f"
     },
     {
       "path": "thesis_report/chapters/ch5_system.tex",
-      "size_bytes": 21834,
-      "sha256": "f6926ee443b7309a8f9ddb61b40b414fef8c08298d529a170f0bdf4503419d72"
+      "size_bytes": 26365,
+      "sha256": "d189f265c771866e182e26cf07595594eae21df8dbc5e203171ce9bdee585a3d"
     },
     {
       "path": "thesis_report/chapters/ch6_results.tex",
-      "size_bytes": 49679,
-      "sha256": "dc21f40ad296c85015090686a8de29772e1f331654aa90a175d4a44bfe4fb734"
+      "size_bytes": 55324,
+      "sha256": "46958ed41e0364f7642407c87642621e5528bc92c0718ee7bf75883691697287"
     },
     {
       "path": "thesis_report/chapters/ch7_conclusion.tex",
-      "size_bytes": 7455,
-      "sha256": "34db83481f87b39f2a690009218bbc0e0232ee3d7fb9ccc7cc8375802ffa3c2b"
+      "size_bytes": 8530,
+      "sha256": "e4b376a509ad0b98a8b303399f6fb477451b3fdfe2a69610f2366d0b99ef4669"
     },
     {
       "path": "thesis_report/chapters/ch9_appendices.tex",
-      "size_bytes": 21496,
-      "sha256": "51ace54141f7d816952ca8bd2fc33b23a979e4ed22fab9f81b4729650b3817eb"
+      "size_bytes": 23814,
+      "sha256": "f5347328cc0fb6cc31c7b9d182c53cf0874aa5ce44ae8f32b23c278cb838cdaa"
     },
     {
       "path": "thesis_report/chapters/frontmatter.tex",
-      "size_bytes": 26948,
-      "sha256": "bb76268cdd02e585e9f9bb42b8e9bc88eae20b9aec9445354a47550a30c9b470"
+      "size_bytes": 28490,
+      "sha256": "0b17c684634ea5d0ecf5410db06061683714543f9b9c235fd14e9cf78e30f817"
     },
     {
       "path": "thesis_report/main.tex",

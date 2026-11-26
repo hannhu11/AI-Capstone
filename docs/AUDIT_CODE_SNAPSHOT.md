@@ -7,9 +7,9 @@
 ```markdown
 # Kaggle Forensic Verification Report — GDUT-HWD 5-Class (`nvthanh2004` + `tundng111`)
 
-> **Generated (UTC):** `2026-11-26T06:26:48.484357+00:00`
+> **Generated (UTC):** `2026-11-26T10:12:35.932046+00:00`
 > **Verification Policy:** Zero trust in secondary `.md` summaries until independently verified 1-to-1 against public Read-Only Kaggle notebooks (`.ipynb`), raw `run_manifest.json`, `results.csv`, `initialization_check.json`, `architecture_rank_0.json`, `test_evaluation/summary.csv`, `*_per_class.json`, and raw Kaggle `execution_log.txt`.
-> **Audit Score:** **`66/67` checks MATCHED (`1` mismatches)** across all 11 official `nvthanh2004` notebooks and 2 primary `tundng111` baseline notebooks.
+> **Audit Score:** **`69/70` checks MATCHED (`1` mismatches)** across all 11 official `nvthanh2004` notebooks and 5 `tundng111` baseline/control notebooks (16 total).
 
 ---
 
@@ -30,6 +30,9 @@
 | 11 | `nvthanh2004/gdut-final-test-evaluation` | v1 | 17 | 30 | [gdut-final-test-evaluation](https://www.kaggle.com/code/nvthanh2004/gdut-final-test-evaluation) |
 | 12 | `tundng111/gdut-yolo11n-dcrcf-baseline` | v1 | 29 | 74 | [gdut-yolo11n-dcrcf-baseline](https://www.kaggle.com/code/tundng111/gdut-yolo11n-dcrcf-baseline) |
 | 13 | `tundng111/gdut-yolov8-v5-matched-v8f` | v1 | 29 | 78 | [gdut-yolov8-v5-matched-v8f](https://www.kaggle.com/code/tundng111/gdut-yolov8-v5-matched-v8f) |
+| 14 | `tundng111/gdut-yolo11n-dcrcf-matched-ablation-c3` | v1 | 29 | 78 | [gdut-yolo11n-dcrcf-matched-ablation-c3](https://www.kaggle.com/code/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c3) |
+| 15 | `tundng111/gdut-yolo11n-dcrcf-matched-ablation-c0` | v7 | 29 | 78 | [gdut-yolo11n-dcrcf-matched-ablation-c0](https://www.kaggle.com/code/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c0) |
+| 16 | `tundng111/gdut-yolov8-v5-matched-v8s` | v1 | 29 | 78 | [gdut-yolov8-v5-matched-v8s](https://www.kaggle.com/code/tundng111/gdut-yolov8-v5-matched-v8s) |
 
 ---
 
@@ -74,8 +77,8 @@
 
 ## 4. Key Forensic Findings & Honest Nuances Discovered
 
-- **[HONEST_NUANCE] All 11 `nvthanh2004` + 2 `tundng111` notebooks pulled with 100% HTTP 200; A0-A6 & B1 numbers match raw Kaggle artifacts.**
-  Direct 1-to-1 verification against Kaggle `run_manifest.json`, `evaluation.json`, `initialization_check.json`, `results.csv`, `test_evaluation/summary.csv`, `A6_*_per_class.json`, `execution_log.txt`, and `B1 control/summary.json` confirms zero fabricated metrics across A0-A6 Val/Test rows and B1/B2 artifacts (1 honest precision/SD-convention mismatch flagged on B2).
+- **[HONEST_NUANCE] All 11 `nvthanh2004` + 5 `tundng111` (16 total) notebooks pulled with 100% HTTP 200; A0-A6, B1 Control, C3, C0 & V8S match raw Kaggle artifacts.**
+  Direct 1-to-1 verification against Kaggle `run_manifest.json`, `evaluation.json`, `initialization_check.json`, `results.csv`, `test_evaluation/summary.csv`, `A6_*_per_class.json`, `execution_log.txt`, and `B1/B2/C3/C0/V8S` `metrics.json` confirms exact agreement across A0-A6, B1 Control, `C3` (57.283±0.173%), `C0` (58.812±0.082%), and `V8S` (61.414±0.074%) (1 honest precision/SD-convention mismatch flagged on B2 V8F).
 - **[FINDING_1] Precision resolution gap in `01_KET_QUA_A1_A6.md`: Test CSV stores full precision (`A1_V8 = 88.7328%` vs `A3_V8 = 88.7305%`), whereas `.md` only showed 1 decimal (`88.7%` tie).**
   `01_KET_QUA_A1_A6.md` Section 5.2 noted that `A1` and `A3` tied at `88.7%` and could not be ranked without full floats; pulling `test_evaluation/summary.csv` from Kaggle recovers exact floats: `A1 YOLOv8s mAP50 = 88.7328%`, `A3 YOLOv8s mAP50 = 88.7305%` (A1 strictly higher by +0.0024 pp), and `A6 YOLO11s = 88.9379%` / `58.0825%`, `A6 YOLOv8s = 88.3692%` / `57.3711%`.
 - **[FINDING_2] Dataset manifest fingerprint nuance between Thanh's A0-A6 (`ce2a883e...`) and Dung's B2 (`026a2afb...`) is real and confirmed in manifests.**
@@ -160,6 +163,9 @@
 | 8. Dung Baselines (tundng111) | B1 Pair-3407 Control Val (P / R / mAP50 / mAP50-95) | 91.65 / 78.77 / 88.86 / 57.78% | 91.65 / 78.77 / 88.86 / 57.78% (OP: th=0.287, TP=306, FP=60, FN=98) | **MATCH** |
 | 8. Dung Baselines (tundng111) | B2 V8F run_manifest.inputs.manifest_sha256 Provenance | `026a2afb617254b9dd2b9461651bce6f74295d18f29d52a790bf755d32944f65` | `026a2afb617254b9dd2b9461651bce6f74295d18f29d52a790bf755d32944f65` (differs intentionally from Thanh A0-A6 `ce2a883e...` manifest hash) | **MATCH** |
 | 8. Dung Baselines (tundng111) | B2 V8F 5-Seed Mean +/- SD (seeds 3407..3411; P rounding & ddof=0 vs ddof=1) | P=90.25±0.94, R=86.47±0.58, mAP50=91.82±0.17, mAP50-95=60.781±0.353 | pstdev(ddof=0): P=90.2447% (90.24±0.94), R=86.47±0.58, mAP50=91.82±0.17, mAP50-95=60.781±0.353; sample stdev(ddof=1): ±1.05/±0.65/±0.19/±0.394 | **MISMATCH** |
+| 8. Dung Baselines (tundng111) | B1 C3 Matched DCRCF 5-Seed Val mAP50-95 & mAP50 (seeds 3407..3411) | mAP50-95=57.283±0.173% (fp=026a2afb6172...) | pstdev(ddof=0): mAP50-95=57.283±0.173%, mAP50=88.528±0.224% (fp=026a2afb6172...); sample stdev(ddof=1): ±0.193/±0.250% | **MATCH** |
+| 8. Dung Baselines (tundng111) | C0 Stock YOLO11n 5-Seed Val mAP50-95 & mAP50 (seeds 3407..3411) | mAP50-95=58.812±0.082% (fp=026a2afb6172...) | pstdev(ddof=0): mAP50-95=58.812±0.082%, mAP50=90.274±0.071% (fp=026a2afb6172...); sample stdev(ddof=1): ±0.092/±0.079% | **MATCH** |
+| 8. Dung Baselines (tundng111) | V8S Stock YOLOv8s 5-Seed Val mAP50-95 & mAP50 (seeds 3407..3411) | mAP50-95=61.414±0.074% (fp=026a2afb6172...) | pstdev(ddof=0): mAP50-95=61.414±0.074%, mAP50=92.308±0.224% (fp=026a2afb6172...); sample stdev(ddof=1): ±0.083/±0.250% | **MATCH** |
 ```
 
 ## 2. Non-Biometric Upper-Torso Persistent Re-ID Engine (`src/engine/gdut_reid.py`)
@@ -642,7 +648,7 @@ class UpperTorsoIdentityProfile:
         frame_idx: int,
         now_ts: float,
         deep_sig: Optional[np.ndarray] = None,
-        min_confirm_hits: int = 10,
+        min_confirm_hits: int = 6,
         min_confirm_frames: int = 24,
     ):
         self.last_box = np.asarray(head_box[:4], dtype=np.float32).copy()
@@ -765,7 +771,7 @@ class UpperTorsoReIDGallery:
         self._tentative_tracks: Dict[int, UpperTorsoIdentityProfile] = {}
         self.raw_to_canonical: Dict[int, int] = {}
         self.raw_conflict_streak: Dict[int, int] = {}
-        self.hijack_excluded_ids: Dict[int, int] = {}
+        self.hijack_excluded_ids: Dict[int, Tuple[int, int]] = {}
         self.next_id: int = 1
 
     def prewarm(self) -> bool:
@@ -895,6 +901,10 @@ class UpperTorsoReIDGallery:
             return []
 
         ts = float(now_ts if now_ts is not None else time.time())
+        fidx_int = int(frame_idx)
+        self.hijack_excluded_ids = {
+            k: v for k, v in self.hijack_excluded_ids.items() if fidx_int <= int(v[1])
+        }
         n_items = len(items)
         results: List[Optional[UpperTorsoIdentityProfile]] = [None] * n_items
         unmatched_indices: List[int] = []
@@ -955,7 +965,7 @@ class UpperTorsoReIDGallery:
                     else:
                         self.raw_to_canonical.pop(raw_track_id, None)
                         self.raw_conflict_streak.pop(raw_track_id, None)
-                        self.hijack_excluded_ids[raw_track_id] = cid
+                        self.hijack_excluded_ids[raw_track_id] = (cid, fidx_int + 15)
             elif raw_track_id in self._tentative_tracks:
                 tent = self._tentative_tracks[raw_track_id]
                 tent.update(
@@ -989,13 +999,38 @@ class UpperTorsoReIDGallery:
                 key=lambda prof: (not prof.is_confirmed, -prof.last_seen_ts),
             )
 
+            diag = float(np.hypot(frame_bgr.shape[1], frame_bgr.shape[0])) + 1e-5
             cand_deeps: Dict[int, Optional[np.ndarray]] = {}
             if inactive_candidates and self.deep_extractor.available:
-                for idx in unmatched_indices:
-                    cand_deeps[idx] = self.deep_extractor.extract(frame_bgr, prepared[idx][3])
+                for orig_idx in unmatched_indices:
+                    raw_id, hbox, _, roi, strip_sig, _ = prepared[orig_idx]
+                    is_promoted = orig_idx in promoted_candidates
+                    if is_promoted:
+                        cand_deeps[orig_idx] = self.deep_extractor.extract(frame_bgr, roi)
+                        continue
+                    c_cx = 0.5 * float(hbox[0] + hbox[2])
+                    c_cy = 0.5 * float(hbox[1] + hbox[3])
+                    excl_entry = self.hijack_excluded_ids.get(raw_id)
+                    excluded_cid = (
+                        excl_entry[0]
+                        if (excl_entry is not None and fidx_int <= int(excl_entry[1]))
+                        else None
+                    )
+                    coarse_eligible = False
+                    for prof in inactive_candidates:
+                        if excluded_cid is not None and prof.worker_id == excluded_cid:
+                            continue
+                        p_cx = 0.5 * float(prof.last_box[0] + prof.last_box[2])
+                        p_cy = 0.5 * float(prof.last_box[1] + prof.last_box[3])
+                        dist_norm = float(np.hypot(p_cx - c_cx, p_cy - c_cy)) / diag
+                        if dist_norm <= 0.25 or prof.max_strip_sim(strip_sig) >= 0.45:
+                            coarse_eligible = True
+                            break
+                    cand_deeps[orig_idx] = (
+                        self.deep_extractor.extract(frame_bgr, roi) if coarse_eligible else None
+                    )
 
             if inactive_candidates:
-                diag = float(np.hypot(frame_bgr.shape[1], frame_bgr.shape[0])) + 1e-5
                 num_u = len(unmatched_indices)
                 num_p = len(inactive_candidates)
                 score_mat = np.full((num_u, num_p), -1.0, dtype=np.float32)
@@ -1016,7 +1051,12 @@ class UpperTorsoReIDGallery:
                         if (tent is not None and tent.last_known_helmet_color)
                         else cls_norm
                     )
-                    excluded_cid = self.hijack_excluded_ids.get(raw_id)
+                    excl_entry = self.hijack_excluded_ids.get(raw_id)
+                    excluded_cid = (
+                        excl_entry[0]
+                        if (excl_entry is not None and fidx_int <= int(excl_entry[1]))
+                        else None
+                    )
                     c_deep = cand_deeps.get(orig_idx)
                     c_cx = 0.5 * float(hbox[0] + hbox[2])
                     c_cy = 0.5 * float(hbox[1] + hbox[3])
@@ -1461,8 +1501,8 @@ class InferenceCircuitBreakerClient:
             if resp.status_code >= 500:
                 self._record_failure()
                 raise RuntimeError(f"AI Inference returned HTTP {resp.status_code}")
-            self._record_success(latency_ms)
             if resp.status_code >= 400:
+                self._record_success(latency_ms)
                 try:
                     if resp.headers.get("content-type", "").startswith("application/json"):
                         detail = resp.json().get("detail", resp.text)
@@ -1471,12 +1511,17 @@ class InferenceCircuitBreakerClient:
                 except Exception:
                     detail = resp.text
                 return {"_http_error": resp.status_code, "detail": detail}
-            return resp.json()
+            payload = resp.json()
+            self._record_success(latency_ms)
+            return payload
         except CircuitBreakerOpenError:
             raise
         except Exception as exc:
             self._record_failure()
             raise RuntimeError(f"AI Inference unavailable: {exc}") from exc
+
+    def close(self):
+        self._client.close()
 
     def status_dict(self) -> Dict[str, Any]:
         with self._lock:
@@ -1513,14 +1558,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+          cache: "pip"
+          cache-dependency-path: "requirements.txt"
 
-      - name: Install dependencies
+      - name: Install CPU PyTorch & project dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest httpx fastapi uvicorn websockets pydantic numpy opencv-python-headless ultralytics psutil pyyaml scipy sqlalchemy python-multipart python-dotenv requests --no-cache-dir
+          pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          pip install --no-cache-dir -r requirements.txt ruff
 
-      - name: Syntax and static import check
+      - name: Syntax, lint, and static import check
         run: |
+          ruff check --select E9,F63,F7,F82 src tests
           python -m compileall -q src tests scripts
 
       - name: Run Unit and Integration Tests
@@ -1538,10 +1587,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate Docker Compose configuration
+      - name: Validate Docker Compose configuration & build slim Gateway image
         run: |
           docker compose -f docker-compose.edge-simulation.yml config -q
           docker compose -f docker-compose.enterprise.yml config -q
+          docker build -f Dockerfile.gateway -t aegis-gateway:ci-check .
 ```
 
 ## 5. End-to-End RTX 3050 Paired Benchmark (`Output/task3_eval_opt/gdut_vms_end2end_reid_benchmark.json`)
@@ -1555,7 +1605,7 @@ jobs:
   "cudnn_allow_tf32": true,
   "allow_tf32": true,
   "fastest_b1_mode": "TF32 FP32",
-  "fastest_b1_ms": 11.52,
+  "fastest_b1_ms": 12.05,
   "frame_resolution": "1920x1080",
   "warmup_iters": 20,
   "timed_iters": 60,
@@ -1586,61 +1636,61 @@ jobs:
     {
       "stage": "1. Pure GDUT-A6 Detector (Strict FP32)",
       "config": "FP32 (matmul_tf32=False, cudnn_tf32=False)",
-      "latency_ms": 16.87,
-      "p95_ms": 17.82,
-      "p99_ms": 20.5,
-      "fps": 59.3,
+      "latency_ms": 17.11,
+      "p95_ms": 17.92,
+      "p99_ms": 18.58,
+      "fps": 58.4,
       "vram_mb": 106.1,
       "parity_note": "Baseline Ref (12/12 boxes)"
     },
     {
       "stage": "2. Pure GDUT-A6 Detector (TF32 FP32)",
       "config": "TF32 FP32 (matmul_tf32=True, cudnn_tf32=True)",
-      "latency_ms": 11.52,
-      "p95_ms": 12.13,
-      "p99_ms": 14.77,
-      "fps": 86.8,
+      "latency_ms": 12.05,
+      "p95_ms": 14.06,
+      "p99_ms": 15.23,
+      "fps": 83.0,
       "vram_mb": 215.0,
-      "parity_note": "TensorCore TF32 (-5.35ms vs Strict) [Fastest B=1]"
+      "parity_note": "TensorCore TF32 (-5.06ms vs Strict) [Fastest B=1]"
     },
     {
       "stage": "3. Pure GDUT-A6 Detector (Selective AMP FP16)",
       "config": "AMP FP16 + CoordConv/BiFormer FP32 guard (TF32=False)",
-      "latency_ms": 12.37,
-      "p95_ms": 16.49,
-      "p99_ms": 17.36,
-      "fps": 80.8,
+      "latency_ms": 13.29,
+      "p95_ms": 15.65,
+      "p99_ms": 16.47,
+      "fps": 75.2,
       "vram_mb": 210.2,
       "parity_note": "Delta=0 boxes, conf diff=0.00033"
     },
     {
       "stage": "4. GDUT-A6 TF32 + ByteTrack + 3-Strip Non-Biometric Re-ID",
       "config": "TF32 FP32 + HSV/Lab + Quadrant HOG + Hungarian",
-      "latency_ms": 15.34,
-      "p95_ms": 17.66,
-      "p99_ms": 18.23,
-      "det_mean_ms": 12.71,
-      "reid_mean_ms": 2.63,
-      "fps": 65.2,
+      "latency_ms": 15.17,
+      "p95_ms": 18.03,
+      "p99_ms": 18.45,
+      "det_mean_ms": 12.46,
+      "reid_mean_ms": 2.7,
+      "fps": 65.9,
       "vram_mb": 215.0,
-      "parity_note": "Paired Shared-Det (n=120): det=12.71ms + strip_reid=2.63ms (use_deep=False)"
+      "parity_note": "Paired Shared-Det (n=120): det=12.46ms + strip_reid=2.7ms (use_deep=False)"
     },
     {
       "stage": "5. Full VMS + Multi-Layer MobileNetV3 Non-Biometric Re-ID",
       "config": "TF32 FP32 + Deep Re-ID=GPU (refresh=30)",
-      "latency_ms": 15.55,
-      "p95_ms": 18.17,
-      "p99_ms": 19.2,
-      "det_mean_ms": 12.71,
-      "reid_mean_ms": 2.84,
-      "paired_delta_mean_ms": 0.21,
-      "fps": 64.3,
+      "latency_ms": 15.33,
+      "p95_ms": 18.57,
+      "p99_ms": 19.42,
+      "det_mean_ms": 12.46,
+      "reid_mean_ms": 2.87,
+      "paired_delta_mean_ms": 0.16,
+      "fps": 65.2,
       "vram_mb": 218.6,
       "deep_extract_calls": 4,
-      "deep_frame_mean_ms": 19.69,
-      "deep_frame_p95_ms": 21.71,
-      "non_deep_frame_mean_ms": 15.41,
-      "parity_note": "Paired Shared-Det (n=120): +0.21ms avg (4 MobileNetV3 calls; extract=19.69ms vs steady=15.41ms; >=25 FPS SLA)"
+      "deep_frame_mean_ms": 20.27,
+      "deep_frame_p95_ms": 22.78,
+      "non_deep_frame_mean_ms": 15.16,
+      "parity_note": "Paired Shared-Det (n=120): +0.16ms avg (4 MobileNetV3 calls; extract=20.27ms vs steady=15.16ms; >=25 FPS SLA)"
     }
   ]
 }
@@ -1703,7 +1753,7 @@ jobs:
       "vram_mb": 217.5,
       "ckpt_mb": 36.55,
       "speedup_vs_before": 1.13,
-      "accuracy_delta": "B=1: Delta 0 boxes (12/12, conf diff 0.00036)"
+      "accuracy_delta": "B=1: Delta 0 boxes (12/12, conf diff 0.00033)"
     },
     {
       "model": "Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)",

@@ -248,11 +248,12 @@ Monitoring:
 ---
 
 ## 4. Kaggle Reproducibility & 1-to-1 Forensic Audit Evidence
-- **13 Official Kaggle Notebooks & Raw Outputs (`notebooks/gdut_official_kaggle/`):** Verified read-only via Kaggle API (`11` `nvthanh2004` Prep/S1/A0–A6/FinalTest + `2` `tundng111` B1/B2 notebooks, raw `summary.csv`, `validation_summary.csv`, `A6_*_per_class.json`, `b1_control_summary.json`, `final_test_execution_log.txt`, and `raw_kaggle_outputs_summary.json`).
-- **Forensic Cross-Verification (`66/67 MATCH, 1 honest nuance`):** [Kaggle Forensic Verification Report](docs/KAGGLE_FORENSIC_VERIFICATION_REPORT.md) | [Consolidated Code & Metrics Audit Snapshot](docs/AUDIT_CODE_SNAPSHOT.md).
+- **16 Official Kaggle Notebooks & Raw Outputs (`notebooks/gdut_official_kaggle/`):** Verified read-only 1-to-1 via Kaggle API (`11` `nvthanh2004` Prep/S1/A0–A6/FinalTest + `5` `tundng111` `B1 Pair-3407`, `B2 V8F`, `C3`, `C0`, `V8S` notebooks, raw `summary.csv`, `validation_summary.csv`, `A6_*_per_class.json`, `b1_control_summary.json`, `final_test_execution_log.txt`, and `raw_kaggle_outputs_summary.json`).
+- **Re-ID Architecture Note:** Native GDUT 5-class runs **`src/engine/gdut_reid.py`** (`Confirm-Before-Mint` `min_confirm_hits=6`, **Two-Stage Gate** skipping `MobileNetV3` `deep_extractor.extract()` for noise unless `dist_norm <= 0.25` or `max_strip_sim >= 0.45`, and 15-frame TTL `hijack_excluded_ids`); `src/engine/reid_tracker.py` is retained strictly as a legacy compatibility fallback/histogram helper.
+- **Forensic Cross-Verification (`69/70 MATCH, 1 MISMATCH — B2 V8F precision rounding 90.2447% -> 90.24% & ddof=0 vs ddof=1`):** [Kaggle Forensic Verification Report](docs/KAGGLE_FORENSIC_VERIFICATION_REPORT.md) | [Consolidated Code & Metrics Audit Snapshot](docs/AUDIT_CODE_SNAPSHOT.md).
 
 ## 5. Visual Evidence & Operational Limitations
-- UI & Monitoring Screenshots (v2.4):
+- UI & Monitoring Screenshots (v2.5):
   - [Enterprise Dashboard 1920×1080](docs/ui_screenshots/01_1920x1080_main.png) | [Compact 1366×768](docs/ui_screenshots/02_1366x768_compact.png)
   - [Runtime & SLA Tables 1–3](docs/ui_screenshots/03_runtime_sla_4tables_modal.png) | [Runtime & SLA Dual Load Tests 4A/4B](docs/ui_screenshots/03b_runtime_sla_loadtest.png)
   - [C960 Ultra Binary WebSocket Webcam Mode](docs/ui_screenshots/04_webcam_c960_canvas_mode.png) | [Solo Focus Lock & CSV Export](docs/ui_screenshots/05_solo_focus_and_export.png)
@@ -443,7 +444,7 @@ def sync_export(init_git: bool = False) -> Path:
 
     manifest = {
         "repo": "https://github.com/hannhu11/AI-Capstone",
-        "scope": "AEGIS-CCTV Enterprise VMS v2.4 (GDUT-HWD 5-Class Clean-Room Export)",
+        "scope": "AEGIS-CCTV Enterprise VMS v2.5 (GDUT-HWD 5-Class Clean-Room Export)",
         "total_files": len(manifest_entries) + 1,
         "total_size_mb": round(total_bytes / (1024 * 1024), 3),
         "max_single_file_mb": round(max_file_bytes / (1024 * 1024), 3),

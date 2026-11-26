@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-26T06:26:48.484357+00:00",
+  "generated_at": "2026-11-26T10:12:35.932046+00:00",
   "dataset_audit": {
     "manifest_sha256": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
     "names": [
@@ -7288,6 +7288,1212 @@
     }
   },
   "b2_dataset_fingerprint": "026a2afb617254b9dd2b9461651bce6f74295d18f29d52a790bf755d32944f65",
+  "c3_dung_5seed": {
+    "3407": {
+      "metrics": {
+        "precision": 0.8920916440384078,
+        "recall": 0.8116905595830562,
+        "mAP50": 0.882289786116757,
+        "mAP50_95": 0.574178800445989,
+        "F1_native_macro": 0.8487541849068292,
+        "precision_conf025_macro": 0.7993170808417644,
+        "recall_conf025_macro": 0.8483241127514367,
+        "F1_conf025_macro": 0.8214190286556875
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9017175320946249,
+          "recall": 0.8294573643410853,
+          "F1_native": 0.8640793591580725,
+          "AP50": 0.8775280529060419,
+          "AP50_95": 0.5893746498253748,
+          "precision_conf025": 0.7969521954854968,
+          "recall_conf025": 0.8527131782945736,
+          "F1_conf025": 0.8238902875243053
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9059489508413799,
+          "recall": 0.8194842406876791,
+          "F1_native": 0.8605501409464968,
+          "AP50": 0.9023081114732973,
+          "AP50_95": 0.6036547282289701,
+          "precision_conf025": 0.8230467026785442,
+          "recall_conf025": 0.8567335243553008,
+          "F1_conf025": 0.8395523306521112
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9034490473107611,
+          "recall": 0.8325892857142857,
+          "F1_native": 0.8665730274158251,
+          "AP50": 0.901373540553597,
+          "AP50_95": 0.5716461714198419,
+          "precision_conf025": 0.838868726410913,
+          "recall_conf025": 0.8638392857142857,
+          "F1_conf025": 0.8511709068971867
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8521140099331854,
+          "recall": 0.8637992831541219,
+          "F1_native": 0.8579168585162521,
+          "AP50": 0.9063668875831256,
+          "AP50_95": 0.5901791013654537,
+          "precision_conf025": 0.7178877737132823,
+          "recall_conf025": 0.8960573476702509,
+          "F1_conf025": 0.7971381503814596
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.897228680012088,
+          "recall": 0.7131226240181098,
+          "F1_native": 0.7946515384974989,
+          "AP50": 0.8238723380677238,
+          "AP50_95": 0.5160393513903048,
+          "precision_conf025": 0.8198300059205857,
+          "recall_conf025": 0.7722772277227723,
+          "F1_conf025": 0.7953434678233746
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3408": {
+      "metrics": {
+        "precision": 0.9074658434512275,
+        "recall": 0.7921169185682368,
+        "mAP50": 0.8871487619740274,
+        "mAP50_95": 0.5734353260622216,
+        "F1_native_macro": 0.8439261183287495,
+        "precision_conf025_macro": 0.8021755711169576,
+        "recall_conf025_macro": 0.8552825852718996,
+        "F1_conf025_macro": 0.825206321607246
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9116547209865787,
+          "recall": 0.799943894584005,
+          "F1_native": 0.8521537951569161,
+          "AP50": 0.8845616061196044,
+          "AP50_95": 0.5950379390108449,
+          "precision_conf025": 0.8180663775023389,
+          "recall_conf025": 0.8539915359907353,
+          "F1_conf025": 0.8356430200508038
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9258032739278078,
+          "recall": 0.8223495702005731,
+          "F1_native": 0.8710152856049758,
+          "AP50": 0.9094403129200641,
+          "AP50_95": 0.6017684942708115,
+          "precision_conf025": 0.7804941295857658,
+          "recall_conf025": 0.8710601719197708,
+          "F1_conf025": 0.8232939723260683
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9268551254782208,
+          "recall": 0.8013392857142857,
+          "F1_native": 0.8595392039242149,
+          "AP50": 0.8995441859936575,
+          "AP50_95": 0.5647159539565493,
+          "precision_conf025": 0.8592721055062784,
+          "recall_conf025": 0.8722739548839262,
+          "F1_conf025": 0.8657242159905292
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8398689432261777,
+          "recall": 0.8459494065415193,
+          "F1_native": 0.8428982092794777,
+          "AP50": 0.9020667511891214,
+          "AP50_95": 0.5916963215042939,
+          "precision_conf025": 0.7033852447639531,
+          "recall_conf025": 0.9068100358422939,
+          "F1_conf025": 0.7922477561543866
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.933147153637352,
+          "recall": 0.6910024358008012,
+          "F1_native": 0.7940240976781636,
+          "AP50": 0.8401309536476889,
+          "AP50_95": 0.5139579215686088,
+          "precision_conf025": 0.8496599982264512,
+          "recall_conf025": 0.7722772277227723,
+          "F1_conf025": 0.8091226435144434
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3409": {
+      "metrics": {
+        "precision": 0.8703233179848681,
+        "recall": 0.8188776595747791,
+        "mAP50": 0.8868251463997343,
+        "mAP50_95": 0.5719562392197515,
+        "F1_native_macro": 0.8428470970021312,
+        "precision_conf025_macro": 0.8170468960384142,
+        "recall_conf025_macro": 0.8516969302025735,
+        "F1_conf025_macro": 0.8331908160706576
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.8898635586415568,
+          "recall": 0.8217054263565892,
+          "F1_native": 0.8544273952867218,
+          "AP50": 0.8782454345046248,
+          "AP50_95": 0.5868425665431605,
+          "precision_conf025": 0.8514984100346031,
+          "recall_conf025": 0.8448672445942018,
+          "F1_conf025": 0.8481698665606351
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.8684910457901389,
+          "recall": 0.8326037453411465,
+          "F1_native": 0.8501688457222623,
+          "AP50": 0.9034432991854281,
+          "AP50_95": 0.5945260971598262,
+          "precision_conf025": 0.8152871399834022,
+          "recall_conf025": 0.8567335243553008,
+          "F1_conf025": 0.8354966415152403
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.8887389684258415,
+          "recall": 0.8147321428571429,
+          "F1_native": 0.8501279527316222,
+          "AP50": 0.8955970860910172,
+          "AP50_95": 0.5770526931665529,
+          "precision_conf025": 0.8437166011677064,
+          "recall_conf025": 0.8676383446063931,
+          "F1_conf025": 0.8555102808587218
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8286854419111355,
+          "recall": 0.8745519713261649,
+          "F1_native": 0.8510011360720459,
+          "AP50": 0.9213519984813345,
+          "AP50_95": 0.5957152921956004,
+          "precision_conf025": 0.7688250984095989,
+          "recall_conf025": 0.899641577060932,
+          "F1_conf025": 0.8291049910507539
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.8758375751556682,
+          "recall": 0.7507950119928523,
+          "F1_native": 0.8085101551980041,
+          "AP50": 0.8354879137362665,
+          "AP50_95": 0.5056445470336175,
+          "precision_conf025": 0.8059072305967598,
+          "recall_conf025": 0.7896039603960396,
+          "F1_conf025": 0.7976723003679362
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3410": {
+      "metrics": {
+        "precision": 0.8989245756272302,
+        "recall": 0.7973821941739788,
+        "mAP50": 0.8873087539117639,
+        "mAP50_95": 0.5699077776802844,
+        "F1_native_macro": 0.8432725874490922,
+        "precision_conf025_macro": 0.8067028868345316,
+        "recall_conf025_macro": 0.8523500925663272,
+        "F1_conf025_macro": 0.8267396830926803
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9149126925906683,
+          "recall": 0.813953488372093,
+          "F1_native": 0.8614852738635637,
+          "AP50": 0.8928414417823509,
+          "AP50_95": 0.596090527290074,
+          "precision_conf025": 0.8508301350293209,
+          "recall_conf025": 0.872093023255814,
+          "F1_conf025": 0.8613303746795133
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.8813737652416892,
+          "recall": 0.8166189111747851,
+          "F1_native": 0.84776158873509,
+          "AP50": 0.9027642386710846,
+          "AP50_95": 0.5958739726151557,
+          "precision_conf025": 0.7990272153540033,
+          "recall_conf025": 0.8710601719197708,
+          "F1_conf025": 0.8334902579091688
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9268160701054671,
+          "recall": 0.791514026853513,
+          "F1_native": 0.8538381782406018,
+          "AP50": 0.8954270837449525,
+          "AP50_95": 0.5557613952988626,
+          "precision_conf025": 0.8510938170181895,
+          "recall_conf025": 0.8459821428571429,
+          "F1_conf025": 0.8485302816338347
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8429234332036233,
+          "recall": 0.8566308243727598,
+          "F1_native": 0.8497218517731077,
+          "AP50": 0.9208034084877965,
+          "AP50_95": 0.5945849080491361,
+          "precision_conf025": 0.7200513691986964,
+          "recall_conf025": 0.9126772816989787,
+          "F1_conf025": 0.8050015242429648
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9285969169947028,
+          "recall": 0.7081937200967431,
+          "F1_native": 0.8035560446330978,
+          "AP50": 0.8247075968726353,
+          "AP50_95": 0.5072280851481936,
+          "precision_conf025": 0.8125118975724478,
+          "recall_conf025": 0.7599378430999295,
+          "F1_conf025": 0.7853459769979197
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3411": {
+      "metrics": {
+        "precision": 0.9115761213763378,
+        "recall": 0.793418245869107,
+        "mAP50": 0.8828080068514323,
+        "mAP50_95": 0.5746877926905724,
+        "F1_native_macro": 0.8463096466969449,
+        "precision_conf025_macro": 0.8045338088944666,
+        "recall_conf025_macro": 0.8438317432762645,
+        "F1_conf025_macro": 0.820314565161586
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9164857707111067,
+          "recall": 0.8081675946397469,
+          "F1_native": 0.8589251796536763,
+          "AP50": 0.875520531634131,
+          "AP50_95": 0.5937480077886511,
+          "precision_conf025": 0.8370192537131219,
+          "recall_conf025": 0.8372093023255814,
+          "F1_conf025": 0.8371142672327494
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9228107807041029,
+          "recall": 0.8221331623307745,
+          "F1_native": 0.8695675851382131,
+          "AP50": 0.9039746007018834,
+          "AP50_95": 0.5968567154562446,
+          "precision_conf025": 0.8307487960269233,
+          "recall_conf025": 0.8719770671932888,
+          "F1_conf025": 0.8508637994890513
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9287640906676787,
+          "recall": 0.7924107142857143,
+          "F1_native": 0.8551863696480568,
+          "AP50": 0.8969269988084968,
+          "AP50_95": 0.5668704264176035,
+          "precision_conf025": 0.8321135088708018,
+          "recall_conf025": 0.8506016854947674,
+          "F1_conf025": 0.8412560313693827
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8437381326813822,
+          "recall": 0.8494623655913979,
+          "F1_native": 0.8465905731286044,
+          "AP50": 0.9147461817158774,
+          "AP50_95": 0.6007254356381443,
+          "precision_conf025": 0.6866796682818954,
+          "recall_conf025": 0.9139784946236559,
+          "F1_conf025": 0.7841904837016609
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9460818321174178,
+          "recall": 0.6949173924979015,
+          "F1_native": 0.8012785259161735,
+          "AP50": 0.8228717213967724,
+          "AP50_95": 0.5152383781522183,
+          "precision_conf025": 0.8361078175795907,
+          "recall_conf025": 0.7453921667440289,
+          "F1_conf025": 0.7881482440150847
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    }
+  },
+  "c0_dung_5seed": {
+    "3407": {
+      "metrics": {
+        "precision": 0.920741717907289,
+        "recall": 0.8079866322174925,
+        "mAP50": 0.9037730152363315,
+        "mAP50_95": 0.5887761530839825,
+        "F1_native_macro": 0.8590306835075701,
+        "precision_conf025_macro": 0.8343222944515037,
+        "recall_conf025_macro": 0.8625950812420141,
+        "F1_conf025_macro": 0.8463640224285989
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9177662498947767,
+          "recall": 0.813953488372093,
+          "F1_native": 0.8627481966102148,
+          "AP50": 0.8979308210380829,
+          "AP50_95": 0.6081625230065323,
+          "precision_conf025": 0.8543428483579122,
+          "recall_conf025": 0.8639030691113749,
+          "F1_conf025": 0.8590963624774007
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9185723475490052,
+          "recall": 0.8404083356626013,
+          "F1_native": 0.8777536503469139,
+          "AP50": 0.9207932482858968,
+          "AP50_95": 0.6229217133360432,
+          "precision_conf025": 0.8338654707950374,
+          "recall_conf025": 0.8796561604584527,
+          "F1_conf025": 0.8561489799715637
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9347582023322586,
+          "recall": 0.8315137402787875,
+          "F1_native": 0.8801184804289616,
+          "AP50": 0.9132032822906401,
+          "AP50_95": 0.5746339507596808,
+          "precision_conf025": 0.8695431479335664,
+          "recall_conf025": 0.8754774279266622,
+          "F1_conf025": 0.8725001975966467
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8929513671798486,
+          "recall": 0.8602150537634409,
+          "F1_native": 0.8762775731393029,
+          "AP50": 0.9268204524860967,
+          "AP50_95": 0.6097006341875721,
+          "precision_conf025": 0.7457813470842335,
+          "recall_conf025": 0.9068100358422939,
+          "F1_conf025": 0.8184503647627149
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9396604225805553,
+          "recall": 0.6938425430105387,
+          "F1_native": 0.7982555170124567,
+          "AP50": 0.8601172720809409,
+          "AP50_95": 0.5284619441300841,
+          "precision_conf025": 0.8680786580867695,
+          "recall_conf025": 0.7871287128712872,
+          "F1_conf025": 0.8256242073346686
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3408": {
+      "metrics": {
+        "precision": 0.9239155614459055,
+        "recall": 0.8007169325321504,
+        "mAP50": 0.9019388040120024,
+        "mAP50_95": 0.5872197163065742,
+        "F1_native_macro": 0.8561283235827046,
+        "precision_conf025_macro": 0.8308477223414915,
+        "recall_conf025_macro": 0.8635316292959402,
+        "F1_conf025_macro": 0.8448944969320354
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9205159878909639,
+          "recall": 0.8023255813953488,
+          "F1_native": 0.8573667345097523,
+          "AP50": 0.8922306266015664,
+          "AP50_95": 0.6013443932126118,
+          "precision_conf025": 0.8529679100925054,
+          "recall_conf025": 0.8544493766015295,
+          "F1_conf025": 0.8537080006385728
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9270830089368051,
+          "recall": 0.8379024180353276,
+          "F1_native": 0.8802396700127328,
+          "AP50": 0.9192181767129315,
+          "AP50_95": 0.6236798839046014,
+          "precision_conf025": 0.8304841827245237,
+          "recall_conf025": 0.8825214899713467,
+          "F1_conf025": 0.855712447445942
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9368329949661361,
+          "recall": 0.8191964285714286,
+          "F1_native": 0.8740744697752117,
+          "AP50": 0.9141436016767288,
+          "AP50_95": 0.5722834602092615,
+          "precision_conf025": 0.8718974200159516,
+          "recall_conf025": 0.8772321428571429,
+          "F1_conf025": 0.8745566461707567
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.889611812184154,
+          "recall": 0.8566308243727598,
+          "F1_native": 0.8728098651234818,
+          "AP50": 0.9238149282115161,
+          "AP50_95": 0.6070704651723753,
+          "precision_conf025": 0.7362088522081616,
+          "recall_conf025": 0.910394265232975,
+          "F1_conf025": 0.8140884830895154
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9455340032514682,
+          "recall": 0.6875294102858871,
+          "F1_native": 0.7961508784923442,
+          "AP50": 0.8602866868572686,
+          "AP50_95": 0.5317203790340209,
+          "precision_conf025": 0.8626802466663148,
+          "recall_conf025": 0.7930608718167073,
+          "F1_conf025": 0.8264069073153903
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3409": {
+      "metrics": {
+        "precision": 0.9202259267739024,
+        "recall": 0.8068176170916204,
+        "mAP50": 0.9029449737571756,
+        "mAP50_95": 0.588772977823918,
+        "F1_native_macro": 0.8584331471052249,
+        "precision_conf025_macro": 0.8349501993493897,
+        "recall_conf025_macro": 0.8588156231973537,
+        "F1_conf025_macro": 0.8455135069181899
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9248762129284531,
+          "recall": 0.8112173907103286,
+          "F1_native": 0.8643262858745896,
+          "AP50": 0.8948558625172152,
+          "AP50_95": 0.6059417381545702,
+          "precision_conf025": 0.8581655929344797,
+          "recall_conf025": 0.8527131782945736,
+          "F1_conf025": 0.8554306974403832
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9216023326624913,
+          "recall": 0.8420841065843478,
+          "F1_native": 0.8800506253907068,
+          "AP50": 0.9197494678745024,
+          "AP50_95": 0.6247620063638649,
+          "precision_conf025": 0.8279822146240762,
+          "recall_conf025": 0.8796561604584527,
+          "F1_conf025": 0.8530373485064148
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9347503398194976,
+          "recall": 0.8236607142857143,
+          "F1_native": 0.875696420102776,
+          "AP50": 0.9112989316972496,
+          "AP50_95": 0.5756822639102597,
+          "precision_conf025": 0.8768799255788597,
+          "recall_conf025": 0.875,
+          "F1_conf025": 0.8759389541243581
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8903327590476685,
+          "recall": 0.8566308243727598,
+          "F1_native": 0.8731567075437177,
+          "AP50": 0.927592836993591,
+          "AP50_95": 0.6085409166165354,
+          "precision_conf025": 0.7642253035269169,
+          "recall_conf025": 0.8945684490550958,
+          "F1_conf025": 0.8242758853420908
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9295679894114016,
+          "recall": 0.7004950495049505,
+          "F1_native": 0.7989356966143341,
+          "AP50": 0.8612277697033199,
+          "AP50_95": 0.5289379640743597,
+          "precision_conf025": 0.8474979600826156,
+          "recall_conf025": 0.7921403281786462,
+          "F1_conf025": 0.818884649177703
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3410": {
+      "metrics": {
+        "precision": 0.9113281142904478,
+        "recall": 0.8149635704583374,
+        "mAP50": 0.9019407190245445,
+        "mAP50_95": 0.5888292826143957,
+        "F1_native_macro": 0.858839324461977,
+        "precision_conf025_macro": 0.830937575778198,
+        "recall_conf025_macro": 0.8615401298797224,
+        "F1_conf025_macro": 0.8443332127853772
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9251054128178157,
+          "recall": 0.8138982873642454,
+          "F1_native": 0.8659460713568187,
+          "AP50": 0.8941821227857069,
+          "AP50_95": 0.6085901183693834,
+          "precision_conf025": 0.849464470380329,
+          "recall_conf025": 0.8530051118476804,
+          "F1_conf025": 0.8512311093618808
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9034569558301456,
+          "recall": 0.8538681948424068,
+          "F1_native": 0.8779629196079786,
+          "AP50": 0.9215967878738334,
+          "AP50_95": 0.6236819548014156,
+          "precision_conf025": 0.8223598325938246,
+          "recall_conf025": 0.8825214899713467,
+          "F1_conf025": 0.8513791724356773
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9293728282264982,
+          "recall": 0.8325892857142857,
+          "F1_native": 0.8783229254398952,
+          "AP50": 0.9123989065878451,
+          "AP50_95": 0.5718735348303101,
+          "precision_conf025": 0.8775978365352197,
+          "recall_conf025": 0.8772321428571429,
+          "F1_conf025": 0.877414951592243
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8732212606639524,
+          "recall": 0.8673835125448028,
+          "F1_native": 0.870292597103732,
+          "AP50": 0.922741111689055,
+          "AP50_95": 0.6106606808530478,
+          "precision_conf025": 0.7525930975026466,
+          "recall_conf025": 0.9070238629852629,
+          "F1_conf025": 0.8226234303513171
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9254841139138266,
+          "recall": 0.7070785718259469,
+          "F1_native": 0.8016721088014609,
+          "AP50": 0.8587846661862828,
+          "AP50_95": 0.5293401242178213,
+          "precision_conf025": 0.8526726418789703,
+          "recall_conf025": 0.787918041737179,
+          "F1_conf025": 0.819017400185768
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3411": {
+      "metrics": {
+        "precision": 0.9097887326827679,
+        "recall": 0.8161410875363597,
+        "mAP50": 0.903078645104587,
+        "mAP50_95": 0.5870195207716095,
+        "F1_native_macro": 0.8588472947853732,
+        "precision_conf025_macro": 0.834579099591992,
+        "recall_conf025_macro": 0.8622615266045773,
+        "F1_conf025_macro": 0.8467102340454554
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.8983864538717868,
+          "recall": 0.8224404292565858,
+          "F1_native": 0.8587375615813123,
+          "AP50": 0.894599756237171,
+          "AP50_95": 0.6038825831726695,
+          "precision_conf025": 0.8479836406181899,
+          "recall_conf025": 0.8648449743606736,
+          "F1_conf025": 0.8563313147798608
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9220307095560656,
+          "recall": 0.8424068767908309,
+          "F1_native": 0.8804221995185397,
+          "AP50": 0.9187308205152498,
+          "AP50_95": 0.6195045452093759,
+          "precision_conf025": 0.8352527981874477,
+          "recall_conf025": 0.8739255014326648,
+          "F1_conf025": 0.8541516360712542
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9284542267256598,
+          "recall": 0.8400345212823467,
+          "F1_native": 0.8820339996605169,
+          "AP50": 0.9134638876527554,
+          "AP50_95": 0.5760193118719124,
+          "precision_conf025": 0.8676916763048546,
+          "recall_conf025": 0.8772321428571429,
+          "F1_conf025": 0.8724358280692915
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8748055452967225,
+          "recall": 0.8709677419354839,
+          "F1_native": 0.8728824252176585,
+          "AP50": 0.9269152435785218,
+          "AP50_95": 0.6075611253942261,
+          "precision_conf025": 0.7572873523450243,
+          "recall_conf025": 0.9032258064516129,
+          "F1_conf025": 0.8238434918915459
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9252667279636045,
+          "recall": 0.704855868416551,
+          "F1_native": 0.800160287948839,
+          "AP50": 0.8616835175392363,
+          "AP50_95": 0.5281300382098635,
+          "precision_conf025": 0.8646800305044435,
+          "recall_conf025": 0.7920792079207921,
+          "F1_conf025": 0.8267888994153246
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    }
+  },
+  "v8s_dung_5seed": {
+    "3407": {
+      "metrics": {
+        "precision": 0.9096758958346474,
+        "recall": 0.8672471829535657,
+        "mAP50": 0.9232256271376652,
+        "mAP50_95": 0.61482711158694,
+        "F1_native_macro": 0.8871080034730957,
+        "precision_conf025_macro": 0.8697941924453904,
+        "recall_conf025_macro": 0.8918292767294508,
+        "F1_conf025_macro": 0.879740061756418
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9213121665373794,
+          "recall": 0.8565891472868217,
+          "F1_native": 0.8877725630583148,
+          "AP50": 0.905647549170433,
+          "AP50_95": 0.6284858960872527,
+          "precision_conf025": 0.8778967098144531,
+          "recall_conf025": 0.8682170542635659,
+          "F1_conf025": 0.8730300522489033
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9337418769556959,
+          "recall": 0.8883520381237188,
+          "F1_native": 0.9104816086704359,
+          "AP50": 0.9435167938912128,
+          "AP50_95": 0.646729255197843,
+          "precision_conf025": 0.9039057746034342,
+          "recall_conf025": 0.9163891291079002,
+          "F1_conf025": 0.9101046472146812
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9393307645221329,
+          "recall": 0.8727678571428571,
+          "F1_native": 0.9048267999310986,
+          "AP50": 0.9328520834055447,
+          "AP50_95": 0.6028556253143197,
+          "precision_conf025": 0.9028954941834777,
+          "recall_conf025": 0.9084821428571429,
+          "F1_conf025": 0.9056802033528365
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8454242736317634,
+          "recall": 0.9068100358422939,
+          "F1_native": 0.8750418956287593,
+          "AP50": 0.9459818217988588,
+          "AP50_95": 0.6347295482714579,
+          "precision_conf025": 0.8000987017083666,
+          "recall_conf025": 0.931899641577061,
+          "F1_conf025": 0.8609843031765815
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9085703975262645,
+          "recall": 0.8117168363721373,
+          "F1_native": 0.8574171500768697,
+          "AP50": 0.8881298874222772,
+          "AP50_95": 0.561335233063827,
+          "precision_conf025": 0.8641742819172203,
+          "recall_conf025": 0.8341584158415841,
+          "F1_conf025": 0.8489011027890869
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3408": {
+      "metrics": {
+        "precision": 0.9115436881153072,
+        "recall": 0.8614616494163533,
+        "mAP50": 0.9200496924785868,
+        "mAP50_95": 0.6140938268257343,
+        "F1_native_macro": 0.8852400491526471,
+        "precision_conf025_macro": 0.8660596747421632,
+        "recall_conf025_macro": 0.889631890796722,
+        "F1_conf025_macro": 0.8765349102318083
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9055051928017992,
+          "recall": 0.8410852713178295,
+          "F1_native": 0.8721072242327784,
+          "AP50": 0.9003593223528642,
+          "AP50_95": 0.6285659353587704,
+          "precision_conf025": 0.8578822623692733,
+          "recall_conf025": 0.8656914230440906,
+          "F1_conf025": 0.8617691518498997
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9450678076399593,
+          "recall": 0.8882521489971347,
+          "F1_native": 0.9157796030585353,
+          "AP50": 0.9414141305183432,
+          "AP50_95": 0.643548744583784,
+          "precision_conf025": 0.9021536227172492,
+          "recall_conf025": 0.9083094555873925,
+          "F1_conf025": 0.9052210737971365
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.939979816926791,
+          "recall": 0.8739445358860967,
+          "F1_native": 0.9057601807622039,
+          "AP50": 0.9371233771984692,
+          "AP50_95": 0.6029944313934357,
+          "precision_conf025": 0.9023247983090822,
+          "recall_conf025": 0.9081319293163558,
+          "F1_conf025": 0.9052190504803368
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8688162829794929,
+          "recall": 0.902046092860904,
+          "F1_native": 0.8851194131939919,
+          "AP50": 0.9427529704521254,
+          "AP50_95": 0.6348106047877453,
+          "precision_conf025": 0.7957948050541148,
+          "recall_conf025": 0.9390681003584229,
+          "F1_conf025": 0.8615153549318242
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.898349340228493,
+          "recall": 0.801980198019802,
+          "F1_native": 0.8474338245157257,
+          "AP50": 0.8785986618711321,
+          "AP50_95": 0.5605494180049362,
+          "precision_conf025": 0.8721428852610964,
+          "recall_conf025": 0.8269585456773476,
+          "F1_conf025": 0.8489499200998449
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3409": {
+      "metrics": {
+        "precision": 0.9157342847612663,
+        "recall": 0.8694943811066089,
+        "mAP50": 0.9268829674146705,
+        "mAP50_95": 0.6127953321430245,
+        "F1_native_macro": 0.891122296146348,
+        "precision_conf025_macro": 0.8773926105375578,
+        "recall_conf025_macro": 0.8915885825847866,
+        "F1_conf025_macro": 0.8838270227816389
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9371387585360935,
+          "recall": 0.8667511274031191,
+          "F1_native": 0.9005716832559371,
+          "AP50": 0.9194444832102775,
+          "AP50_95": 0.6258527224588291,
+          "precision_conf025": 0.910637036009314,
+          "recall_conf025": 0.8837209302325582,
+          "F1_conf025": 0.8969771068053359
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9174253210009597,
+          "recall": 0.9226361031518625,
+          "F1_native": 0.9200233339937375,
+          "AP50": 0.9475857770224944,
+          "AP50_95": 0.6370299890513483,
+          "precision_conf025": 0.8698453149741922,
+          "recall_conf025": 0.9340974212034384,
+          "F1_conf025": 0.900827115260801
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9442190809632096,
+          "recall": 0.8690355143998336,
+          "F1_native": 0.9050686173131816,
+          "AP50": 0.9438346215516265,
+          "AP50_95": 0.6112440384464848,
+          "precision_conf025": 0.9074689263851696,
+          "recall_conf025": 0.897532560352339,
+          "F1_conf025": 0.9024733939813261
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8510807961849037,
+          "recall": 0.8817204301075269,
+          "F1_native": 0.8661297259975141,
+          "AP50": 0.9308457884004651,
+          "AP50_95": 0.6281231027085229,
+          "precision_conf025": 0.8207354846033883,
+          "recall_conf025": 0.8960573476702509,
+          "F1_conf025": 0.8567440959065593
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9288074671211642,
+          "recall": 0.8073287304707024,
+          "F1_native": 0.86381812017137,
+          "AP50": 0.892704166888489,
+          "AP50_95": 0.5617268080499371,
+          "precision_conf025": 0.878276290715725,
+          "recall_conf025": 0.8465346534653465,
+          "F1_conf025": 0.8621134019541727
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3410": {
+      "metrics": {
+        "precision": 0.9266940766083138,
+        "recall": 0.8595136624807808,
+        "mAP50": 0.923318011427688,
+        "mAP50_95": 0.6148349612973981,
+        "F1_native_macro": 0.8910955981073967,
+        "precision_conf025_macro": 0.867714624724105,
+        "recall_conf025_macro": 0.8930618348414632,
+        "F1_conf025_macro": 0.8792169297005265
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9277797442067042,
+          "recall": 0.8643410852713178,
+          "F1_native": 0.8949375932804009,
+          "AP50": 0.9090449188383911,
+          "AP50_95": 0.6345729685950265,
+          "precision_conf025": 0.8633705102509205,
+          "recall_conf025": 0.872093023255814,
+          "F1_conf025": 0.8677098468940179
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9480615656064328,
+          "recall": 0.8891439879796998,
+          "F1_native": 0.9176580591629062,
+          "AP50": 0.9451826038237394,
+          "AP50_95": 0.6402547601993859,
+          "precision_conf025": 0.9039493714321275,
+          "recall_conf025": 0.9169054441260746,
+          "F1_conf025": 0.9103813140932627
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9473589680778384,
+          "recall": 0.883761393037308,
+          "F1_native": 0.9144557606524357,
+          "AP50": 0.9408223458384583,
+          "AP50_95": 0.6076676805299412,
+          "precision_conf025": 0.8907092011209683,
+          "recall_conf025": 0.9129464285714286,
+          "F1_conf025": 0.9016907337214697
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8784073028614533,
+          "recall": 0.8817204301075269,
+          "F1_native": 0.8800607482982519,
+          "AP50": 0.9353004441715727,
+          "AP50_95": 0.6316308754591916,
+          "precision_conf025": 0.8028518130943973,
+          "recall_conf025": 0.9341563574619199,
+          "F1_conf025": 0.8635412751820952
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9318628022891403,
+          "recall": 0.7786014160080513,
+          "F1_native": 0.8483658291429885,
+          "AP50": 0.8862397444662786,
+          "AP50_95": 0.5600485217034452,
+          "precision_conf025": 0.8776922277221111,
+          "recall_conf025": 0.8292079207920792,
+          "F1_conf025": 0.8527614786117869
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "3411": {
+      "metrics": {
+        "precision": 0.9061661342991544,
+        "recall": 0.8677678251270787,
+        "mAP50": 0.9219200828849891,
+        "mAP50_95": 0.6141708309077039,
+        "F1_native_macro": 0.8857577896650282,
+        "precision_conf025_macro": 0.8666930055747205,
+        "recall_conf025_macro": 0.8900242877431557,
+        "F1_conf025_macro": 0.8772026298522834
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9023603308788297,
+          "recall": 0.8596991508506248,
+          "F1_native": 0.8805133064593426,
+          "AP50": 0.9095471240320641,
+          "AP50_95": 0.6318673670285083,
+          "precision_conf025": 0.877530601895497,
+          "recall_conf025": 0.8682170542635659,
+          "F1_conf025": 0.8728489842342065
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9447075814884118,
+          "recall": 0.8796561604584527,
+          "F1_native": 0.9110221002323461,
+          "AP50": 0.9432093374828268,
+          "AP50_95": 0.6435772898391751,
+          "precision_conf025": 0.9082155023698091,
+          "recall_conf025": 0.907287714346172,
+          "F1_conf025": 0.907751371291317
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9327702921979243,
+          "recall": 0.8981193230384787,
+          "F1_native": 0.915116909733562,
+          "AP50": 0.936935235882717,
+          "AP50_95": 0.6044206283518301,
+          "precision_conf025": 0.888810735551191,
+          "recall_conf025": 0.9174107142857143,
+          "F1_conf025": 0.9028842967626777
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8523555515550894,
+          "recall": 0.9068100358422939,
+          "F1_native": 0.8787399819474192,
+          "AP50": 0.9412133684767422,
+          "AP50_95": 0.6338050931449536,
+          "precision_conf025": 0.7982906799220255,
+          "recall_conf025": 0.931899641577061,
+          "F1_conf025": 0.8599363772293956
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.8986369153755162,
+          "recall": 0.7945544554455446,
+          "F1_native": 0.8433966499524709,
+          "AP50": 0.8786953485505956,
+          "AP50_95": 0.5571837761740522,
+          "precision_conf025": 0.8606175081350802,
+          "recall_conf025": 0.8253063142432658,
+          "F1_conf025": 0.8425921197438198
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    }
+  },
   "checks": [
     {
       "category": "1. Dataset & Provenance",
@@ -7757,13 +8963,34 @@
       "doc_claim": "P=90.25±0.94, R=86.47±0.58, mAP50=91.82±0.17, mAP50-95=60.781±0.353",
       "kaggle_truth": "pstdev(ddof=0): P=90.2447% (90.24±0.94), R=86.47±0.58, mAP50=91.82±0.17, mAP50-95=60.781±0.353; sample stdev(ddof=1): ±1.05/±0.65/±0.19/±0.394",
       "verdict": "MISMATCH"
+    },
+    {
+      "category": "8. Dung Baselines (tundng111)",
+      "item": "B1 C3 Matched DCRCF 5-Seed Val mAP50-95 & mAP50 (seeds 3407..3411)",
+      "doc_claim": "mAP50-95=57.283±0.173% (fp=026a2afb6172...)",
+      "kaggle_truth": "pstdev(ddof=0): mAP50-95=57.283±0.173%, mAP50=88.528±0.224% (fp=026a2afb6172...); sample stdev(ddof=1): ±0.193/±0.250%",
+      "verdict": "MATCH"
+    },
+    {
+      "category": "8. Dung Baselines (tundng111)",
+      "item": "C0 Stock YOLO11n 5-Seed Val mAP50-95 & mAP50 (seeds 3407..3411)",
+      "doc_claim": "mAP50-95=58.812±0.082% (fp=026a2afb6172...)",
+      "kaggle_truth": "pstdev(ddof=0): mAP50-95=58.812±0.082%, mAP50=90.274±0.071% (fp=026a2afb6172...); sample stdev(ddof=1): ±0.092/±0.079%",
+      "verdict": "MATCH"
+    },
+    {
+      "category": "8. Dung Baselines (tundng111)",
+      "item": "V8S Stock YOLOv8s 5-Seed Val mAP50-95 & mAP50 (seeds 3407..3411)",
+      "doc_claim": "mAP50-95=61.414±0.074% (fp=026a2afb6172...)",
+      "kaggle_truth": "pstdev(ddof=0): mAP50-95=61.414±0.074%, mAP50=92.308±0.224% (fp=026a2afb6172...); sample stdev(ddof=1): ±0.083/±0.250%",
+      "verdict": "MATCH"
     }
   ],
   "forensic_findings": [
     {
       "severity": "HONEST_NUANCE",
-      "title": "All 11 `nvthanh2004` + 2 `tundng111` notebooks pulled with 100% HTTP 200; A0-A6 & B1 numbers match raw Kaggle artifacts.",
-      "detail": "Direct 1-to-1 verification against Kaggle `run_manifest.json`, `evaluation.json`, `initialization_check.json`, `results.csv`, `test_evaluation/summary.csv`, `A6_*_per_class.json`, `execution_log.txt`, and `B1 control/summary.json` confirms zero fabricated metrics across A0-A6 Val/Test rows and B1/B2 artifacts (1 honest precision/SD-convention mismatch flagged on B2)."
+      "title": "All 11 `nvthanh2004` + 5 `tundng111` (16 total) notebooks pulled with 100% HTTP 200; A0-A6, B1 Control, C3, C0 & V8S match raw Kaggle artifacts.",
+      "detail": "Direct 1-to-1 verification against Kaggle `run_manifest.json`, `evaluation.json`, `initialization_check.json`, `results.csv`, `test_evaluation/summary.csv`, `A6_*_per_class.json`, `execution_log.txt`, and `B1/B2/C3/C0/V8S` `metrics.json` confirms exact agreement across A0-A6, B1 Control, `C3` (57.283±0.173%), `C0` (58.812±0.082%), and `V8S` (61.414±0.074%) (1 honest precision/SD-convention mismatch flagged on B2 V8F)."
     },
     {
       "severity": "FINDING_1",
@@ -8376,6 +9603,288 @@
       ],
       "downloaded_count": 78,
       "role": "Baseline B2 5-Seed Matched V8F Audit"
+    },
+    {
+      "user": "tundng111",
+      "slug": "gdut-yolo11n-dcrcf-matched-ablation-c3",
+      "kaggle_url": "https://www.kaggle.com/code/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c3",
+      "ipynb_path": "docs/kaggle_verified_source/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c3.ipynb",
+      "pull_http": 200,
+      "output_http": 200,
+      "version": 1,
+      "cells": 29,
+      "downloaded_files": [
+        "dcrcf_v4_code/baseline_model.py",
+        "dcrcf_v4_code/baseline_modules.py",
+        "dcrcf_v4_code/custom_ablation_modules.py",
+        "dcrcf_v4_code/gdut_data.py",
+        "dcrcf_v4_code/matched_v5_run.py",
+        "dcrcf_v4_code/plain_logging.py",
+        "dcrcf_v4_code/prep_albumentations_hardcase_policy.py.txt",
+        "dcrcf_v4_code/prep_dataset_pipeline.py.txt",
+        "dcrcf_v4_code/sitecustomize.py",
+        "dcrcf_v4_code/v4_data.py",
+        "dcrcf_v4_code/v4_evaluate.py",
+        "dcrcf_v4_code/v4_model.py",
+        "dcrcf_v4_code/v4_paper.py",
+        "dcrcf_v4_code/v4_probe.py",
+        "dcrcf_v4_code/v4_run.py",
+        "dcrcf_v4_code/warm_data.py",
+        "dcrcf_v4_code/warm_environment.py",
+        "dcrcf_v4_code/warm_launch.py",
+        "dcrcf_v4_code/warm_metrics.py",
+        "dcrcf_v4_code/warm_model.py",
+        "dcrcf_v4_code/warm_protocol.py",
+        "execution_log.txt",
+        "v5-matched-c3/ADD_INPUT_READY.json",
+        "v5-matched-c3/C3-3407/architecture_rank_0.json",
+        "v5-matched-c3/C3-3407/architecture_rank_1.json",
+        "v5-matched-c3/C3-3407/args.yaml",
+        "v5-matched-c3/C3-3407/results.csv",
+        "v5-matched-c3/C3-3407/run_manifest.json",
+        "v5-matched-c3/C3-3407/training_complete.json",
+        "v5-matched-c3/C3-3407/validation/metrics.json",
+        "v5-matched-c3/C3-3407/validation/module_probe.json",
+        "v5-matched-c3/C3-3408/architecture_rank_0.json",
+        "v5-matched-c3/C3-3408/architecture_rank_1.json",
+        "v5-matched-c3/C3-3408/args.yaml",
+        "v5-matched-c3/C3-3408/results.csv",
+        "v5-matched-c3/C3-3408/run_manifest.json",
+        "v5-matched-c3/C3-3408/training_complete.json",
+        "v5-matched-c3/C3-3408/validation/metrics.json",
+        "v5-matched-c3/C3-3408/validation/module_probe.json",
+        "v5-matched-c3/C3-3409/architecture_rank_0.json",
+        "v5-matched-c3/C3-3409/architecture_rank_1.json",
+        "v5-matched-c3/C3-3409/args.yaml",
+        "v5-matched-c3/C3-3409/results.csv",
+        "v5-matched-c3/C3-3409/run_manifest.json",
+        "v5-matched-c3/C3-3409/training_complete.json",
+        "v5-matched-c3/C3-3409/validation/metrics.json",
+        "v5-matched-c3/C3-3409/validation/module_probe.json",
+        "v5-matched-c3/C3-3410/architecture_rank_0.json",
+        "v5-matched-c3/C3-3410/architecture_rank_1.json",
+        "v5-matched-c3/C3-3410/args.yaml",
+        "v5-matched-c3/C3-3410/results.csv",
+        "v5-matched-c3/C3-3410/run_manifest.json",
+        "v5-matched-c3/C3-3410/training_complete.json",
+        "v5-matched-c3/C3-3410/validation/metrics.json",
+        "v5-matched-c3/C3-3410/validation/module_probe.json",
+        "v5-matched-c3/C3-3411/architecture_rank_0.json",
+        "v5-matched-c3/C3-3411/architecture_rank_1.json",
+        "v5-matched-c3/C3-3411/args.yaml",
+        "v5-matched-c3/C3-3411/results.csv",
+        "v5-matched-c3/C3-3411/run_manifest.json",
+        "v5-matched-c3/C3-3411/training_complete.json",
+        "v5-matched-c3/C3-3411/validation/metrics.json",
+        "v5-matched-c3/C3-3411/validation/module_probe.json",
+        "v5-matched-c3/FULL_RUN_READY.json",
+        "v5-matched-c3/SELF_SMOKE_READY.json",
+        "v5-matched-c3/data_audit.json",
+        "v5-matched-c3/gdut_aug.yaml",
+        "v5-matched-c3/gdut_smoke.yaml",
+        "v5-matched-c3/preflight_C3.json",
+        "v5-matched-c3/self-smoke-C3-3407/architecture_rank_0.json",
+        "v5-matched-c3/self-smoke-C3-3407/architecture_rank_1.json",
+        "v5-matched-c3/self-smoke-C3-3407/args.yaml",
+        "v5-matched-c3/self-smoke-C3-3407/results.csv",
+        "v5-matched-c3/self-smoke-C3-3407/run_manifest.json",
+        "v5-matched-c3/self-smoke-C3-3407/training_complete.json",
+        "v5-matched-c3/self-smoke-C3-3407/validation/metrics.json",
+        "v5-matched-c3/self-smoke-C3-3407/validation/module_probe.json",
+        "v5-matched-c3/smoke_train_images.txt"
+      ],
+      "title": "GDUT YOLO11n–DCRCF matched ablation · C3",
+      "stripped_output_images": 0,
+      "downloaded_count": 78,
+      "role": "Baseline B1 5-Seed Matched C3 Audit"
+    },
+    {
+      "user": "tundng111",
+      "slug": "gdut-yolo11n-dcrcf-matched-ablation-c0",
+      "kaggle_url": "https://www.kaggle.com/code/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c0",
+      "ipynb_path": "docs/kaggle_verified_source/tundng111/gdut-yolo11n-dcrcf-matched-ablation-c0.ipynb",
+      "pull_http": 200,
+      "output_http": 200,
+      "version": 7,
+      "cells": 29,
+      "downloaded_files": [
+        "dcrcf_v4_code/baseline_model.py",
+        "dcrcf_v4_code/baseline_modules.py",
+        "dcrcf_v4_code/custom_ablation_modules.py",
+        "dcrcf_v4_code/gdut_data.py",
+        "dcrcf_v4_code/matched_v5_run.py",
+        "dcrcf_v4_code/plain_logging.py",
+        "dcrcf_v4_code/prep_albumentations_hardcase_policy.py.txt",
+        "dcrcf_v4_code/prep_dataset_pipeline.py.txt",
+        "dcrcf_v4_code/sitecustomize.py",
+        "dcrcf_v4_code/v4_data.py",
+        "dcrcf_v4_code/v4_evaluate.py",
+        "dcrcf_v4_code/v4_model.py",
+        "dcrcf_v4_code/v4_paper.py",
+        "dcrcf_v4_code/v4_probe.py",
+        "dcrcf_v4_code/v4_run.py",
+        "dcrcf_v4_code/warm_data.py",
+        "dcrcf_v4_code/warm_environment.py",
+        "dcrcf_v4_code/warm_launch.py",
+        "dcrcf_v4_code/warm_metrics.py",
+        "dcrcf_v4_code/warm_model.py",
+        "dcrcf_v4_code/warm_protocol.py",
+        "execution_log.txt",
+        "v5-matched-c0/ADD_INPUT_READY.json",
+        "v5-matched-c0/C0-3407/architecture_rank_0.json",
+        "v5-matched-c0/C0-3407/architecture_rank_1.json",
+        "v5-matched-c0/C0-3407/args.yaml",
+        "v5-matched-c0/C0-3407/results.csv",
+        "v5-matched-c0/C0-3407/run_manifest.json",
+        "v5-matched-c0/C0-3407/training_complete.json",
+        "v5-matched-c0/C0-3407/validation/metrics.json",
+        "v5-matched-c0/C0-3407/validation/module_probe.json",
+        "v5-matched-c0/C0-3408/architecture_rank_0.json",
+        "v5-matched-c0/C0-3408/architecture_rank_1.json",
+        "v5-matched-c0/C0-3408/args.yaml",
+        "v5-matched-c0/C0-3408/results.csv",
+        "v5-matched-c0/C0-3408/run_manifest.json",
+        "v5-matched-c0/C0-3408/training_complete.json",
+        "v5-matched-c0/C0-3408/validation/metrics.json",
+        "v5-matched-c0/C0-3408/validation/module_probe.json",
+        "v5-matched-c0/C0-3409/architecture_rank_0.json",
+        "v5-matched-c0/C0-3409/architecture_rank_1.json",
+        "v5-matched-c0/C0-3409/args.yaml",
+        "v5-matched-c0/C0-3409/results.csv",
+        "v5-matched-c0/C0-3409/run_manifest.json",
+        "v5-matched-c0/C0-3409/training_complete.json",
+        "v5-matched-c0/C0-3409/validation/metrics.json",
+        "v5-matched-c0/C0-3409/validation/module_probe.json",
+        "v5-matched-c0/C0-3410/architecture_rank_0.json",
+        "v5-matched-c0/C0-3410/architecture_rank_1.json",
+        "v5-matched-c0/C0-3410/args.yaml",
+        "v5-matched-c0/C0-3410/results.csv",
+        "v5-matched-c0/C0-3410/run_manifest.json",
+        "v5-matched-c0/C0-3410/training_complete.json",
+        "v5-matched-c0/C0-3410/validation/metrics.json",
+        "v5-matched-c0/C0-3410/validation/module_probe.json",
+        "v5-matched-c0/C0-3411/architecture_rank_0.json",
+        "v5-matched-c0/C0-3411/architecture_rank_1.json",
+        "v5-matched-c0/C0-3411/args.yaml",
+        "v5-matched-c0/C0-3411/results.csv",
+        "v5-matched-c0/C0-3411/run_manifest.json",
+        "v5-matched-c0/C0-3411/training_complete.json",
+        "v5-matched-c0/C0-3411/validation/metrics.json",
+        "v5-matched-c0/C0-3411/validation/module_probe.json",
+        "v5-matched-c0/FULL_RUN_READY.json",
+        "v5-matched-c0/SELF_SMOKE_READY.json",
+        "v5-matched-c0/data_audit.json",
+        "v5-matched-c0/gdut_aug.yaml",
+        "v5-matched-c0/gdut_smoke.yaml",
+        "v5-matched-c0/preflight_C0.json",
+        "v5-matched-c0/self-smoke-C0-3407/architecture_rank_0.json",
+        "v5-matched-c0/self-smoke-C0-3407/architecture_rank_1.json",
+        "v5-matched-c0/self-smoke-C0-3407/args.yaml",
+        "v5-matched-c0/self-smoke-C0-3407/results.csv",
+        "v5-matched-c0/self-smoke-C0-3407/run_manifest.json",
+        "v5-matched-c0/self-smoke-C0-3407/training_complete.json",
+        "v5-matched-c0/self-smoke-C0-3407/validation/metrics.json",
+        "v5-matched-c0/self-smoke-C0-3407/validation/module_probe.json",
+        "v5-matched-c0/smoke_train_images.txt"
+      ],
+      "title": "GDUT YOLO11n–DCRCF matched ablation · C0",
+      "stripped_output_images": 0,
+      "downloaded_count": 78,
+      "role": "Stock YOLO11n 5-Seed Matched C0 Control"
+    },
+    {
+      "user": "tundng111",
+      "slug": "gdut-yolov8-v5-matched-v8s",
+      "kaggle_url": "https://www.kaggle.com/code/tundng111/gdut-yolov8-v5-matched-v8s",
+      "ipynb_path": "docs/kaggle_verified_source/tundng111/gdut-yolov8-v5-matched-v8s.ipynb",
+      "pull_http": 200,
+      "output_http": 200,
+      "version": 1,
+      "cells": 29,
+      "downloaded_files": [
+        "dcrcf_v4_code/baseline_model.py",
+        "dcrcf_v4_code/baseline_modules.py",
+        "dcrcf_v4_code/custom_ablation_modules.py",
+        "dcrcf_v4_code/gdut_data.py",
+        "dcrcf_v4_code/matched_v5_v8_run.py",
+        "dcrcf_v4_code/plain_logging.py",
+        "dcrcf_v4_code/prep_albumentations_hardcase_policy.py.txt",
+        "dcrcf_v4_code/prep_dataset_pipeline.py.txt",
+        "dcrcf_v4_code/sitecustomize.py",
+        "dcrcf_v4_code/v4_data.py",
+        "dcrcf_v4_code/v4_evaluate.py",
+        "dcrcf_v4_code/v4_model.py",
+        "dcrcf_v4_code/v4_paper.py",
+        "dcrcf_v4_code/v4_probe.py",
+        "dcrcf_v4_code/v4_run.py",
+        "dcrcf_v4_code/warm_data.py",
+        "dcrcf_v4_code/warm_environment.py",
+        "dcrcf_v4_code/warm_launch.py",
+        "dcrcf_v4_code/warm_metrics.py",
+        "dcrcf_v4_code/warm_model.py",
+        "dcrcf_v4_code/warm_protocol.py",
+        "execution_log.txt",
+        "v5-matched-v8s/ADD_INPUT_READY.json",
+        "v5-matched-v8s/FULL_RUN_READY.json",
+        "v5-matched-v8s/SELF_SMOKE_READY.json",
+        "v5-matched-v8s/V8S-3407/architecture_rank_0.json",
+        "v5-matched-v8s/V8S-3407/architecture_rank_1.json",
+        "v5-matched-v8s/V8S-3407/args.yaml",
+        "v5-matched-v8s/V8S-3407/results.csv",
+        "v5-matched-v8s/V8S-3407/run_manifest.json",
+        "v5-matched-v8s/V8S-3407/training_complete.json",
+        "v5-matched-v8s/V8S-3407/validation/metrics.json",
+        "v5-matched-v8s/V8S-3407/validation/module_probe.json",
+        "v5-matched-v8s/V8S-3408/architecture_rank_0.json",
+        "v5-matched-v8s/V8S-3408/architecture_rank_1.json",
+        "v5-matched-v8s/V8S-3408/args.yaml",
+        "v5-matched-v8s/V8S-3408/results.csv",
+        "v5-matched-v8s/V8S-3408/run_manifest.json",
+        "v5-matched-v8s/V8S-3408/training_complete.json",
+        "v5-matched-v8s/V8S-3408/validation/metrics.json",
+        "v5-matched-v8s/V8S-3408/validation/module_probe.json",
+        "v5-matched-v8s/V8S-3409/architecture_rank_0.json",
+        "v5-matched-v8s/V8S-3409/architecture_rank_1.json",
+        "v5-matched-v8s/V8S-3409/args.yaml",
+        "v5-matched-v8s/V8S-3409/results.csv",
+        "v5-matched-v8s/V8S-3409/run_manifest.json",
+        "v5-matched-v8s/V8S-3409/training_complete.json",
+        "v5-matched-v8s/V8S-3409/validation/metrics.json",
+        "v5-matched-v8s/V8S-3409/validation/module_probe.json",
+        "v5-matched-v8s/V8S-3410/architecture_rank_0.json",
+        "v5-matched-v8s/V8S-3410/architecture_rank_1.json",
+        "v5-matched-v8s/V8S-3410/args.yaml",
+        "v5-matched-v8s/V8S-3410/results.csv",
+        "v5-matched-v8s/V8S-3410/run_manifest.json",
+        "v5-matched-v8s/V8S-3410/training_complete.json",
+        "v5-matched-v8s/V8S-3410/validation/metrics.json",
+        "v5-matched-v8s/V8S-3410/validation/module_probe.json",
+        "v5-matched-v8s/V8S-3411/architecture_rank_0.json",
+        "v5-matched-v8s/V8S-3411/architecture_rank_1.json",
+        "v5-matched-v8s/V8S-3411/args.yaml",
+        "v5-matched-v8s/V8S-3411/results.csv",
+        "v5-matched-v8s/V8S-3411/run_manifest.json",
+        "v5-matched-v8s/V8S-3411/training_complete.json",
+        "v5-matched-v8s/V8S-3411/validation/metrics.json",
+        "v5-matched-v8s/V8S-3411/validation/module_probe.json",
+        "v5-matched-v8s/data_audit.json",
+        "v5-matched-v8s/gdut_aug.yaml",
+        "v5-matched-v8s/gdut_smoke.yaml",
+        "v5-matched-v8s/preflight_V8S.json",
+        "v5-matched-v8s/self-smoke-V8S-3407/architecture_rank_0.json",
+        "v5-matched-v8s/self-smoke-V8S-3407/architecture_rank_1.json",
+        "v5-matched-v8s/self-smoke-V8S-3407/args.yaml",
+        "v5-matched-v8s/self-smoke-V8S-3407/results.csv",
+        "v5-matched-v8s/self-smoke-V8S-3407/run_manifest.json",
+        "v5-matched-v8s/self-smoke-V8S-3407/training_complete.json",
+        "v5-matched-v8s/self-smoke-V8S-3407/validation/metrics.json",
+        "v5-matched-v8s/self-smoke-V8S-3407/validation/module_probe.json",
+        "v5-matched-v8s/smoke_train_images.txt"
+      ],
+      "title": "gdut-yolov8-v5-matched-v8s",
+      "stripped_output_images": 0,
+      "downloaded_count": 78,
+      "role": "Stock YOLOv8s 5-Seed Matched V8S Control"
     }
   ]
 }
