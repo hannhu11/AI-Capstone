@@ -126,6 +126,7 @@ class CCTVSurveillancePipeline:
         self.detector = SafetyObjectDetector(
             model_path=config.model_path,
             conf_thresh=config.conf_threshold,
+            none_conf_thresh=config.none_conf_threshold,
             iou_thresh=config.iou_threshold,
             device=config.device,
             use_half=config.use_half,
@@ -929,7 +930,9 @@ class CCTVSurveillancePipeline:
                             max_overlap = ov
                 effective_conf = orig_conf if max_overlap >= 0.25 else orig_conf * 0.15
 
-            if effective_conf >= config.conf_threshold:
+            is_bare_cls = self.detector.is_bare_head_class(d_name_l)
+            req_thresh = getattr(config, "none_conf_threshold", config.conf_threshold) if is_bare_cls else config.conf_threshold
+            if effective_conf >= req_thresh:
                 d_c = dict(d)
                 d_c["conf"] = round(effective_conf, 4)
                 filtered_detections.append(d_c)
@@ -1083,6 +1086,12 @@ class CCTVSurveillancePipeline:
                 "custom_label": r.get("custom_label"),
                 "status": r.get("status"),
                 "violation_streak": r.get("violation_streak", 0),
+                "debounce_frames": int(
+                    r.get(
+                        "debounce_frames",
+                        getattr(self.safety_engine, "consecutive_frames_thresh", config.consecutive_violation_frames),
+                    )
+                ),
                 "confidence": r.get("confidence", 0.0),
             })
         self.latest_active_tracks = norm_tracks
@@ -1251,9 +1260,17 @@ class CCTVSurveillancePipeline:
                 cv2.putText(vis, label_top, (x1 + 5, top_y + 16), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (248, 250, 252), 1, cv2.LINE_AA)
 
                 if not is_compliant:
-                    v_text = "VIOLATION: BARE HEAD"
+                    streak = int(r.get("violation_streak", 0))
+                    k_thresh = max(1, int(r.get("debounce_frames", getattr(config, "consecutive_violation_frames", 8))))
+                    conf_val = float(r.get("confidence", 0.0))
+                    if streak < k_thresh:
+                        v_text = f"BARE HEAD ({conf_val:.2f}) [{streak}/{k_thresh}]"
+                        pill_bgr = (9, 105, 195)
+                    else:
+                        v_text = f"VIOLATION: BARE HEAD ({conf_val:.2f})"
+                        pill_bgr = (28, 28, 185)
                     (vw, _), _ = cv2.getTextSize(v_text, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
-                    cv2.rectangle(vis, (x1, y2 + 2), (x1 + vw + 8, y2 + 22), (28, 28, 185), -1)
+                    cv2.rectangle(vis, (x1, y2 + 2), (x1 + vw + 8, y2 + 22), pill_bgr, -1)
                     cv2.putText(vis, v_text, (x1 + 4, y2 + 16), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1, cv2.LINE_AA)
 
             return vis
@@ -1300,9 +1317,17 @@ class CCTVSurveillancePipeline:
             cv2.putText(vis, label_top, (x1 + 4, tag_y1 + 14), cv2.FONT_HERSHEY_SIMPLEX, 0.43, (248, 250, 252), 1, cv2.LINE_AA)
 
             if not is_compliant and r.get("violations"):
-                v_text = f"VIOLATION ({r.get('violation_streak', 0)}f)"
+                streak = int(r.get("violation_streak", 0))
+                k_thresh = max(1, int(r.get("debounce_frames", getattr(config, "consecutive_violation_frames", 8))))
+                conf_val = float(r.get("confidence", 0.0))
+                if streak < k_thresh:
+                    v_text = f"BARE HEAD ({conf_val:.2f}) [{streak}/{k_thresh}]"
+                    pill_bgr = (9, 105, 195)
+                else:
+                    v_text = f"VIOLATION: BARE HEAD ({conf_val:.2f})"
+                    pill_bgr = (28, 28, 185)
                 (vw, _), _ = cv2.getTextSize(v_text, cv2.FONT_HERSHEY_SIMPLEX, 0.40, 1)
-                cv2.rectangle(vis, (x1, y2 + 1), (x1 + vw + 8, y2 + 18), (28, 28, 185), -1)
+                cv2.rectangle(vis, (x1, y2 + 1), (x1 + vw + 8, y2 + 18), pill_bgr, -1)
                 cv2.putText(vis, v_text, (x1 + 4, y2 + 13), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (255, 255, 255), 1, cv2.LINE_AA)
 
         if getattr(config, "draw_video_hud", False):

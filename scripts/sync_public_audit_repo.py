@@ -56,6 +56,7 @@ WHITELIST_SCRIPTS = [
     "scripts/test_dynamic_taxonomy_gdut.py",
     "scripts/export_gdut_a6_deploy.py",
     "scripts/run_local_dashboard.py",
+    "scripts/check_c960_webcam_live.py",
     "scripts/verify_thesis_v25_consistency.py",
     "scripts/sync_public_audit_repo.py",
 ]
@@ -445,7 +446,7 @@ def sync_export(init_git: bool = False) -> Path:
 
     manifest = {
         "repo": "https://github.com/hannhu11/AI-Capstone",
-        "scope": "AEGIS-CCTV Enterprise VMS v2.5.1 (GDUT-HWD 5-Class Clean-Room Export)",
+        "scope": "AEGIS-CCTV Enterprise VMS v2.5.2 (GDUT-HWD 5-Class Clean-Room Export)",
         "total_files": len(manifest_entries) + 1,
         "total_size_mb": round(total_bytes / (1024 * 1024), 3),
         "max_single_file_mb": round(max_file_bytes / (1024 * 1024), 3),

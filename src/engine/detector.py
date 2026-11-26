@@ -68,9 +68,13 @@ class SafetyObjectDetector:
         device: Optional[str] = None,
         use_half: bool = False,
         use_selective_amp: Optional[bool] = None,
+        none_conf_thresh: Optional[float] = None,
     ):
         self.model_path = model_path or config.model_path
         self.conf_thresh = conf_thresh
+        self.none_conf_thresh: float = float(
+            none_conf_thresh if none_conf_thresh is not None else getattr(config, "none_conf_threshold", conf_thresh)
+        )
         self.iou_thresh = iou_thresh
 
         if device is None:
@@ -172,6 +176,24 @@ class SafetyObjectDetector:
             if lock is not None:
                 lock.release()
 
+    @staticmethod
+    def is_bare_head_class(name: str) -> bool:
+        n = str(name or "").strip().lower()
+        return (
+            n in (
+                "none",
+                "no_helmet",
+                "no-helmet",
+                "head",
+                "without_helmet",
+                "no_hat",
+                "head_without_helmet",
+                "none_helmet",
+            )
+            or n.startswith("no_helmet")
+            or n.startswith("no-helmet")
+        )
+
     def get_head_tracks(self) -> np.ndarray:
         """Returns cached (N, 6) [x1, y1, x2, y2, conf, cls_id] head boxes from last predict()."""
         return getattr(self, "last_head_tracks", np.empty((0, 6), dtype=np.float32))
@@ -182,18 +204,21 @@ class SafetyObjectDetector:
         conf: Optional[float] = None,
         iou: Optional[float] = None,
         imgsz: int = 640,
+        none_conf: Optional[float] = None,
     ) -> Tuple[List[Dict[str, Any]], np.ndarray, float]:
         """
         Runs inference on an image / video frame.
         Returns 3-tuple for backward compatibility:
-            all_detections: list of dicts filtered at conf_val
+            all_detections: list of dicts filtered at class-aware conf_val / none_conf_val
             person_boxes: numpy array (N, 6) for full-body ByteTrack when has_person_class=True (empty in GDUT mode)
             latency_ms: pure inference latency in milliseconds
         Also populates `self.last_head_tracks` (N, 6) down to `track_low_thresh` when `is_helmet_only=True`.
         """
         conf_val = conf if conf is not None else self.conf_thresh
+        none_conf_val = none_conf if none_conf is not None else self.none_conf_thresh
         iou_val = iou if iou is not None else self.iou_thresh
-        infer_conf = min(conf_val, getattr(config, "track_low_thresh", 0.15))
+        low_track_floor = getattr(config, "track_low_thresh", 0.15)
+        infer_conf = min(conf_val, none_conf_val, low_track_floor)
 
         if self.yolo is None:
             self.last_head_tracks = np.empty((0, 6), dtype=np.float32)
@@ -230,6 +255,8 @@ class SafetyObjectDetector:
                 conf_score = float(box.conf[0].item())
                 x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().tolist()
                 c_name = self.class_names.get(cls_id, str(cls_id)).lower()
+                is_bare = self.is_bare_head_class(c_name)
+                req_conf = none_conf_val if is_bare else conf_val
 
                 det_dict = {
                     "box": [round(x1, 1), round(y1, 1), round(x2, 1), round(y2, 1)],
@@ -238,7 +265,7 @@ class SafetyObjectDetector:
                     "name": c_name,
                 }
 
-                if conf_score >= conf_val:
+                if conf_score >= req_conf:
                     all_detections.append(det_dict)
 
                 if self.has_person_class:
@@ -247,7 +274,11 @@ class SafetyObjectDetector:
                         person_raw.append([x1, y1, x2, y2, conf_score, cls_id])
                 elif self.is_helmet_only:
                     if "vest" not in c_name and "person" not in c_name:
-                        head_raw.append([x1, y1, x2, y2, conf_score, cls_id])
+                        # Preserve legacy 0.15 low-score continuation when req_conf <= 0.30;
+                        # enforce raised threshold strictly when user sets req_conf > 0.30.
+                        head_floor = min(req_conf, low_track_floor) if req_conf <= 0.30 else req_conf
+                        if conf_score >= head_floor:
+                            head_raw.append([x1, y1, x2, y2, conf_score, cls_id])
 
         person_arr = np.array(person_raw, dtype=np.float32) if person_raw else np.empty((0, 6), dtype=np.float32)
         self.last_head_tracks = np.array(head_raw, dtype=np.float32) if head_raw else np.empty((0, 6), dtype=np.float32)

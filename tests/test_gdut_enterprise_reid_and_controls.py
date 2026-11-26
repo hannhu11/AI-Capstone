@@ -885,3 +885,194 @@ def test_optimization_json_parity_internal_consistency():
     assert expected_token in str(after2.get("accuracy_delta", "")), (
         f"Mismatch between After-2 '{after2.get('accuracy_delta')}' and video_parity mean_conf_diff={vp['mean_conf_diff']}"
     )
+
+
+def test_none_conf_threshold_class_aware_and_settings_api(monkeypatch):
+    import types as _types
+    import torch as _torch
+    from src.config import config as sys_cfg
+    from src.engine.detector import SafetyObjectDetector
+    from src.engine.pipeline import cctv_pipeline
+    import src.web.app as web_app
+
+    class _FakeBox:
+        def __init__(self, cls_id: int, conf_val: float, xyxy: list[float]):
+            self.cls = _torch.tensor([cls_id], dtype=_torch.int64)
+            self.conf = _torch.tensor([conf_val], dtype=_torch.float32)
+            self.xyxy = _torch.tensor([xyxy], dtype=_torch.float32)
+
+    det = SafetyObjectDetector(
+        model_path="nonexistent_stub.pt",
+        conf_thresh=0.35,
+        iou_thresh=0.45,
+        device="cpu",
+        none_conf_thresh=0.25,
+    )
+    fake_res = _types.SimpleNamespace(
+        boxes=[
+            _FakeBox(0, 0.28, [50.0, 40.0, 120.0, 110.0]),   # blue helmet < 0.35 -> filtered
+            _FakeBox(4, 0.28, [220.0, 50.0, 290.0, 125.0]),  # none bare head >= 0.25 -> kept
+        ]
+    )
+    det.yolo = _types.SimpleNamespace(predict=lambda *_a, **_kw: [fake_res])
+
+    frame = np.full((360, 640, 3), 180, dtype=np.uint8)
+    all_dets, _persons, _lat = det.predict(frame)
+    head_tracks = det.get_head_tracks()
+    assert len(all_dets) == 1 and all_dets[0]["name"] == "none"
+    assert len(head_tracks) == 1 and int(head_tracks[0][5]) == 4
+
+    monkeypatch.setattr(web_app, "update_env_file", lambda _updates: True)
+    orig_state = (
+        sys_cfg.conf_threshold,
+        sys_cfg.none_conf_threshold,
+        cctv_pipeline.detector.conf_thresh,
+        cctv_pipeline.detector.none_conf_thresh,
+        cctv_pipeline.tracker.track_thresh,
+        cctv_pipeline.tracker.new_track_thresh,
+    )
+    client = TestClient(app)
+    try:
+        resp = client.post(
+            "/api/settings",
+            json={"conf_threshold": 0.35, "none_conf_threshold": 0.22},
+        )
+        assert resp.status_code == 200
+        cfg_json = resp.json()["config"]
+        assert cfg_json["conf_threshold"] == pytest.approx(0.35)
+        assert cfg_json["none_conf_threshold"] == pytest.approx(0.22)
+        assert cctv_pipeline.detector.none_conf_thresh == pytest.approx(0.22)
+        assert cctv_pipeline.tracker.new_track_thresh <= 0.22 + 1e-6
+    finally:
+        (
+            sys_cfg.conf_threshold,
+            sys_cfg.none_conf_threshold,
+            cctv_pipeline.detector.conf_thresh,
+            cctv_pipeline.detector.none_conf_thresh,
+            cctv_pipeline.tracker.track_thresh,
+            cctv_pipeline.tracker.new_track_thresh,
+        ) = orig_state
+
+
+def test_bare_head_debounce_progress_exposed_in_report_and_ws(tmp_path):
+    from src.engine.pipeline import CCTVSurveillancePipeline
+
+    engine = SpatialSafetyEngine(consecutive_frames_thresh=5, min_tracklet_len=0)
+    frame = _make_person_scene()
+    trk = STrack(STrack.tlbr_to_tlwh(np.array([200.0, 90.0, 240.0, 140.0], dtype=np.float32)), score=0.82, cls_id=4)
+    trk.track_id = 12
+    trk.canonical_id = 1
+    trk.is_activated = True
+    trk.head_cls_name = "none"
+
+    for fidx in range(5):
+        reports, _ = engine.evaluate_frame(
+            [trk],
+            [],
+            frame,
+            camera_id="CAM_DEB",
+            is_helmet_only=True,
+            role_policy=DEFAULT_ROLE_HIERARCHY,
+            class_names={0: "blue", 1: "white", 2: "yellow", 3: "red", 4: "none"},
+        )
+        assert len(reports) == 1
+        assert reports[0]["violation_streak"] == fidx + 1
+        assert reports[0]["debounce_frames"] == 5
+
+    clip = tmp_path / "debounce_render.avi"
+    vw = cv2.VideoWriter(str(clip), cv2.VideoWriter_fourcc(*"MJPG"), 10.0, (320, 240))
+    assert vw.isOpened()
+    vw.write(np.full((240, 320, 3), 200, dtype=np.uint8))
+    vw.release()
+    pipe = CCTVSurveillancePipeline(video_source=str(clip))
+    try:
+        canvas = np.full((360, 640, 3), 200, dtype=np.uint8)
+        for streak in (3, 5):
+            rep = {
+                "track_id": 1,
+                "bbox": [180.0, 80.0, 250.0, 150.0],
+                "confidence": 0.82,
+                "status": "VIOLATION",
+                "violations": ["MISSING_SAFETY_HELMET"],
+                "violation_streak": streak,
+                "debounce_frames": 5,
+                "helmet_color": None,
+                "role_short_code": "BARE-HEAD",
+                "historical_role_short_code": "PM/ENG",
+                "role_bgr_color": [38, 38, 220],
+                "is_helmet_only": True,
+            }
+            pipe.set_focus_track(None)
+            vis_multi = pipe._render_annotations(canvas, [], [rep])
+            assert vis_multi.shape == canvas.shape
+            pipe.set_focus_track(1)
+            vis_focus = pipe._render_annotations(canvas, [], [rep])
+            assert vis_focus.shape == canvas.shape
+    finally:
+        pipe.stop()
+
+    html = TestClient(app).get("/").text
+    assert 'id="setNoneConf"' in html
+    assert "VIOLATION: BARE HEAD" in html
+
+
+def test_reid_plain_shirt_long_term_keeps_strict_deep_veto():
+    from src.engine.gdut_reid import UpperTorsoIdentityProfile
+
+    gal = UpperTorsoReIDGallery(ttl_seconds=600.0, sim_thresh=0.70, use_deep=False)
+
+    # Profile A normalized 520-D strip ([0:474] color, [474:520] HOG texture) + 712-D deep vector
+    col_a = np.zeros(474, dtype=np.float32)
+    col_a[0] = 1.0
+    tex_a = np.zeros(46, dtype=np.float32)
+    tex_a[0] = 1.0
+    strip_a = np.concatenate([col_a, tex_a])
+    deep_a = np.zeros(712, dtype=np.float32)
+    deep_a[0] = 1.0
+
+    prof = UpperTorsoIdentityProfile(
+        worker_id=1,
+        head_box=np.array([100.0, 60.0, 160.0, 120.0], dtype=np.float32),
+        helmet_class="yellow",
+        strip_sig=strip_a,
+        deep_sig=deep_a,
+        torso_roi=(80, 130, 180, 290),
+        frame_idx=0,
+        now_ts=100.0,
+    )
+
+    # Probe B: same plain shirt color (sim_color > 0.88), different texture (sim_tex ~ 0.30 < 0.65),
+    # intermediate deep similarity (sim_deep = 0.55: between 0.50 and 0.62)
+    col_b = np.zeros(474, dtype=np.float32)
+    col_b[0] = 0.90
+    col_b[1] = float(np.sqrt(1.0 - 0.90 ** 2))
+    tex_b_low = np.zeros(46, dtype=np.float32)
+    tex_b_low[0] = 0.30
+    tex_b_low[1] = float(np.sqrt(1.0 - 0.30 ** 2))
+    strip_b_plain = np.concatenate([col_b, tex_b_low])
+
+    deep_mid = np.zeros(712, dtype=np.float32)
+    deep_mid[0] = 0.55
+    deep_mid[1] = float(np.sqrt(1.0 - 0.55 ** 2))
+
+    # Long-term (> 8.0s) plain-shirt probe MUST keep strict 0.62 veto floor and reject
+    _sim_long, veto_long = gal._compute_appear_subscores(
+        prof, strip_b_plain, deep_mid, skip_hard_veto=False, dt_seconds=15.0
+    )
+    assert veto_long is True
+
+    # Short-term (<= 8.0s) re-entry still allows 0.50 floor
+    _sim_short, veto_short = gal._compute_appear_subscores(
+        prof, strip_b_plain, deep_mid, skip_hard_veto=False, dt_seconds=4.0
+    )
+    assert veto_short is False
+
+    # Patterned uniform (sim_color >= 0.78 and sim_tex >= 0.80) allows 0.50 floor even at dt > 8.0s
+    tex_b_high = np.zeros(46, dtype=np.float32)
+    tex_b_high[0] = 0.80
+    tex_b_high[1] = float(np.sqrt(1.0 - 0.80 ** 2))
+    strip_b_patterned = np.concatenate([col_b, tex_b_high])
+    _sim_pat, veto_pat = gal._compute_appear_subscores(
+        prof, strip_b_patterned, deep_mid, skip_hard_veto=False, dt_seconds=15.0
+    )
+    assert veto_pat is False

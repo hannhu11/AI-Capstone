@@ -1129,8 +1129,11 @@
       </div>
       <div class="modal-body">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <label style="font-size:12px;">Confidence Threshold
+          <label style="font-size:12px;">Helmet Conf Threshold
             <input type="number" step="0.05" min="0.1" max="0.95" class="ctrl-input" id="setConf" style="width:100%;margin-top:4px;" />
+          </label>
+          <label style="font-size:12px;">Bare-Head (none) Conf Threshold
+            <input type="number" step="0.05" min="0.1" max="0.95" class="ctrl-input" id="setNoneConf" style="width:100%;margin-top:4px;" />
           </label>
           <label style="font-size:12px;">NMS IoU Threshold
             <input type="number" step="0.05" min="0.1" max="0.95" class="ctrl-input" id="setIou" style="width:100%;margin-top:4px;" />
@@ -1784,12 +1787,28 @@
         const alias = t.custom_label ? ` [${t.custom_label}]` : '';
         const roleTag = t.role_short_code || (t.helmet_color || 'head').toUpperCase();
         const statusTag = isViol ? 'BARE HEAD' : (t.current_class || t.helmet_color || '').toUpperCase();
-        const labelText = `ID #${t.track_id}${alias} | ${roleTag} | ${statusTag}`;
+        const streak = Number(t.violation_streak || 0);
+        const kThresh = Math.max(1, Number(t.debounce_frames || 8));
+        const confStr = (typeof t.confidence === 'number') ? ' (' + t.confidence.toFixed(2) + ')' : '';
+        let labelText;
+        let pillBg;
+        if (isViol) {
+          if (streak < kThresh) {
+            labelText = `ID #${t.track_id}${alias} | BARE HEAD${confStr} [${streak}/${kThresh}]`;
+            pillBg = '#B45309';
+          } else {
+            labelText = `ID #${t.track_id}${alias} | VIOLATION: BARE HEAD${confStr}`;
+            pillBg = '#991B1B';
+          }
+        } else {
+          labelText = `ID #${t.track_id}${alias} | ${roleTag} | ${statusTag}`;
+          pillBg = '#111827';
+        }
         ctx.font = '600 11px JetBrains Mono, monospace';
         const tw = ctx.measureText(labelText).width;
         const pillH = 18;
         const pillY = Math.max(2, y1 - pillH - 2);
-        ctx.fillStyle = isViol ? '#991B1B' : '#111827';
+        ctx.fillStyle = pillBg;
         ctx.fillRect(x1, pillY, tw + 10, pillH);
         ctx.fillStyle = '#F9FAFB';
         ctx.textBaseline = 'middle';
@@ -2623,6 +2642,7 @@
         const s = await apiJson('/api/status');
         const cfg = s.config || {};
         document.getElementById('setConf').value = cfg.conf_threshold ?? 0.25;
+        document.getElementById('setNoneConf').value = cfg.none_conf_threshold ?? 0.25;
         document.getElementById('setIou').value = cfg.iou_threshold ?? 0.45;
         document.getElementById('setDebounce').value = cfg.consecutive_violation_frames ?? 8;
         document.getElementById('setCooldown').value = cfg.alert_cooldown_seconds ?? 30;
@@ -2633,6 +2653,7 @@
     async function saveSettings() {
       const payload = {
         conf_threshold: parseFloat(document.getElementById('setConf').value),
+        none_conf_threshold: parseFloat(document.getElementById('setNoneConf').value),
         iou_threshold: parseFloat(document.getElementById('setIou').value),
         consecutive_violation_frames: parseInt(document.getElementById('setDebounce').value, 10),
         alert_cooldown_seconds: parseFloat(document.getElementById('setCooldown').value),

@@ -832,6 +832,7 @@ class UpperTorsoReIDGallery:
         strip_sig: np.ndarray,
         deep_sig: Optional[np.ndarray],
         skip_hard_veto: bool = False,
+        dt_seconds: Optional[float] = None,
     ) -> Tuple[float, bool]:
         """Returns (appearance_similarity, vetoed_by_structural_mismatch)."""
         sim_color, sim_tex, has_tex = profile.max_subspace_sims(strip_sig)
@@ -844,7 +845,9 @@ class UpperTorsoReIDGallery:
             else:
                 base_sim = 0.52 * sim_deep + 0.48 * sim_color
             if not skip_hard_veto:
-                deep_veto_floor = 0.50 if sim_color >= 0.78 else 0.62
+                short_term_reentry = (dt_seconds is not None and dt_seconds <= 8.0)
+                strong_pattern_color = (sim_color >= 0.78 and (not has_tex or sim_tex >= 0.65))
+                deep_veto_floor = 0.50 if (strong_pattern_color or (short_term_reentry and sim_color >= 0.78)) else 0.62
                 if sim_deep < deep_veto_floor:
                     return float(min(base_sim, sim_deep)), True
             return float(base_sim), False
@@ -861,9 +864,10 @@ class UpperTorsoReIDGallery:
         cls_norm: str,
         cand_ratio: float,
         skip_hard_veto: bool = False,
+        dt_seconds: Optional[float] = None,
     ) -> float:
         base_sim, vetoed = self._compute_appear_subscores(
-            profile, strip_sig, deep_sig, skip_hard_veto=skip_hard_veto
+            profile, strip_sig, deep_sig, skip_hard_veto=skip_hard_veto, dt_seconds=dt_seconds
         )
         if vetoed:
             return float(base_sim)
@@ -1091,7 +1095,7 @@ class UpperTorsoReIDGallery:
                             pair_thresh = 0.52
                         else:
                             score = self._compute_candidate_score(
-                                prof, match_strip, c_deep, match_cls, match_ratio, skip_hard_veto=False
+                                prof, match_strip, c_deep, match_cls, match_ratio, skip_hard_veto=False, dt_seconds=dt
                             )
                             pair_thresh = self.sim_thresh
 

@@ -216,6 +216,7 @@ class SystemConfig:
             self.model_path = str(DEFAULT_MODEL_PATH)
 
         self.conf_threshold: float = float(os.getenv("CONF_THRESHOLD", "0.25"))
+        self.none_conf_threshold: float = float(os.getenv("NONE_CONF_THRESHOLD", "0.25"))
         self.iou_threshold: float = float(os.getenv("IOU_THRESHOLD", "0.45"))
         self.imgsz: int = int(os.getenv("IMGSZ", "640"))
         self.device: str = os.getenv("DEVICE", "cuda:0")
@@ -275,6 +276,7 @@ class SystemConfig:
         return {
             "model_path": self.model_path,
             "conf_threshold": self.conf_threshold,
+            "none_conf_threshold": self.none_conf_threshold,
             "iou_threshold": self.iou_threshold,
             "imgsz": self.imgsz,
             "device": self.device,

@@ -199,6 +199,7 @@ TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 # ------------------------------------------------------------------
 class SettingsPayload(BaseModel):
     conf_threshold: Optional[float] = None
+    none_conf_threshold: Optional[float] = None
     iou_threshold: Optional[float] = None
     consecutive_violation_frames: Optional[int] = None
     alert_cooldown_seconds: Optional[float] = None
@@ -473,6 +474,9 @@ async def update_settings(payload: SettingsPayload):
     if payload.conf_threshold is not None:
         config.conf_threshold = payload.conf_threshold
         env_updates["CONF_THRESHOLD"] = str(payload.conf_threshold)
+    if payload.none_conf_threshold is not None:
+        config.none_conf_threshold = payload.none_conf_threshold
+        env_updates["NONE_CONF_THRESHOLD"] = str(payload.none_conf_threshold)
     if payload.iou_threshold is not None:
         config.iou_threshold = payload.iou_threshold
         env_updates["IOU_THRESHOLD"] = str(payload.iou_threshold)
@@ -509,6 +513,13 @@ async def update_settings(payload: SettingsPayload):
     else:
         if payload.conf_threshold is not None:
             cctv_pipeline.detector.conf_thresh = payload.conf_threshold
+        if payload.none_conf_threshold is not None:
+            cctv_pipeline.detector.none_conf_thresh = payload.none_conf_threshold
+            eff_thresh = min(float(config.track_high_thresh), float(payload.none_conf_threshold))
+            cctv_pipeline.tracker.track_thresh = eff_thresh
+            cctv_pipeline.tracker.new_track_thresh = min(
+                float(config.new_track_thresh), float(payload.none_conf_threshold)
+            )
         if payload.iou_threshold is not None:
             cctv_pipeline.detector.iou_thresh = payload.iou_threshold
         if payload.consecutive_violation_frames is not None:

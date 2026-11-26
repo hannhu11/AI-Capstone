@@ -1,8 +1,8 @@
 {
   "repo": "https://github.com/hannhu11/AI-Capstone",
-  "scope": "AEGIS-CCTV Enterprise VMS v2.5.1 (GDUT-HWD 5-Class Clean-Room Export)",
-  "total_files": 109,
-  "total_size_mb": 6.837,
+  "scope": "AEGIS-CCTV Enterprise VMS v2.5.2 (GDUT-HWD 5-Class Clean-Room Export)",
+  "total_files": 110,
+  "total_size_mb": 6.858,
   "max_single_file_mb": 0.783,
   "files": [
     {
@@ -12,8 +12,8 @@
     },
     {
       "path": ".env.example",
-      "size_bytes": 1103,
-      "sha256": "eacf4dc437ba28306676ec41c450145b6c9cc40d33816cd9b8228508f972e768"
+      "size_bytes": 1128,
+      "sha256": "f60d5f63a8597d3c2b03784ded3831fb76282ea54efb24482be5e424d4bdc7a5"
     },
     {
       "path": ".github/workflows/ci.yml",
@@ -57,8 +57,8 @@
     },
     {
       "path": "docs/AUDIT_CODE_SNAPSHOT.md",
-      "size_bytes": 92524,
-      "sha256": "651442fc84654d20b9fe97cd84425f7b0f55c0e54b7d9897b4ec7b5370a0acdf"
+      "size_bytes": 92881,
+      "sha256": "a10387177418bda4312f3cce31b6edc6f1851faafd20ff964118e4d6e9360f86"
     },
     {
       "path": "docs/CHANGELOG_GDUT_VMS.md",
@@ -336,6 +336,11 @@
       "sha256": "55a6d791ce6f2e26244fb39e77aab37b11a65e45b7725bfeb010aca91d1575a2"
     },
     {
+      "path": "scripts/check_c960_webcam_live.py",
+      "size_bytes": 9306,
+      "sha256": "f480e6a30c3a59564990428811e19291ba1fdf3d371adf40816b0b6d89df7299"
+    },
+    {
       "path": "scripts/export_gdut_a6_deploy.py",
       "size_bytes": 6185,
       "sha256": "bc5761e9324cb3eafd5f8fed33ff63bf995759a490526531935e7df709e4ce37"
@@ -352,8 +357,8 @@
     },
     {
       "path": "scripts/sync_public_audit_repo.py",
-      "size_bytes": 29773,
-      "sha256": "b023294a485c575a5844c8249f444581ad5b33506d3a85f36572ab83b9a3262d"
+      "size_bytes": 29814,
+      "sha256": "8e6c03911a9d6647185c4657e3e279e945fca0a3d1c646e67f0507da229449e5"
     },
     {
       "path": "scripts/test_dynamic_taxonomy_gdut.py",
@@ -387,8 +392,8 @@
     },
     {
       "path": "src/config.py",
-      "size_bytes": 14244,
-      "sha256": "9482c842bbc4a646c0aa605f586e8865d621d9e7b0c6acca716a5f1e13d8f724"
+      "size_bytes": 14395,
+      "sha256": "a22174a89e47dae71912453ac87bab6ec08e5f697a881d4e5d6e344eb522ccd2"
     },
     {
       "path": "src/db/__init__.py",
@@ -407,13 +412,13 @@
     },
     {
       "path": "src/engine/detector.py",
-      "size_bytes": 10976,
-      "sha256": "aad3f3da8be40ef8a043fad29731d7fe9bf5fd55c837b4e1a79fea606863b935"
+      "size_bytes": 12370,
+      "sha256": "7916e6d366586d2b934498a51968517138c279c919262a8f86f9c6c88548f654"
     },
     {
       "path": "src/engine/gdut_reid.py",
-      "size_bytes": 54648,
-      "sha256": "0b8d920d9436afcf3f4fc1efeaff46d4c83117b8f0501fb06d547b5e3cf3dd87"
+      "size_bytes": 55005,
+      "sha256": "3bd037c0e54ae1b439c98b8915f6c85954d8f6180c9ccbff12f3bbbdb5544f6b"
     },
     {
       "path": "src/engine/kalman_tracker.py",
@@ -422,8 +427,8 @@
     },
     {
       "path": "src/engine/pipeline.py",
-      "size_bytes": 64282,
-      "sha256": "f0f90664f983cd20e6cc101a213b30c21b560136155838754c0f8f1364834455"
+      "size_bytes": 65770,
+      "sha256": "ddd57f1881c279c7453e30792392f724b91f3c119e7d9db41e4da7eeb237a0e3"
     },
     {
       "path": "src/engine/reid_tracker.py",
@@ -432,13 +437,13 @@
     },
     {
       "path": "src/engine/spatial_safety.py",
-      "size_bytes": 44324,
-      "sha256": "b32e2d2b8393a5dc4e991aca7b7fb89e1191901924c052861ced1ac63da09da6"
+      "size_bytes": 44468,
+      "sha256": "33312e209bda6235727ca519bf498f9acdf0bd7c12ca695d41429f105f6b6895"
     },
     {
       "path": "src/web/app.py",
-      "size_bytes": 52754,
-      "sha256": "9f4aed736c0e268dd83422ff3f42c387eb59b7080868427e11af677c130fec10"
+      "size_bytes": 53440,
+      "sha256": "b01f4160b6974fb72b69f5d0f2b866d292e81b9a027235e8d82492a4161f05fc"
     },
     {
       "path": "src/web/gateway_client.py",
@@ -447,8 +452,8 @@
     },
     {
       "path": "src/web/templates/dashboard.html",
-      "size_bytes": 107399,
-      "sha256": "9a8c6e831cf1d48594c4a7ecc06c67feccea8d272ee78479de72c5cda6f33b2f"
+      "size_bytes": 108443,
+      "sha256": "06411ea9050b74ba67f5c2b0e66e25d341b78d40f1cd37d4f777788452f375d2"
     },
     {
       "path": "tests/test_cctv_forensic_fixes.py",
@@ -457,8 +462,8 @@
     },
     {
       "path": "tests/test_gdut_enterprise_reid_and_controls.py",
-      "size_bytes": 39285,
-      "sha256": "d66b15874268b8c32259618810161093c9b55be3858937630e5a9cd375bcea3d"
+      "size_bytes": 46678,
+      "sha256": "24891751ab1ff66461ed2aee4f23355429ff9c95394be9a9a7710423d9376254"
     },
     {
       "path": "tests/test_persistent_tracking_focus.py",
