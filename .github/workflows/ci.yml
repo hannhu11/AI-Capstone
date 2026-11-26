@@ -29,10 +29,11 @@ jobs:
 
       - name: Run Unit and Integration Tests
         env:
+          PYTHONPATH: .
           MODEL_PATH: ci_stub_missing.pt
           CUDA_VISIBLE_DEVICES: "-1"
         run: |
-          pytest tests -v
+          python -m pytest tests -v
 
   docker-build-check:
     needs: lint-and-test
