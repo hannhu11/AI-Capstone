@@ -21,7 +21,8 @@ snapshots/*.png
 !snapshots/.gitkeep
 !docs/ui_screenshots/*.png
 
-# Python & IDE caches
+# Runtime generated alert logs & caches
+Output/alerts/
 __pycache__/
 *.py[cod]
 .pytest_cache/

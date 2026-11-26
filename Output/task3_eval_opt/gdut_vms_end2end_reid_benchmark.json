@@ -6,10 +6,12 @@
   "cudnn_allow_tf32": true,
   "allow_tf32": true,
   "fastest_b1_mode": "TF32 FP32",
-  "fastest_b1_ms": 10.79,
+  "fastest_b1_ms": 11.52,
   "frame_resolution": "1920x1080",
   "warmup_iters": 20,
   "timed_iters": 60,
+  "timed_e2e_paired_iters": 120,
+  "paired_protocol": "Within-frame paired shared-detection (AB alternating, n=120)",
   "parity_fp32_vs_amp_fp16": {
     "frames": 12,
     "frame_indices": [
@@ -35,47 +37,61 @@
     {
       "stage": "1. Pure GDUT-A6 Detector (Strict FP32)",
       "config": "FP32 (matmul_tf32=False, cudnn_tf32=False)",
-      "latency_ms": 14.55,
-      "p95_ms": 15.21,
-      "fps": 68.8,
+      "latency_ms": 16.87,
+      "p95_ms": 17.82,
+      "p99_ms": 20.5,
+      "fps": 59.3,
       "vram_mb": 106.1,
       "parity_note": "Baseline Ref (12/12 boxes)"
     },
     {
       "stage": "2. Pure GDUT-A6 Detector (TF32 FP32)",
       "config": "TF32 FP32 (matmul_tf32=True, cudnn_tf32=True)",
-      "latency_ms": 10.79,
-      "p95_ms": 12.69,
-      "fps": 92.6,
+      "latency_ms": 11.52,
+      "p95_ms": 12.13,
+      "p99_ms": 14.77,
+      "fps": 86.8,
       "vram_mb": 215.0,
-      "parity_note": "TensorCore TF32 (-3.76ms vs Strict) [Fastest B=1]"
+      "parity_note": "TensorCore TF32 (-5.35ms vs Strict) [Fastest B=1]"
     },
     {
       "stage": "3. Pure GDUT-A6 Detector (Selective AMP FP16)",
       "config": "AMP FP16 + CoordConv/BiFormer FP32 guard (TF32=False)",
-      "latency_ms": 10.85,
-      "p95_ms": 13.76,
-      "fps": 92.2,
+      "latency_ms": 12.37,
+      "p95_ms": 16.49,
+      "p99_ms": 17.36,
+      "fps": 80.8,
       "vram_mb": 210.2,
       "parity_note": "Delta=0 boxes, conf diff=0.00033"
     },
     {
       "stage": "4. GDUT-A6 TF32 + ByteTrack + 3-Strip Non-Biometric Re-ID",
       "config": "TF32 FP32 + HSV/Lab + Quadrant HOG + Hungarian",
-      "latency_ms": 16.33,
-      "p95_ms": 19.68,
-      "fps": 61.2,
+      "latency_ms": 15.34,
+      "p95_ms": 17.66,
+      "p99_ms": 18.23,
+      "det_mean_ms": 12.71,
+      "reid_mean_ms": 2.63,
+      "fps": 65.2,
       "vram_mb": 215.0,
-      "parity_note": "Fast appearance + spatial edge tracking (use_deep=False)"
+      "parity_note": "Paired Shared-Det (n=120): det=12.71ms + strip_reid=2.63ms (use_deep=False)"
     },
     {
       "stage": "5. Full VMS + Multi-Layer MobileNetV3 Non-Biometric Re-ID",
       "config": "TF32 FP32 + Deep Re-ID=GPU (refresh=30)",
-      "latency_ms": 16.0,
-      "p95_ms": 18.72,
-      "fps": 62.5,
+      "latency_ms": 15.55,
+      "p95_ms": 18.17,
+      "p99_ms": 19.2,
+      "det_mean_ms": 12.71,
+      "reid_mean_ms": 2.84,
+      "paired_delta_mean_ms": 0.21,
+      "fps": 64.3,
       "vram_mb": 218.6,
-      "parity_note": "End-to-End VMS + Non-Biometric Upper-Torso Re-ID (>=25 FPS SLA check)"
+      "deep_extract_calls": 4,
+      "deep_frame_mean_ms": 19.69,
+      "deep_frame_p95_ms": 21.71,
+      "non_deep_frame_mean_ms": 15.41,
+      "parity_note": "Paired Shared-Det (n=120): +0.21ms avg (4 MobileNetV3 calls; extract=19.69ms vs steady=15.41ms; >=25 FPS SLA)"
     }
   ]
 }

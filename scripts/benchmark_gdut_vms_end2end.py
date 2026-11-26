@@ -46,7 +46,7 @@ def load_worker_frames(video_path: Path, frame_indices: list[int]) -> list[np.nd
 def run_worker_tier(mode: str, warmup: int, timed: int) -> dict:
     import os
 
-    use_tf32 = mode in ("tf32_fp32", "e2e_strip", "e2e_deep")
+    use_tf32 = mode in ("tf32_fp32", "e2e_strip", "e2e_deep", "e2e_paired")
     use_sel_amp = mode == "sel_amp"
     os.environ["ALLOW_TF32"] = "True" if use_tf32 else "False"
     os.environ["USE_SELECTIVE_AMP"] = "True" if use_sel_amp else "False"
@@ -116,10 +116,159 @@ def run_worker_tier(mode: str, warmup: int, timed: int) -> dict:
             "frame_resolution": f"{frames[0].shape[1]}x{frames[0].shape[0]}",
             "lat_mean_ms": round(mean_ms, 2),
             "lat_p95_ms": round(float(np.percentile(lats, 95)), 2),
+            "lat_p99_ms": round(float(np.percentile(lats, 99)), 2),
             "fps": round(1000.0 / max(1e-6, mean_ms), 1),
             "vram_mb": round(float(torch.cuda.max_memory_allocated() / (1024 * 1024)), 1) if is_cuda else 0.0,
             "parity_counts": parity_counts,
             "parity_confs": parity_confs,
+        }
+
+    def _run_reid_step(fr: np.ndarray, heads, trk: BYTETracker, gal: UpperTorsoReIDGallery, fidx: int, ts: float):
+        tracks = trk.update(heads, frame=None)
+        items = [(t.track_id, t.tlbr, str(detector.class_names.get(int(t.cls_id), "none")).lower().strip()) for t in tracks]
+        profs = gal.associate_batch(items, frame_bgr=fr, frame_idx=fidx, now_ts=ts)
+        gal.update_frame_end([p.worker_id for p in profs if p.worker_id > 0], frame_idx=fidx, now_ts=ts)
+
+    def _run_e2e_step(fr: np.ndarray, trk: BYTETracker, gal: UpperTorsoReIDGallery, fidx: int, ts: float):
+        detector.predict(fr)
+        heads = detector.get_head_tracks()
+        _run_reid_step(fr, heads, trk, gal, fidx, ts)
+
+    if mode == "e2e_paired":
+        # Continuous 1080p stream frames (stride=1) so ByteTrack confirms identities &
+        # MobileNetV3 deep_refresh_interval=30 triggers authentically on real detections.
+        stream_indices = list(range(180, 180 + warmup + timed))
+        stream_frames = load_worker_frames(DEFAULT_VIDEO_PATH, stream_indices)
+
+        # Within-frame paired shared-detection AB alternating benchmark (n=timed frames):
+        # Measures shared YOLOv11s detection ONCE per frame, then times both Re-ID pipelines on
+        # the exact same detections in alternating order (strip->deep on even, deep->strip on odd).
+        tracker_strip = BYTETracker(
+            track_thresh=0.30, track_low_thresh=0.15, new_track_thresh=0.30,
+            track_buffer=60, match_thresh=0.70, grace_period=2,
+        )
+        gallery_strip = UpperTorsoReIDGallery(
+            ttl_seconds=600.0, sim_thresh=0.70, use_deep=False,
+            deep_refresh_interval=30, min_confirm_hits=6, min_confirm_frames=24,
+            device="cpu",
+        )
+        ts_base = time.time()
+        if is_cuda:
+            torch.cuda.reset_peak_memory_stats()
+        for i in range(warmup):
+            _run_e2e_step(stream_frames[i], tracker_strip, gallery_strip, i, ts_base + i * 0.04)
+        _sync()
+        vram_strip_mb = round(float(torch.cuda.max_memory_allocated() / (1024 * 1024)), 1) if is_cuda else 0.0
+
+        tracker_deep = BYTETracker(
+            track_thresh=0.30, track_low_thresh=0.15, new_track_thresh=0.30,
+            track_buffer=60, match_thresh=0.70, grace_period=2,
+        )
+        gallery_deep = UpperTorsoReIDGallery(
+            ttl_seconds=600.0, sim_thresh=0.70, use_deep=True,
+            deep_refresh_interval=30, min_confirm_hits=6, min_confirm_frames=24,
+            device=detector.device,
+        )
+        gallery_deep.prewarm()
+        if is_cuda:
+            torch.cuda.reset_peak_memory_stats()
+        for i in range(warmup):
+            _run_e2e_step(stream_frames[i], tracker_deep, gallery_deep, i, ts_base + i * 0.04)
+        _sync()
+
+        det_lats: list[float] = []
+        strip_reid_lats: list[float] = []
+        deep_reid_lats: list[float] = []
+        strip_lats: list[float] = []
+        deep_lats: list[float] = []
+        deep_extract_lats: list[float] = []
+        deep_non_extract_lats: list[float] = []
+        calls_start = int(gallery_deep.deep_extractor.extract_calls)
+
+        for k in range(timed):
+            fidx = warmup + k
+            fr = stream_frames[fidx]
+            ts = ts_base + fidx * 0.04
+
+            _sync()
+            t0 = time.perf_counter()
+            detector.predict(fr)
+            heads = detector.get_head_tracks()
+            _sync()
+            det_ms = (time.perf_counter() - t0) * 1000.0
+            det_lats.append(det_ms)
+
+            strip_reid_ms = 0.0
+            deep_reid_ms = 0.0
+            deep_did_extract = False
+            order = ("strip", "deep") if (k % 2 == 0) else ("deep", "strip")
+            for branch in order:
+                if branch == "strip":
+                    _sync()
+                    t_s = time.perf_counter()
+                    _run_reid_step(fr, heads, tracker_strip, gallery_strip, fidx, ts)
+                    _sync()
+                    strip_reid_ms = (time.perf_counter() - t_s) * 1000.0
+                else:
+                    c0 = int(gallery_deep.deep_extractor.extract_calls)
+                    _sync()
+                    t_d = time.perf_counter()
+                    _run_reid_step(fr, heads, tracker_deep, gallery_deep, fidx, ts)
+                    _sync()
+                    deep_reid_ms = (time.perf_counter() - t_d) * 1000.0
+                    deep_did_extract = int(gallery_deep.deep_extractor.extract_calls) > c0
+
+            strip_total = det_ms + strip_reid_ms
+            deep_total = det_ms + deep_reid_ms
+            strip_reid_lats.append(strip_reid_ms)
+            deep_reid_lats.append(deep_reid_ms)
+            strip_lats.append(strip_total)
+            deep_lats.append(deep_total)
+            if deep_did_extract:
+                deep_extract_lats.append(deep_total)
+            else:
+                deep_non_extract_lats.append(deep_total)
+
+        vram_deep_mb = round(float(torch.cuda.max_memory_allocated() / (1024 * 1024)), 1) if is_cuda else 0.0
+        deep_extract_calls = int(gallery_deep.deep_extractor.extract_calls) - calls_start
+        det_mean = float(np.mean(det_lats))
+        strip_reid_mean = float(np.mean(strip_reid_lats))
+        deep_reid_mean = float(np.mean(deep_reid_lats))
+        strip_mean = float(np.mean(strip_lats))
+        deep_mean = float(np.mean(deep_lats))
+
+        return {
+            "mode": "e2e_paired",
+            "protocol": f"Within-frame paired shared-detection (AB alternating, n={timed})",
+            "strip": {
+                "mode": "e2e_strip",
+                "timed_frames": len(strip_lats),
+                "det_mean_ms": round(det_mean, 2),
+                "reid_mean_ms": round(strip_reid_mean, 2),
+                "lat_mean_ms": round(strip_mean, 2),
+                "lat_p95_ms": round(float(np.percentile(strip_lats, 95)), 2),
+                "lat_p99_ms": round(float(np.percentile(strip_lats, 99)), 2),
+                "fps": round(1000.0 / max(1e-6, strip_mean), 1),
+                "vram_mb": vram_strip_mb,
+                "deep_active": False,
+            },
+            "deep": {
+                "mode": "e2e_deep",
+                "timed_frames": len(deep_lats),
+                "det_mean_ms": round(det_mean, 2),
+                "reid_mean_ms": round(deep_reid_mean, 2),
+                "lat_mean_ms": round(deep_mean, 2),
+                "lat_p95_ms": round(float(np.percentile(deep_lats, 95)), 2),
+                "lat_p99_ms": round(float(np.percentile(deep_lats, 99)), 2),
+                "fps": round(1000.0 / max(1e-6, deep_mean), 1),
+                "vram_mb": vram_deep_mb,
+                "deep_active": bool(gallery_deep.deep_extractor.available),
+                "deep_extract_calls": deep_extract_calls,
+                "deep_frame_mean_ms": round(float(np.mean(deep_extract_lats)), 2) if deep_extract_lats else 0.0,
+                "deep_frame_p95_ms": round(float(np.percentile(deep_extract_lats, 95)), 2) if deep_extract_lats else 0.0,
+                "non_deep_frame_mean_ms": round(float(np.mean(deep_non_extract_lats)), 2) if deep_non_extract_lats else 0.0,
+                "paired_delta_mean_ms": round(deep_mean - strip_mean, 2),
+            },
         }
 
     # Tracking + Non-Biometric Upper-Torso Re-ID tiers
@@ -177,6 +326,7 @@ def run_worker_tier(mode: str, warmup: int, timed: int) -> dict:
         "mode": mode,
         "lat_mean_ms": round(mean_ms, 2),
         "lat_p95_ms": round(float(np.percentile(lats, 95)), 2),
+        "lat_p99_ms": round(float(np.percentile(lats, 99)), 2),
         "fps": round(1000.0 / max(1e-6, mean_ms), 1),
         "vram_mb": round(float(torch.cuda.max_memory_allocated() / (1024 * 1024)), 1) if is_cuda else 0.0,
         "deep_active": bool(gallery.deep_extractor.available),
@@ -221,11 +371,11 @@ def main():
     t3 = _invoke_subprocess_tier("sel_amp", warmup=20, timed=60)
     print(f"[TIER 3 Selective AMP FP16] {t3}")
     time.sleep(1.0)
-    t4 = _invoke_subprocess_tier("e2e_strip", warmup=24, timed=60)
-    print(f"[TIER 4 E2E + 3-Strip Non-Biometric Re-ID] {t4}")
-    time.sleep(1.0)
-    t5 = _invoke_subprocess_tier("e2e_deep", warmup=24, timed=60)
-    print(f"[TIER 5 E2E + Multi-Layer MobileNetV3 Non-Biometric Re-ID] {t5}")
+    paired = _invoke_subprocess_tier("e2e_paired", warmup=24, timed=120)
+    t4 = paired["strip"]
+    t5 = paired["deep"]
+    print(f"[TIER 4 Paired Strip Re-ID] {t4}")
+    print(f"[TIER 5 Paired Deep MobileNetV3 Re-ID] {t5}")
 
     count_deltas = [abs(a - b) for a, b in zip(t1["parity_counts"], t3["parity_counts"])]
     conf_diffs = [abs(a - b) for a, b in zip(t1["parity_confs"], t3["parity_confs"])]
@@ -259,6 +409,8 @@ def main():
         "frame_resolution": t2["frame_resolution"],
         "warmup_iters": 20,
         "timed_iters": 60,
+        "timed_e2e_paired_iters": 120,
+        "paired_protocol": paired["protocol"],
         "parity_fp32_vs_amp_fp16": parity_summary,
         "stages": [
             {
@@ -266,6 +418,7 @@ def main():
                 "config": "FP32 (matmul_tf32=False, cudnn_tf32=False)",
                 "latency_ms": t1["lat_mean_ms"],
                 "p95_ms": t1["lat_p95_ms"],
+                "p99_ms": t1["lat_p99_ms"],
                 "fps": t1["fps"],
                 "vram_mb": t1["vram_mb"],
                 "parity_note": f"Baseline Ref ({parity_summary['fp32_boxes']}/12 boxes)",
@@ -275,6 +428,7 @@ def main():
                 "config": "TF32 FP32 (matmul_tf32=True, cudnn_tf32=True)",
                 "latency_ms": t2["lat_mean_ms"],
                 "p95_ms": t2["lat_p95_ms"],
+                "p99_ms": t2["lat_p99_ms"],
                 "fps": t2["fps"],
                 "vram_mb": t2["vram_mb"],
                 "parity_note": f"TensorCore TF32 (-{round(t1['lat_mean_ms'] - t2['lat_mean_ms'], 2)}ms vs Strict){tag_tf32}",
@@ -284,6 +438,7 @@ def main():
                 "config": "AMP FP16 + CoordConv/BiFormer FP32 guard (TF32=False)",
                 "latency_ms": t3["lat_mean_ms"],
                 "p95_ms": t3["lat_p95_ms"],
+                "p99_ms": t3["lat_p99_ms"],
                 "fps": t3["fps"],
                 "vram_mb": t3["vram_mb"],
                 "parity_note": f"Delta={parity_summary['max_abs_count_delta']} boxes, conf diff={parity_summary['mean_conf_diff']}{tag_amp}",
@@ -293,18 +448,32 @@ def main():
                 "config": "TF32 FP32 + HSV/Lab + Quadrant HOG + Hungarian",
                 "latency_ms": t4["lat_mean_ms"],
                 "p95_ms": t4["lat_p95_ms"],
+                "p99_ms": t4["lat_p99_ms"],
+                "det_mean_ms": t4["det_mean_ms"],
+                "reid_mean_ms": t4["reid_mean_ms"],
                 "fps": t4["fps"],
                 "vram_mb": t4["vram_mb"],
-                "parity_note": "Fast appearance + spatial edge tracking (use_deep=False)",
+                "parity_note": f"Paired Shared-Det (n=120): det={t4['det_mean_ms']}ms + strip_reid={t4['reid_mean_ms']}ms (use_deep=False)",
             },
             {
                 "stage": "5. Full VMS + Multi-Layer MobileNetV3 Non-Biometric Re-ID",
                 "config": f"TF32 FP32 + Deep Re-ID={'GPU' if t5['deep_active'] else 'OFF'} (refresh=30)",
                 "latency_ms": t5["lat_mean_ms"],
                 "p95_ms": t5["lat_p95_ms"],
+                "p99_ms": t5["lat_p99_ms"],
+                "det_mean_ms": t5["det_mean_ms"],
+                "reid_mean_ms": t5["reid_mean_ms"],
+                "paired_delta_mean_ms": t5["paired_delta_mean_ms"],
                 "fps": t5["fps"],
                 "vram_mb": t5["vram_mb"],
-                "parity_note": "End-to-End VMS + Non-Biometric Upper-Torso Re-ID (>=25 FPS SLA check)",
+                "deep_extract_calls": t5["deep_extract_calls"],
+                "deep_frame_mean_ms": t5["deep_frame_mean_ms"],
+                "deep_frame_p95_ms": t5["deep_frame_p95_ms"],
+                "non_deep_frame_mean_ms": t5["non_deep_frame_mean_ms"],
+                "parity_note": (
+                    f"Paired Shared-Det (n=120): +{t5['paired_delta_mean_ms']}ms avg ({t5['deep_extract_calls']} MobileNetV3 calls; "
+                    f"extract={t5['deep_frame_mean_ms']}ms vs steady={t5['non_deep_frame_mean_ms']}ms; >=25 FPS SLA)"
+                ),
             },
         ],
     }

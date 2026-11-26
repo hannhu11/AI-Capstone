@@ -1189,20 +1189,22 @@ class CCTVSurveillancePipeline:
         if focus_id is not None:
             focused = next((r for r in worker_reports if r.get("track_id") == focus_id), None)
 
-            hud_h = 34
-            cv2.rectangle(vis, (0, 0), (w, hud_h), (24, 20, 17), -1)
-            cv2.line(vis, (0, hud_h), (w, hud_h), (129, 76, 15), 1)
-            is_locked = focused is not None
-            dot_bgr = (61, 128, 21) if is_locked else (9, 83, 180)
-            cv2.circle(vis, (16, 17), 5, dot_bgr, -1)
+            draw_hud = bool(getattr(config, "draw_video_hud", False))
+            if draw_hud:
+                hud_h = 34
+                cv2.rectangle(vis, (0, 0), (w, hud_h), (24, 20, 17), -1)
+                cv2.line(vis, (0, hud_h), (w, hud_h), (129, 76, 15), 1)
+                is_locked = focused is not None
+                dot_bgr = (61, 128, 21) if is_locked else (9, 83, 180)
+                cv2.circle(vis, (16, 17), 5, dot_bgr, -1)
 
-            status_note = "LOCKED" if is_locked else "COASTING / MEMORY"
-            role_note = f" | {focused.get('historical_role_short_code') or focused.get('role_short_code', '')}" if focused else ""
-            hud_text = (
-                f"SOLO FOCUS: ID #{focus_id}{role_note} | {status_note} | "
-                f"{getattr(self, 'fps_rolling', 0.0):.1f} FPS | {getattr(self, 'inference_latency_ms', 0.0):.1f}ms"
-            )
-            cv2.putText(vis, hud_text, (30, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (241, 245, 249), 1, cv2.LINE_AA)
+                status_note = "LOCKED" if is_locked else "COASTING / MEMORY"
+                role_note = f" | {focused.get('historical_role_short_code') or focused.get('role_short_code', '')}" if focused else ""
+                hud_text = (
+                    f"SOLO FOCUS: ID #{focus_id}{role_note} | {status_note} | "
+                    f"{getattr(self, 'fps_rolling', 0.0):.1f} FPS | {getattr(self, 'inference_latency_ms', 0.0):.1f}ms"
+                )
+                cv2.putText(vis, hud_text, (30, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (241, 245, 249), 1, cv2.LINE_AA)
 
             if focused is not None:
                 r = focused
@@ -1243,7 +1245,7 @@ class CCTVSurveillancePipeline:
                 col_tag = (r.get("helmet_color") or "BARE-HEAD").upper()
                 label_top = f"ID #{r['track_id']}{lbl_name} | {role_tag} | {col_tag}"
                 (lw, _), _ = cv2.getTextSize(label_top, cv2.FONT_HERSHEY_SIMPLEX, 0.50, 1)
-                top_y = max(36, y1 - 24)
+                top_y = max(36 if draw_hud else 8, y1 - 24)
                 cv2.rectangle(vis, (x1, top_y), (x1 + lw + 10, top_y + 22), (23, 23, 17), -1)
                 cv2.rectangle(vis, (x1, top_y), (x1 + lw + 10, top_y + 22), box_color, 1)
                 cv2.putText(vis, label_top, (x1 + 5, top_y + 16), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (248, 250, 252), 1, cv2.LINE_AA)

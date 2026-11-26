@@ -912,6 +912,7 @@
           <div class="live-indicator">
             <span class="rec-dot" id="recDot"></span>
             <span id="viewportChannelLabel">CH-01 // CCTV_GATE_A1</span>
+            <span id="viewportFocusBadge" class="mono" style="display:none;background:#0F4C81;color:#F8FAFC;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:600;margin-left:8px;"></span>
           </div>
           <div class="mono" style="color:#9CA3AF;font-size:11px;" id="viewportMetaReadout">
             MODEL: LOADING | 0.0 FPS | 0.0 ms
@@ -2228,11 +2229,28 @@
 
     function renderFocusInspector() {
       const box = document.getElementById('focusInspectorBody');
+      const badge = document.getElementById('viewportFocusBadge');
       if (STATE.focusTrackId === null) {
+        if (badge) {
+          badge.style.display = 'none';
+          badge.textContent = '';
+        }
         box.innerHTML = '<div class="empty-state" style="padding:18px 8px;">No Solo Focus active. Click any bounding box in the monitor or [Focus] in the Personnel Registry.</div>';
         return;
       }
       const w = STATE.workers.find(p => p.track_id === STATE.focusTrackId);
+      if (badge) {
+        badge.style.display = 'inline-block';
+        if (w) {
+          const roleCode = w.historical_role_short_code || w.role_short_code || 'PERSONNEL';
+          const stateTxt = w.is_active ? 'LOCKED' : 'COASTING / MEMORY';
+          badge.style.background = w.is_active ? '#0F4C81' : '#B45309';
+          badge.textContent = `SOLO FOCUS: ID #${w.track_id} | ${roleCode} | ${stateTxt}`;
+        } else {
+          badge.style.background = '#B45309';
+          badge.textContent = `SOLO FOCUS: ID #${STATE.focusTrackId} | COASTING / MEMORY`;
+        }
+      }
       if (!w) {
         box.innerHTML = `<div class="empty-state" style="padding:18px 8px;">ID #${escHtml(STATE.focusTrackId)} currently coasting / not yet registered.</div>`;
         return;
@@ -2535,6 +2553,7 @@
             <td>${escHtml(r.stage)}</td>
             <td class="mono">${escHtml(r.config || r.precision || '-')}</td>
             <td class="mono">${r.latency_ms} ms</td>
+            <td class="mono">${r.p95_ms ?? '-'} ms</td>
             <td class="mono">${r.fps} FPS</td>
             <td class="mono">${r.vram_mb} MB</td>
             <td class="mono">${escHtml(r.parity_note || '-')}</td>
@@ -2555,7 +2574,7 @@
             <div class="kpi-card"><span class="kpi-label">CUDA VRAM</span><span class="mono" style="font-weight:700;">${h.cuda_vram_mb ?? 0} MB</span></div>
           </div>
           ${rep.params_delta ? `<div class="mono" style="font-size:12px;background:var(--bg-subtle);padding:8px;border:1px solid var(--border-hairline);border-radius:4px;">
-            RepConv switch_to_deploy(): ${rep.switched_count} fused layers | Params ${rep.params_before} -&gt; ${rep.params_after} (-${rep.params_delta}) | FP32 ${rep.before_fp32_ms}ms -&gt; ${rep.after_fp32_ms}ms | Max Diff: ${Number(rep.max_abs_diff_fp32).toExponential(2)}
+            RepConv switch_to_deploy() [Strict FP32, TF32=False]: ${rep.switched_count} fused layers | Params ${rep.params_before} -&gt; ${rep.params_after} (-${rep.params_delta}) | FP32 ${rep.before_fp32_ms}ms -&gt; ${rep.after_fp32_ms}ms | Max Diff: ${Number(rep.max_abs_diff_fp32).toExponential(2)}
           </div>` : ''}
           <div>
             <div class="chip-section-label">1. Inference Optimization Progression &amp; Accuracy Parity</div>
@@ -2565,11 +2584,11 @@
             </table>
           </div>
           <div>
-            <div class="chip-section-label">2. Full End-to-End VMS + Re-ID Pipeline Breakdown</div>
+            <div class="chip-section-label">2. Full End-to-End VMS + Non-Biometric Upper-Torso Re-ID Breakdown</div>
             ${e2eMetaBanner}
             <table class="data-table">
-              <thead><tr><th>Pipeline Tier</th><th>Mode / Precision</th><th>Mean Lat</th><th>Throughput</th><th>Peak VRAM</th><th>Parity / Notes</th></tr></thead>
-              <tbody>${e2eRows || '<tr><td colspan="6">Run scripts/benchmark_gdut_vms_end2end.py to populate End-to-End breakdown.</td></tr>'}</tbody>
+              <thead><tr><th>Pipeline Tier</th><th>Mode / Precision</th><th>Mean Lat</th><th>p95 Lat</th><th>Throughput</th><th>Peak VRAM</th><th>Parity / Notes</th></tr></thead>
+              <tbody>${e2eRows || '<tr><td colspan="7">Run scripts/benchmark_gdut_vms_end2end.py to populate End-to-End breakdown.</td></tr>'}</tbody>
             </table>
           </div>
           <div>

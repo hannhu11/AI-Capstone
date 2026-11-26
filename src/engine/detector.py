@@ -40,7 +40,7 @@ if str(root_dir) not in sys.path:
 import custom_ablation_modules as cam
 import ultralytics.nn.modules as un_mod
 import ultralytics.nn.tasks as un_tasks
-from scripts.ablation_factory import BiFormerSequentialWrapper
+from custom_ablation_modules import BiFormerSequentialWrapper
 
 setattr(sys.modules["__main__"], "BiFormerSequentialWrapper", BiFormerSequentialWrapper)
 setattr(un_mod, "BiFormerSequentialWrapper", BiFormerSequentialWrapper)

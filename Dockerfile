@@ -48,6 +48,11 @@ RUN cp /app/.env.example /app/.env
 # Create directories for mounted data
 RUN mkdir -p /app/video_test /app/Output /app/snapshots
 
+# Guard glibc heap arenas & OpenMP/OpenBLAS worker threads to bound AI node RSS
+ENV MALLOC_ARENA_MAX=2
+ENV OMP_NUM_THREADS=2
+ENV OPENBLAS_NUM_THREADS=2
+
 # Expose web dashboard port
 EXPOSE 8000
 

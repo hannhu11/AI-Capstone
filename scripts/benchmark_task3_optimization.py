@@ -195,7 +195,7 @@ def main():
         cpu_ms, cpu_fps, _ = bench_forward(m_cpu, x_cpu, use_cuda=False, warmup=2, iters=6)
         rows.append({
             "model": label, "stage": "CPU 4-Thread FP32", "device": "CPU (4 threads)",
-            "precision": "FP32", "batch": 1, "latency_ms": cpu_ms, "fps": cpu_fps,
+            "precision": "FP32 (CPU)", "batch": 1, "latency_ms": cpu_ms, "fps": cpu_fps,
             "vram_mb": 0.0, "ckpt_mb": size_mb, "speedup_vs_before": round(cpu_ms / cpu_ms, 2)
         })
 
@@ -211,7 +211,7 @@ def main():
         before_ms, before_fps, before_vram = bench_forward(m_gpu, x_gpu, use_cuda=True, warmup=15, iters=60)
         rows.append({
             "model": label, "stage": "Before (Loop BiFormer FP32)", "device": device_name,
-            "precision": "FP32", "batch": 1, "latency_ms": before_ms, "fps": before_fps,
+            "precision": "FP32 (cuDNN TF32=True)", "batch": 1, "latency_ms": before_ms, "fps": before_fps,
             "vram_mb": before_vram, "ckpt_mb": size_mb, "speedup_vs_before": 1.0
         })
 
@@ -220,7 +220,7 @@ def main():
         vec_ms, vec_fps, vec_vram = bench_forward(m_gpu, x_gpu, use_cuda=True, warmup=20, iters=80)
         rows.append({
             "model": label, "stage": "After-1 (Vec BiFormer + RepConv FP32)", "device": device_name,
-            "precision": "FP32", "batch": 1, "latency_ms": vec_ms, "fps": vec_fps,
+            "precision": "FP32 (cuDNN TF32=True)", "batch": 1, "latency_ms": vec_ms, "fps": vec_fps,
             "vram_mb": vec_vram, "ckpt_mb": size_mb, "speedup_vs_before": round(before_ms / vec_ms, 2)
         })
 

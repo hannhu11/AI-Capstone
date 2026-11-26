@@ -25,6 +25,7 @@ TARGET = ROOT / "_publish_ai_capstone"
 
 WHITELIST_ROOT_FILES = [
     "custom_ablation_modules.py",
+    "requirements.txt",
     "requirements_docker.txt",
     ".env.example",
     ".dockerignore",
@@ -47,7 +48,7 @@ WHITELIST_TESTS = [
 ]
 
 WHITELIST_SCRIPTS = [
-    "scripts/ablation_factory.py",
+    "scripts/audit_kaggle_gdut_truth.py",
     "scripts/benchmark_gdut_vms_end2end.py",
     "scripts/benchmark_task3_optimization.py",
     "scripts/benchmark_multistream_batched_rtx3050.py",
@@ -81,6 +82,8 @@ WHITELIST_SCREENSHOTS = [
 WHITELIST_DOCS = [
     "docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md",
     "docs/CHANGELOG_GDUT_VMS.md",
+    "docs/KAGGLE_FORENSIC_VERIFICATION_REPORT.md",
+    "docs/AUDIT_CODE_SNAPSHOT.md",
     "docs/research_baselines/01_KET_QUA_A1_A6.md",
     "docs/research_baselines/02_PHUONG_PHAP_VA_KIEN_TRUC.md",
     "docs/research_baselines/BASELINE_AUDIT_B1_B2_REVIEW3.md",
@@ -116,7 +119,8 @@ snapshots/*.png
 !snapshots/.gitkeep
 !docs/ui_screenshots/*.png
 
-# Python & IDE caches
+# Runtime generated alert logs & caches
+Output/alerts/
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -127,7 +131,42 @@ prometheus_data/
 grafana_data/
 """
 
-CLEAN_README = """# AEGIS-CCTV Enterprise VMS — Safety Helmet & Color Classification (`GDUT-HWD 5-Class`)
+
+def _build_clean_readme() -> str:
+    e2e = json.loads((ROOT / "Output" / "task3_eval_opt" / "gdut_vms_end2end_reid_benchmark.json").read_text(encoding="utf-8"))
+    opt = json.loads((ROOT / "Output" / "task3_eval_opt" / "optimization_benchmark_table.json").read_text(encoding="utf-8"))
+    lt_in = json.loads((ROOT / "Output" / "load_test_results.json").read_text(encoding="utf-8"))
+    lt_doc = json.loads((ROOT / "Output" / "load_test_enterprise_docker.json").read_text(encoding="utf-8"))
+
+    stages = e2e.get("stages", [])
+    s1 = stages[0] if len(stages) > 0 else {}
+    s2 = stages[1] if len(stages) > 1 else {}
+    s3 = stages[2] if len(stages) > 2 else {}
+    s4 = stages[3] if len(stages) > 3 else {}
+    s5 = stages[4] if len(stages) > 4 else {}
+
+    recs = {r.get("stage"): r for r in opt.get("records", [])}
+    r_b1 = recs.get("After-2 (+ CUDA AMP FP16)", {})
+    r_b4 = recs.get("After-3 (Micro-Batch N=4 AMP FP16)", {})
+    par = e2e.get("parity_fp32_vs_amp_fp16", {})
+    par_b4 = opt.get("video_parity_fp32_vs_amp_fp16_batch4", {}).get("Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)", {})
+
+    sw_in = {s["concurrency"]: s for s in (lt_in if isinstance(lt_in, list) else lt_in.get("concurrency_sweep", []))}
+    sw_doc = {s["concurrency"]: s for s in (lt_doc if isinstance(lt_doc, list) else lt_doc.get("concurrency_sweep", []))}
+
+    def _lt_row(c: int, include_p99: bool = False) -> str:
+        a = sw_in.get(c, {})
+        b = sw_doc.get(c, {})
+        p99_a = f", `p99={a.get('p99_ms', '-')} ms`" if include_p99 else ""
+        p99_b = f", `p99={b.get('p99_ms', '-')} ms`" if include_p99 else ""
+        err = max(float(a.get("error_pct", a.get("error_rate_pct", 0.0))), float(b.get("error_pct", b.get("error_rate_pct", 0.0))))
+        reqs = a.get("total_requests", a.get("requests", "-"))
+        return (
+            f"| `C={c}` ({reqs} reqs) | `{a.get('rps', '-')} RPS` (`p95={a.get('p95_ms', '-')} ms`{p99_a}) | "
+            f"`{b.get('rps', '-')} RPS` (`p95={b.get('p95_ms', '-')} ms`{p99_b}) | `{err:.2f}%` |"
+        )
+
+    return f"""# AEGIS-CCTV Enterprise VMS — Safety Helmet & Color Classification (`GDUT-HWD 5-Class`)
 
 Capstone Project (`FA26AI16` | Group `GFA26AI17` | FPT University) implementing **Rep-YOLO11s (`CoordConv` + 6× `RepConv` + `BiFormerBlockLite`)** with **Head-Level ByteTrack**, **Confirm-Before-Mint Non-Biometric Upper-Torso Persistent Re-ID**, a **6-Microservice Docker Enterprise Stack**, and live **Prometheus/Grafana** telemetry.
 
@@ -183,35 +222,41 @@ Monitoring:
 ## 3. Verified Quantitative Benchmarks (RTX 3050 Laptop GPU, 1920×1080)
 
 ### A. 5-Tier End-to-End Inference & Re-ID Breakdown (`gdut_vms_end2end_reid_benchmark.json`)
-| Tier | Runtime Precision / Config | Mean Latency | Throughput | p95 Latency | Peak VRAM |
-|---|---|---:|---:|---:|---:|
-| 1. Pure GDUT-A6 Detector | Strict FP32 (`allow_tf32=False`) | `14.55 ms` | `68.8 FPS` | `15.21 ms` | `106.1 MB` |
-| 2. Pure GDUT-A6 Detector **[Default B=1]** | `TF32 FP32` (`allow_tf32=True`) | `10.79 ms` | `92.6 FPS` | `12.69 ms` | `215.0 MB` |
-| 3. Pure GDUT-A6 Detector | Selective AMP FP16 (`TF32=False`) | `10.85 ms` | `92.2 FPS` | `13.76 ms` | `210.2 MB` |
-| 4. End-to-End + 3-Strip Non-Biometric Re-ID | `TF32 FP32`, `use_deep=False` | `16.33 ms` | `61.2 FPS` | `19.68 ms` | `215.0 MB` |
-| 5. Full VMS + Multi-Layer MobileNetV3 Re-ID | `TF32 FP32`, `use_deep=True` (`refresh=30`) | `16.00 ms` | `62.5 FPS` | `18.72 ms` | `218.6 MB` |
+- **Paired Re-ID Protocol (Tiers 4–5):** `{e2e.get('paired_protocol', 'Within-frame paired shared-detection (AB alternating, n=120)')}`
 
-- **RepConv Structural Reparameterization (`gdut_a6_switch_to_deploy_benchmark.json`):** 6 layers (`[1, 3, 5, 7, 17, 20]`), `9,788,575 -> 9,487,583` parameters (`-300,992`), FP32 max diff `7.93e-4`.
-- **FP32 vs AMP FP16 Video Parity (`optimization_benchmark_table.json`, 12 frames):**
-  - `Batch=1`: `0` box-count delta (`12/12`), mean confidence diff `0.00036` (`10.05 ms / 99.5 FPS`).
-  - `Micro-Batch N=4`: `0` box-count delta (`12/12`), mean confidence diff `0.00032` (`6.90 ms/frame / 144.9 FPS`).
+| Tier | Runtime Precision / Config | Mean Latency | Throughput | p95 Latency | Peak VRAM | Notes |
+|---|---|---:|---:|---:|---:|---|
+| 1. Pure GDUT-A6 Detector | Strict FP32 (`TF32=False`) | `{s1.get('latency_ms', '-')} ms` | `{s1.get('fps', '-')} FPS` | `{s1.get('p95_ms', '-')} ms` | `{s1.get('vram_mb', '-')} MB` | {s1.get('parity_note', '')} |
+| 2. Pure GDUT-A6 Detector **[Default B=1]** | `TF32 FP32` (`TF32=True`) | `{s2.get('latency_ms', '-')} ms` | `{s2.get('fps', '-')} FPS` | `{s2.get('p95_ms', '-')} ms` | `{s2.get('vram_mb', '-')} MB` | {s2.get('parity_note', '')} |
+| 3. Pure GDUT-A6 Detector | Selective AMP FP16 (`TF32=False`) | `{s3.get('latency_ms', '-')} ms` | `{s3.get('fps', '-')} FPS` | `{s3.get('p95_ms', '-')} ms` | `{s3.get('vram_mb', '-')} MB` | {s3.get('parity_note', '')} |
+| 4. End-to-End + 3-Strip Non-Biometric Re-ID | `TF32 FP32`, `use_deep=False` | `{s4.get('latency_ms', '-')} ms` | `{s4.get('fps', '-')} FPS` | `{s4.get('p95_ms', '-')} ms` | `{s4.get('vram_mb', '-')} MB` | `det={s4.get('det_mean_ms', '-')}ms + strip_reid={s4.get('reid_mean_ms', '-')}ms` |
+| 5. Full VMS + Multi-Layer MobileNetV3 Re-ID | `TF32 FP32`, `use_deep=True` (`refresh=30`) | `{s5.get('latency_ms', '-')} ms` | `{s5.get('fps', '-')} FPS` | `{s5.get('p95_ms', '-')} ms` | `{s5.get('vram_mb', '-')} MB` | `+{s5.get('paired_delta_mean_ms', '-')}ms` avg (`{s5.get('deep_extract_calls', '-')} calls`: extract=`{s5.get('deep_frame_mean_ms', '-')}ms`, steady=`{s5.get('non_deep_frame_mean_ms', '-')}ms`) |
+
+- **RepConv Structural Reparameterization (`gdut_a6_switch_to_deploy_benchmark.json`, Strict FP32 `TF32=False`):** 6 layers (`[1, 3, 5, 7, 17, 20]`), `9,788,575 -> 9,487,583` parameters (`-300,992`), FP32 max diff `7.93e-4`.
+- **FP32 vs AMP FP16 Video Parity & Tensor Speed (`optimization_benchmark_table.json`, 12 frames):**
+  - `Batch=1`: `{par.get('max_abs_count_delta', 0)}` box-count delta (`12/12`), mean confidence diff `{par.get('mean_conf_diff', '-')}` (`AMP FP16 = {r_b1.get('latency_ms', '-')} ms / {r_b1.get('fps', '-')} FPS` vs Loop BiFormer `FP32 (cuDNN TF32=True) = 13.62 ms`).
+  - `Micro-Batch N=4`: `{par_b4.get('max_abs_count_delta', 0)}` box-count delta (`12/12`), mean confidence diff `{par_b4.get('mean_conf_diff', '-')}` (`{r_b4.get('latency_ms', '-')} ms/frame / {r_b4.get('fps', '-')} FPS`).
 
 ### B. Dual Concurrent Load Tests (`C=10..100`, `1,400` total HTTP requests per sweep)
 | Concurrency | In-Process CPU FastAPI (`load_test_results.json`) | 6-Container Docker Stack Nginx→Gateway→PostgreSQL (`load_test_enterprise_docker.json`) | Errors |
 |---|---:|---:|---:|
-| `C=10` (200 reqs) | `446.7 RPS` (`p95=30.56 ms`) | `260.8 RPS` (`p95=69.09 ms`) | `0.00%` |
-| `C=25` (300 reqs) | `487.9 RPS` (`p95=58.05 ms`) | `256.6 RPS` (`p95=133.69 ms`) | `0.00%` |
-| `C=50` (400 reqs) | `454.1 RPS` (`p95=150.70 ms`) | `238.1 RPS` (`p95=250.91 ms`) | `0.00%` |
-| `C=100` (500 reqs) | `501.1 RPS` (`p95=199.25 ms`, `p99=200.31 ms`) | `225.2 RPS` (`p95=480.67 ms`, `p99=500.78 ms`) | `0.00%` |
+{_lt_row(10)}
+{_lt_row(25)}
+{_lt_row(50)}
+{_lt_row(100, include_p99=True)}
 
 ---
 
-## 4. Visual Evidence & Operational Limitations
-- UI & Monitoring Screenshots (v2.3):
+## 4. Kaggle Reproducibility & 1-to-1 Forensic Audit Evidence
+- **13 Official Kaggle Notebooks & Raw Outputs (`notebooks/gdut_official_kaggle/`):** Verified read-only via Kaggle API (`11` `nvthanh2004` Prep/S1/A0–A6/FinalTest + `2` `tundng111` B1/B2 notebooks, raw `summary.csv`, `validation_summary.csv`, `A6_*_per_class.json`, `b1_control_summary.json`, `final_test_execution_log.txt`, and `raw_kaggle_outputs_summary.json`).
+- **Forensic Cross-Verification (`66/67 MATCH, 1 honest nuance`):** [Kaggle Forensic Verification Report](docs/KAGGLE_FORENSIC_VERIFICATION_REPORT.md) | [Consolidated Code & Metrics Audit Snapshot](docs/AUDIT_CODE_SNAPSHOT.md).
+
+## 5. Visual Evidence & Operational Limitations
+- UI & Monitoring Screenshots (v2.4):
   - [Enterprise Dashboard 1920×1080](docs/ui_screenshots/01_1920x1080_main.png) | [Compact 1366×768](docs/ui_screenshots/02_1366x768_compact.png)
   - [Runtime & SLA Tables 1–3](docs/ui_screenshots/03_runtime_sla_4tables_modal.png) | [Runtime & SLA Dual Load Tests 4A/4B](docs/ui_screenshots/03b_runtime_sla_loadtest.png)
   - [C960 Ultra Binary WebSocket Webcam Mode](docs/ui_screenshots/04_webcam_c960_canvas_mode.png) | [Solo Focus Lock & CSV Export](docs/ui_screenshots/05_solo_focus_and_export.png)
-  - [Live Prometheus + Grafana Telemetry (`42.4 FPS`, `18.3 ms`, `2` Gallery IDs)](docs/ui_screenshots/06_grafana_live_monitoring.png)
+  - [Live Prometheus + Grafana Telemetry](docs/ui_screenshots/06_grafana_live_monitoring.png)
 - **Field Status (`docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md`):** UAT & SUS rubric is finalized and maintained strictly at **`Pending Field Trial`** (no synthetic SUS scores). Physical USB `C960 Ultra` room-light cosine threshold calibration awaits on-site camera testing.
 """
 
@@ -275,11 +320,78 @@ def _clean_target_dir(preserve_git: bool):
                 entry.unlink()
 
 
+def _copy_kaggle_evidence(dest_root: Path):
+    kroot = ROOT / "docs" / "kaggle_verified_source"
+    out_dir = dest_root / "notebooks" / "gdut_official_kaggle"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for owner in ("nvthanh2004", "tundng111"):
+        for nb in sorted((kroot / owner).glob("*.ipynb")):
+            dst = out_dir / owner / nb.name
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(nb, dst)
+    summary_src = kroot / "raw_kaggle_outputs_summary.json"
+    if not summary_src.exists():
+        raise FileNotFoundError(f"Missing Kaggle summary JSON: {summary_src}")
+    shutil.copy2(summary_src, out_dir / "raw_kaggle_outputs_summary.json")
+
+    raw_map = [
+        ("nvthanh2004/gdut-final-test-evaluation_outputs/test_evaluation/summary.csv", "raw_artifacts/final_test_summary.csv"),
+        ("nvthanh2004/gdut-final-test-evaluation_outputs/test_evaluation/validation_summary.csv", "raw_artifacts/final_test_validation_summary.csv"),
+        ("nvthanh2004/gdut-final-test-evaluation_outputs/test_evaluation/A6_yolo11s_per_class.json", "raw_artifacts/A6_yolo11s_per_class.json"),
+        ("nvthanh2004/gdut-final-test-evaluation_outputs/test_evaluation/A6_yolov8s_per_class.json", "raw_artifacts/A6_yolov8s_per_class.json"),
+        ("nvthanh2004/gdut-final-test-evaluation_outputs/execution_log.txt", "raw_artifacts/final_test_execution_log.txt"),
+        ("tundng111/gdut-yolo11n-dcrcf-baseline_outputs/yolo11_decision/pair-3407-pz6l7gwr/control/summary.json", "raw_artifacts/b1_control_summary.json"),
+    ]
+    for src_sub, dst_sub in raw_map:
+        src = kroot / src_sub
+        if not src.exists():
+            raise FileNotFoundError(f"Missing Kaggle artifact: {src}")
+        dst = out_dir / dst_sub
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+
+
+def _generate_audit_code_snapshot():
+    sections = [
+        ("1. Kaggle Forensic Verification Report", "markdown", "docs/KAGGLE_FORENSIC_VERIFICATION_REPORT.md"),
+        ("2. Non-Biometric Upper-Torso Persistent Re-ID Engine", "python", "src/engine/gdut_reid.py"),
+        ("3. API Gateway Circuit Breaker & Proxy Client", "python", "src/web/gateway_client.py"),
+        ("4. Continuous Integration Workflow", "yaml", ".github/workflows/ci.yml"),
+        ("5. End-to-End RTX 3050 Paired Benchmark", "json", "Output/task3_eval_opt/gdut_vms_end2end_reid_benchmark.json"),
+        ("6. Inference Optimization & Parity Table", "json", "Output/task3_eval_opt/optimization_benchmark_table.json"),
+        ("7. Enterprise Docker Stack Load Test", "json", "Output/load_test_enterprise_docker.json"),
+    ]
+    parts = [
+        "# AEGIS-CCTV Enterprise VMS (GDUT-HWD 5-Class) — Consolidated Code & Audit Snapshot",
+        "",
+        "> Self-contained verifier snapshot bundling the Kaggle 1-to-1 forensic verification report, core Re-ID and API Gateway resilience code, CI workflow, and hardware/Docker benchmark JSONs.",
+        "",
+    ]
+    for title, lang, rel_path in sections:
+        p = ROOT / rel_path
+        if not p.exists():
+            raise FileNotFoundError(f"Missing snapshot input: {p}")
+        content = p.read_text(encoding="utf-8").strip()
+        parts.extend([f"## {title} (`{rel_path}`)", "", f"```{lang}", content, "```", ""])
+
+    text = "\n".join(parts)
+    for label, rx in _build_secret_patterns():
+        if rx.search(text):
+            raise ValueError(f"Audit snapshot leaked secret/path pattern ({label})")
+    raw_bytes = text.encode("utf-8")
+    assert len(raw_bytes) <= 400 * 1024, f"AUDIT_CODE_SNAPSHOT.md exceeds 400 KB ({len(raw_bytes)} B)"
+    out = ROOT / "docs" / "AUDIT_CODE_SNAPSHOT.md"
+    out.write_bytes(raw_bytes)
+    print(f"[SNAPSHOT] Generated {out.relative_to(ROOT).as_posix()} ({round(len(raw_bytes)/1024, 1)} KB)")
+
+
 def sync_export(init_git: bool = False) -> Path:
     _clean_target_dir(preserve_git=(not init_git))
+    _generate_audit_code_snapshot()
 
     _copy_src_tree(TARGET)
     _copy_monitoring_tree(TARGET)
+    _copy_kaggle_evidence(TARGET)
 
     for group in (
         WHITELIST_ROOT_FILES,
@@ -307,7 +419,7 @@ def sync_export(init_git: bool = False) -> Path:
 
     # Clean .gitignore and README.md
     (TARGET / ".gitignore").write_text(CLEAN_GITIGNORE, encoding="utf-8")
-    (TARGET / "README.md").write_text(CLEAN_README, encoding="utf-8")
+    (TARGET / "README.md").write_text(_build_clean_readme(), encoding="utf-8")
 
     # Compute AUDIT_MANIFEST.json covering all exported files
     manifest_entries: List[Dict[str, object]] = []
@@ -331,7 +443,7 @@ def sync_export(init_git: bool = False) -> Path:
 
     manifest = {
         "repo": "https://github.com/hannhu11/AI-Capstone",
-        "scope": "AEGIS-CCTV Enterprise VMS v2.3 (GDUT-HWD 5-Class Clean-Room Export)",
+        "scope": "AEGIS-CCTV Enterprise VMS v2.4 (GDUT-HWD 5-Class Clean-Room Export)",
         "total_files": len(manifest_entries) + 1,
         "total_size_mb": round(total_bytes / (1024 * 1024), 3),
         "max_single_file_mb": round(max_file_bytes / (1024 * 1024), 3),
@@ -450,6 +562,8 @@ def verify_export(init_git: bool = False):
     assert r_pytest.returncode == 0, f"Gate 5 Clean-Clone pytest failed:\n{r_pytest.stdout}\n{r_pytest.stderr}"
     summary_line = [ln for ln in r_pytest.stdout.splitlines() if "passed" in ln]
     print(f"[GATE 5 PASS] Clean-Clone pytest: {summary_line[-1] if summary_line else 'OK'}")
+    _rmtree_force(TARGET / "Output" / "alerts")
+    assert not (TARGET / "Output" / "alerts").exists(), "Gate 5 cleanup failed: Output/alerts still exists"
 
     # Gate 6: Docker Compose validation inside _publish_ai_capstone/
     for yml in ("docker-compose.enterprise.yml", "docker-compose.edge-simulation.yml"):

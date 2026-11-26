@@ -1,0 +1,161 @@
+{
+  "fixed_025": {
+    "threshold": 0.25,
+    "tp": 309,
+    "fp": 82,
+    "fn": 95,
+    "precision": 0.7902813299232737,
+    "recall": 0.7648514851485149
+  },
+  "operating_point": {
+    "threshold": 0.2871578633785248,
+    "tp": 306,
+    "fp": 60,
+    "fn": 98,
+    "precision": 0.8360655737704918,
+    "recall": 0.7574257425742574
+  },
+  "images": 316,
+  "support_none": 404,
+  "errors_by_size_pyramid": [
+    {
+      "size": "other",
+      "level": "P3",
+      "reason": "matched",
+      "count": 119
+    },
+    {
+      "size": "other",
+      "level": "P3",
+      "reason": "raw_none_below_confidence",
+      "count": 19
+    },
+    {
+      "size": "other",
+      "level": "P4",
+      "reason": "matched",
+      "count": 21
+    },
+    {
+      "size": "other",
+      "level": "P4",
+      "reason": "raw_none_below_confidence",
+      "count": 9
+    },
+    {
+      "size": "other",
+      "level": "P5",
+      "reason": "matched",
+      "count": 6
+    },
+    {
+      "size": "small",
+      "level": "P3",
+      "reason": "matched",
+      "count": 163
+    },
+    {
+      "size": "small",
+      "level": "P3",
+      "reason": "raw_none_below_confidence",
+      "count": 51
+    },
+    {
+      "size": "small",
+      "level": "P4",
+      "reason": "raw_none_below_confidence",
+      "count": 6
+    },
+    {
+      "size": "small",
+      "level": "no_iou50",
+      "reason": "no_raw_box_iou50",
+      "count": 10
+    }
+  ],
+  "split": "val",
+  "checkpoint_sha256": "98a778c8c4ebd8e665faf7de2fb7672d160f9c8f62bc75b7c4445d5843f1f545",
+  "native_metrics": {
+    "precision": 0.9164565987861784,
+    "recall": 0.7876951248935052,
+    "mAP50": 0.888552056423473,
+    "mAP50_95": 0.5777524060099456,
+    "F1_native_macro": 0.8461015527674581,
+    "precision_conf025_macro": 0.8089757087032456,
+    "recall_conf025_macro": 0.847410471810037,
+    "F1_conf025_macro": 0.8268283675671319
+  },
+  "per_class": [
+    {
+      "class_id": 0,
+      "name": "blue",
+      "precision": 0.9328909682025958,
+      "recall": 0.8082092102470448,
+      "F1_native": 0.8660858025171109,
+      "AP50": 0.8849210368016986,
+      "AP50_95": 0.6037534926531463,
+      "precision_conf025": 0.8520099637128209,
+      "recall_conf025": 0.8449612403100775,
+      "F1_conf025": 0.8484709628409404,
+      "support": 258
+    },
+    {
+      "class_id": 1,
+      "name": "white",
+      "precision": 0.9373570971638372,
+      "recall": 0.7965616045845272,
+      "F1_native": 0.8612430013386873,
+      "AP50": 0.909267890290591,
+      "AP50_95": 0.6046645783486786,
+      "precision_conf025": 0.8254953183145222,
+      "recall_conf025": 0.8510028653295129,
+      "F1_conf025": 0.8380550459945093,
+      "support": 349
+    },
+    {
+      "class_id": 2,
+      "name": "yellow",
+      "precision": 0.9099884247375879,
+      "recall": 0.8058035714285714,
+      "F1_native": 0.8547328863296518,
+      "AP50": 0.8999269636333221,
+      "AP50_95": 0.5756094490901819,
+      "precision_conf025": 0.8128196922735612,
+      "recall_conf025": 0.8705357142857143,
+      "F1_conf025": 0.8406882689676893,
+      "support": 448
+    },
+    {
+      "class_id": 3,
+      "name": "red",
+      "precision": 0.8874512907712468,
+      "recall": 0.8387096774193549,
+      "F1_native": 0.8623923255411668,
+      "AP50": 0.9157636161764494,
+      "AP50_95": 0.5938996733519315,
+      "precision_conf025": 0.7676308992657458,
+      "recall_conf025": 0.9032258064516129,
+      "F1_conf025": 0.8299263912626219,
+      "support": 279
+    },
+    {
+      "class_id": 4,
+      "name": "none",
+      "precision": 0.9145952130556239,
+      "recall": 0.6891915607880278,
+      "F1_native": 0.7860537481106741,
+      "AP50": 0.8328807752153031,
+      "AP50_95": 0.51083483660579,
+      "precision_conf025": 0.7869226699495783,
+      "recall_conf025": 0.7673267326732673,
+      "F1_conf025": 0.7770011687698986,
+      "support": 404
+    }
+  ],
+  "definitions": {
+    "precision_recall": "Ultralytics class means at the native operating point",
+    "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+    "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+    "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+  }
+}

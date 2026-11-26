@@ -230,13 +230,13 @@
     {
       "id": 15,
       "type": "timeseries",
-      "title": "Node Memory & CUDA VRAM Footprint (MB)",
+      "title": "Node Memory & CUDA VRAM Footprint",
       "gridPos": {"h": 8, "w": 8, "x": 16, "y": 17},
       "fieldConfig": {"defaults": {"unit": "mbytes", "min": 0}},
       "targets": [
-        {"expr": "aegis_cctv_ram_used_mb", "legendFormat": "AI Node RAM (MB)", "refId": "A"},
-        {"expr": "aegis_cctv_cuda_vram_allocated_mb", "legendFormat": "CUDA VRAM (MB)", "refId": "B"},
-        {"expr": "aegis_gateway_ram_used_mb{job=\"aegis-api-gateway\"}", "legendFormat": "Gateway RAM (MB)", "refId": "C"}
+        {"expr": "aegis_cctv_ram_used_mb", "legendFormat": "AI Node RAM", "refId": "A"},
+        {"expr": "aegis_cctv_cuda_vram_allocated_mb", "legendFormat": "CUDA VRAM", "refId": "B"},
+        {"expr": "aegis_gateway_ram_used_mb{job=\"aegis-api-gateway\"}", "legendFormat": "Gateway RAM", "refId": "C"}
       ]
     }
   ]

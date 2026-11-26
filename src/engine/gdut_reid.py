@@ -306,6 +306,7 @@ class MobileNetV3SmallExtractor:
         self._torch = None
         self._mean = None
         self._std = None
+        self.extract_calls: int = 0
 
     @property
     def available(self) -> bool:
@@ -399,6 +400,7 @@ class MobileNetV3SmallExtractor:
             tensor = (tensor - self._mean) / self._std
             with self._torch.no_grad():
                 vec = self._forward_multiscale(tensor).detach().cpu().numpy().astype(np.float32)
+            self.extract_calls += 1
             norm = float(np.linalg.norm(vec))
             if norm > 1e-6:
                 vec /= norm

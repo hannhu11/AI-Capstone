@@ -744,3 +744,49 @@ def test_no_biometric_mislabeling_in_benchmark_or_ui():
             continue
         cleaned = _re.sub(r"non[-_ ]?biometric", "", p.read_text(encoding="utf-8"), flags=_re.IGNORECASE)
         assert "biometric" not in cleaned.lower(), f"Forbidden standalone 'biometric' label found in {p}"
+
+
+def test_solo_focus_no_duplicate_black_opencv_hud_when_disabled(monkeypatch, tmp_path):
+    """Solo Focus must NOT paint the black OpenCV HUD bar when draw_video_hud=False (HTML header renders badge)."""
+    import cv2
+    import numpy as np
+    from src.config import config
+    from src.engine.pipeline import CCTVSurveillancePipeline
+
+    clip = tmp_path / "hud_test.avi"
+    vw = cv2.VideoWriter(str(clip), cv2.VideoWriter_fourcc(*"MJPG"), 10.0, (320, 240))
+    assert vw.isOpened()
+    vw.write(np.full((240, 320, 3), 220, dtype=np.uint8))
+    vw.release()
+
+    pipe = CCTVSurveillancePipeline(video_source=str(clip))
+    pipe.set_focus_track(1)
+    bright_frame = np.full((240, 640, 3), 220, dtype=np.uint8)
+    report = {
+        "track_id": 1,
+        "bbox": [200.0, 80.0, 260.0, 140.0],
+        "status": "COMPLIANT",
+        "helmet_color": "blue",
+        "role_short_code": "SUP",
+        "historical_role_short_code": "SUP",
+        "role_bgr_color": [129, 76, 15],
+        "is_helmet_only": True,
+    }
+
+    monkeypatch.setattr(config, "draw_video_hud", False)
+    vis_off = pipe._render_annotations(bright_frame, [], [report])
+    assert float(vis_off[0:32, 0:200].mean()) > 200.0, "Top HUD strip must stay transparent when draw_video_hud=False"
+
+    monkeypatch.setattr(config, "draw_video_hud", True)
+    vis_on = pipe._render_annotations(bright_frame, [], [report])
+    assert float(vis_on[0:32, 0:200].mean()) < 60.0, "Top HUD strip must render when draw_video_hud=True"
+    pipe.stop()
+
+
+def test_detector_zero_ablation_factory_dependency():
+    """src/engine/detector.py must import BiFormerSequentialWrapper from custom_ablation_modules, not scripts.ablation_factory."""
+    from pathlib import Path as _Path
+
+    src_text = (_Path(__file__).resolve().parent.parent / "src" / "engine" / "detector.py").read_text(encoding="utf-8")
+    assert "ablation_factory" not in src_text
+    assert "from custom_ablation_modules import BiFormerSequentialWrapper" in src_text
