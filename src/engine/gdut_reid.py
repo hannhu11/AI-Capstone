@@ -455,7 +455,7 @@ class UpperTorsoIdentityProfile:
             self.strip_gallery.append(strip_sig.copy())
             self.strip_ema = strip_sig.copy()
 
-        self.deep_gallery: deque[np.ndarray] = deque(maxlen=5)
+        self.deep_gallery: deque[np.ndarray] = deque(maxlen=7)
         self.deep_ema: Optional[np.ndarray] = None
         if deep_sig is not None and np.linalg.norm(deep_sig) > 1e-6:
             self.deep_gallery.append(deep_sig.copy())
@@ -523,7 +523,7 @@ class UpperTorsoIdentityProfile:
                 n = float(np.linalg.norm(blended))
                 if n > 1e-6:
                     self.deep_ema = blended / n
-                if self.max_deep_sim(deep_sig) < 0.90:
+                if self.max_deep_sim(deep_sig) < 0.85:
                     self.deep_gallery.append(deep_sig.copy())
 
         cx = float(0.5 * (head_box[0] + head_box[2]))
@@ -670,8 +670,10 @@ class UpperTorsoReIDGallery:
                 base_sim = 0.50 * sim_deep + 0.30 * sim_color + 0.20 * sim_tex
             else:
                 base_sim = 0.52 * sim_deep + 0.48 * sim_color
-            if not skip_hard_veto and sim_deep < 0.62:
-                return float(min(base_sim, sim_deep)), True
+            if not skip_hard_veto:
+                deep_veto_floor = 0.50 if sim_color >= 0.78 else 0.62
+                if sim_deep < deep_veto_floor:
+                    return float(min(base_sim, sim_deep)), True
             return float(base_sim), False
 
         if not skip_hard_veto and has_tex and sim_tex < 0.58:

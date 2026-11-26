@@ -1,8 +1,8 @@
 {
   "repo": "https://github.com/hannhu11/AI-Capstone",
-  "scope": "AEGIS-CCTV Enterprise VMS v2.5 (GDUT-HWD 5-Class Clean-Room Export)",
-  "total_files": 108,
-  "total_size_mb": 6.827,
+  "scope": "AEGIS-CCTV Enterprise VMS v2.5.1 (GDUT-HWD 5-Class Clean-Room Export)",
+  "total_files": 109,
+  "total_size_mb": 6.837,
   "max_single_file_mb": 0.783,
   "files": [
     {
@@ -57,8 +57,8 @@
     },
     {
       "path": "docs/AUDIT_CODE_SNAPSHOT.md",
-      "size_bytes": 92423,
-      "sha256": "149b066dbf2d285c2ed8f433f10bc3ad2cc836e775a39f8b2a83a73c1b21c281"
+      "size_bytes": 92524,
+      "sha256": "651442fc84654d20b9fe97cd84425f7b0f55c0e54b7d9897b4ec7b5370a0acdf"
     },
     {
       "path": "docs/CHANGELOG_GDUT_VMS.md",
@@ -127,8 +127,8 @@
     },
     {
       "path": "docs/ui_screenshots/06_grafana_live_monitoring.png",
-      "size_bytes": 147354,
-      "sha256": "ec1609ebdc0bdab957a1d43189cc984ce668e4bbe23ac11d55567c15c43d6c61"
+      "size_bytes": 150435,
+      "sha256": "31a43a5b44f38dbe0a770ca287c8e24cd84b764dddc88f407a4cb0c29907b215"
     },
     {
       "path": "monitoring/grafana/dashboards/aegis_vms_overview.json",
@@ -302,8 +302,8 @@
     },
     {
       "path": "README.md",
-      "size_bytes": 7814,
-      "sha256": "34118908ffbf9176ac5375ee22ddfdb42ac376d6e2b8793535341ab1773a5add"
+      "size_bytes": 7897,
+      "sha256": "be6d898b3e1f0b8c0648c7cbab9d0eebf4c3425d3acedd6c95fc0374c8a65097"
     },
     {
       "path": "requirements.txt",
@@ -352,13 +352,18 @@
     },
     {
       "path": "scripts/sync_public_audit_repo.py",
-      "size_bytes": 29640,
-      "sha256": "98fc786cfb5203d7baf89a6b7f234e8ce94fe53251fa951b32105f5ad49bf279"
+      "size_bytes": 29773,
+      "sha256": "b023294a485c575a5844c8249f444581ad5b33506d3a85f36572ab83b9a3262d"
     },
     {
       "path": "scripts/test_dynamic_taxonomy_gdut.py",
       "size_bytes": 6868,
       "sha256": "935cb8a6eb9e337d1dba17c055d659b8ee5ce27085aea59a2574c871eac28d1b"
+    },
+    {
+      "path": "scripts/verify_thesis_v25_consistency.py",
+      "size_bytes": 2850,
+      "sha256": "60baab86c23fb59d9d8a473f49397ab19087ae181ca2d23232e94fe435a641a7"
     },
     {
       "path": "snapshots/.gitkeep",
@@ -407,8 +412,8 @@
     },
     {
       "path": "src/engine/gdut_reid.py",
-      "size_bytes": 54547,
-      "sha256": "2e8970486225e7aaf4c78568714e83c6cb42575c4f935435acea65a0f8aa359e"
+      "size_bytes": 54648,
+      "sha256": "0b8d920d9436afcf3f4fc1efeaff46d4c83117b8f0501fb06d547b5e3cf3dd87"
     },
     {
       "path": "src/engine/kalman_tracker.py",
@@ -487,13 +492,13 @@
     },
     {
       "path": "thesis_report/chapters/ch2_pmp.tex",
-      "size_bytes": 20553,
-      "sha256": "0e7772c29f504da364a81fb4c8cbd7f9882a29cee9ffcd09c275adfdc0dbb5a8"
+      "size_bytes": 20668,
+      "sha256": "1c8bea64df460d2a0f65dc2224297223eac5db63a9264b0ee4b223c6a5dc7811"
     },
     {
       "path": "thesis_report/chapters/ch3_sota.tex",
-      "size_bytes": 24399,
-      "sha256": "cdbdc6cade22d22320fa645dd252ec04f7d738d396aa7372ea5c416797020206"
+      "size_bytes": 24424,
+      "sha256": "642594f2f8e3e0753d195ca0a2d68ce67cda2d5b089bc8649db600db5b861325"
     },
     {
       "path": "thesis_report/chapters/ch4_methodology.tex",
@@ -502,13 +507,13 @@
     },
     {
       "path": "thesis_report/chapters/ch5_system.tex",
-      "size_bytes": 26365,
-      "sha256": "d189f265c771866e182e26cf07595594eae21df8dbc5e203171ce9bdee585a3d"
+      "size_bytes": 27076,
+      "sha256": "54dbedd46f0c8432547df18f8283049d9dbd36fdce1a68ccc28efd99b77ce2bb"
     },
     {
       "path": "thesis_report/chapters/ch6_results.tex",
-      "size_bytes": 55324,
-      "sha256": "46958ed41e0364f7642407c87642621e5528bc92c0718ee7bf75883691697287"
+      "size_bytes": 55525,
+      "sha256": "89d727a19c8648385c39e72c91ae45cf273057bb252b187310cb036694e80100"
     },
     {
       "path": "thesis_report/chapters/ch7_conclusion.tex",
@@ -517,8 +522,8 @@
     },
     {
       "path": "thesis_report/chapters/ch9_appendices.tex",
-      "size_bytes": 23814,
-      "sha256": "f5347328cc0fb6cc31c7b9d182c53cf0874aa5ce44ae8f32b23c278cb838cdaa"
+      "size_bytes": 26168,
+      "sha256": "c6211879571781de930c678ed84dd430bd8aa2af94ffb8f28d550e864873f680"
     },
     {
       "path": "thesis_report/chapters/frontmatter.tex",

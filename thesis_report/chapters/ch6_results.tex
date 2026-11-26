@@ -101,16 +101,16 @@ Similarly, for \textbf{Baseline 2 (\texttt{B2})}, preserving $65.16\%$ of Stage 
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}[b]{0.49\textwidth}
+\begin{subfigure}[t]{0.47\textwidth}
   \centering
   \includegraphics[width=\textwidth]{figures/b1_dung_val_pr.png}
-  \caption{B1 (\texttt{Pair-3407 Control}) Validation PR Curve}
+  \caption{B1 (\texttt{Pair-3407}) Validation PR Curve}
 \end{subfigure}
 \hfill
-\begin{subfigure}[b]{0.49\textwidth}
+\begin{subfigure}[t]{0.47\textwidth}
   \centering
   \includegraphics[width=\textwidth]{figures/b1_dung_val_cm.png}
-  \caption{B1 (\texttt{Pair-3407 Control}) Normalized Confusion Matrix}
+  \caption{B1 (\texttt{Pair-3407}) Normalized Confusion Matrix}
 \end{subfigure}
 \caption{Authentic Kaggle validation plots from Dung's best \texttt{YOLO11n-DCRCF} run (\nolinkurl{tundng111/gdut-yolo11n-dcrcf-baseline}, \texttt{v372678468}), highlighting elevated background false-negative leakage on class \texttt{none}.}
 \label{fig:ch6_b1_authentic}
@@ -204,14 +204,14 @@ Tables~\ref{tab:ch6_test_y11}, \ref{tab:ch6_test_v8}, and~\ref{tab:ch6_test_delt
 \rowcolor{slatehdr}
 \textbf{Config} & \textbf{Precision (\%)} & \textbf{Recall (\%)} & \textbf{mAP@50 (\%)} & \textbf{mAP@50--95 (\%)} & \textbf{Tesla T4 Infer (ms)} \\
 \hline
-\textbf{A0 (S1)} & 91.0 & 82.8 & 88.8 & 58.5 & -- \\ \hline
+\textbf{A0 (S1)} & 91.0 & 82.8 & 88.8 & 58.5 & 8.0 \\ \hline
 \textbf{A1} & \textbf{91.2} & \textbf{84.4} & \textbf{89.8} & \textbf{59.1} & \textbf{7.5} \\ \hline
-\textbf{A2} & 91.1 & 83.5 & 89.4 & 58.6 & -- \\ \hline
-\textbf{A3} & 90.7 & 83.9 & 89.3 & 58.3 & -- \\ \hline
-\textbf{A4} & 90.2 & 84.3 & 89.2 & 58.5 & -- \\ \hline
-\textbf{A5} & 90.2 & 84.2 & 89.2 & 58.6 & -- \\ \hline
+\textbf{A2} & 91.1 & 83.5 & 89.4 & 58.6 & 8.3 \\ \hline
+\textbf{A3} & 90.7 & 83.9 & 89.3 & 58.3 & 8.9 (unfused) \\ \hline
+\textbf{A4} & 90.2 & 84.3 & 89.2 & 58.5 & 8.0 \\ \hline
+\textbf{A5} & 90.2 & 84.2 & 89.2 & 58.6 & 8.5 \\ \hline
 \rowcolor{slatehdr}
-\textbf{A6} & 90.2 & 84.3 & 88.9 & 58.1 & 9.2 (unfused \texttt{RepConv}) \\ \hline
+\textbf{A6} & 90.2 & 84.3 & 88.9 & 58.1 & 9.2 (unfused) \\ \hline
 \end{tabular}}
 \end{table}
 
@@ -227,14 +227,14 @@ Tables~\ref{tab:ch6_test_y11}, \ref{tab:ch6_test_v8}, and~\ref{tab:ch6_test_delt
 \rowcolor{slatehdr}
 \textbf{Config} & \textbf{Precision (\%)} & \textbf{Recall (\%)} & \textbf{mAP@50 (\%)} & \textbf{mAP@50--95 (\%)} & \textbf{Tesla T4 Infer (ms)} \\
 \hline
-\textbf{A0 (S1)} & 90.1 & 81.8 & 87.5 & 57.2 & -- \\ \hline
+\textbf{A0 (S1)} & 90.1 & 81.8 & 87.5 & 57.2 & 7.5 \\ \hline
 \textbf{A1} & 90.5 & 83.4 & \textbf{88.7} & \textbf{57.8} & \textbf{7.4} \\ \hline
-\textbf{A2} & 90.6 & 83.1 & 88.6 & 57.2 & -- \\ \hline
-\textbf{A3} & 89.7 & \textbf{83.6} & \textbf{88.7} & 57.2 & -- \\ \hline
-\textbf{A4} & \textbf{90.9} & 82.6 & 88.3 & 57.2 & -- \\ \hline
-\textbf{A5} & \textbf{90.9} & 82.4 & 88.3 & 57.3 & -- \\ \hline
+\textbf{A2} & 90.6 & 83.1 & 88.6 & 57.2 & 7.7 \\ \hline
+\textbf{A3} & 89.7 & \textbf{83.6} & \textbf{88.7} & 57.2 & 8.5 (unfused) \\ \hline
+\textbf{A4} & \textbf{90.9} & 82.6 & 88.3 & 57.2 & 7.5 \\ \hline
+\textbf{A5} & \textbf{90.9} & 82.4 & 88.3 & 57.3 & 8.4 \\ \hline
 \rowcolor{slatehdr}
-\textbf{A6} & 90.3 & 82.6 & 88.4 & 57.4 & 9.1 (unfused \texttt{RepConv}) \\ \hline
+\textbf{A6} & 90.3 & 82.6 & 88.4 & 57.4 & 9.1 (unfused) \\ \hline
 \end{tabular}}
 \end{table}
 
@@ -496,9 +496,9 @@ Memory consumption stays remarkably compact---under \textbf{706 MB VRAM} even at
 \subsection{Software Verification, Dual Load/Stress Testing, Field Audit, and UAT/SUS}
 
 \begin{enumerate}[leftmargin=1.8em, itemsep=4pt]
-  \item \textbf{Automated Unit and Integration Verification (\texttt{pytest}):} Executing \texttt{python -m pytest tests -q} on CPU (\nolinkurl{CUDA_VISIBLE_DEVICES=-1}) passes \textbf{131 / 131 tests (100\%)} in 132.07 seconds (and passes \textbf{130 passed, 1 skipped} in 12.65 seconds in weightless CI stub mode \nolinkurl{MODEL_PATH=nonexistent_ci_stub.pt}, where 1 video/weight-dependent test skips gracefully). Test coverage spans Dynamic Taxonomy GDUT adaptation (\texttt{cls=2} $\to$ \texttt{yellow}), Confirm-Before-Mint (\texttt{min\_confirm\_hits=6}) and Two-Stage Gate non-biometric Upper-Torso Re-ID with 15-frame TTL \nolinkurl{hijack_excluded_ids}, 100-frame stationary-worker PPE retention, 8-frame violation debouncing, Circuit Breaker \texttt{HALF\_OPEN} single-probe transitions, Binary WebSocket \texttt{/ws/webcam} framing, Role-by-Color APIs (\texttt{/api/roles}), PostgreSQL persistence fallback, FastAPI endpoints, and optimization JSON parity consistency.
+  \item \textbf{Automated Unit and Integration Verification (\texttt{pytest}):} Executing \texttt{python -m pytest tests -q} on CPU (\nolinkurl{CUDA_VISIBLE_DEVICES=-1}) passes \textbf{131 / 131 local workspace tests (100\%)} (and \textbf{130 passed, 1 skipped} locally in weightless CI stub mode \nolinkurl{MODEL_PATH=nonexistent_ci_stub.pt}), while the Clean-Room public repository CI suite executes all 75 core tests on GitHub Actions (\textbf{74 passed, 1 skipped} cleanly in stub mode). Test coverage spans Dynamic Taxonomy GDUT adaptation (\texttt{cls=2} $\to$ \texttt{yellow}), Confirm-Before-Mint (\texttt{min\_confirm\_hits=6}) and Two-Stage Gate non-biometric Upper-Torso Re-ID with 15-frame TTL \nolinkurl{hijack_excluded_ids}, 100-frame stationary-worker PPE retention, 8-frame violation debouncing, Circuit Breaker \texttt{HALF\_OPEN} single-probe transitions, raw binary JPEG WebSocket \texttt{/ws/webcam} framing, Role-by-Color APIs (\texttt{/api/roles}), PostgreSQL persistence fallback, FastAPI endpoints, and optimization JSON parity consistency.
   \item \textbf{Dual API Concurrency Load and Stress Testing (4A In-Process vs. 4B 6-Container Docker):} Benchmarking via \nolinkurl{scripts/load_test_api.py} across $C \in \{10, 25, 50, 100\}$ concurrent clients (1,400 requests per tier across telemetry, status, alerts, and workers routes) confirms \textbf{0 HTTP errors (0.0\% failure)} in both configurations: (a) \textbf{4A In-Process ASGI} (\nolinkurl{Output/load_test_results.json}) sustains \textbf{446.7--501.1 RPS} (p95 $30.56$--$199.25$ ms); and (b) \textbf{4B 6-Container Enterprise Docker Stack} (\nolinkurl{Output/load_test_enterprise_docker.json}) sustains \textbf{260.8--225.2 RPS} (p95 $69.09$--$480.67$ ms) through Nginx $\to$ Gateway proxy hops and PostgreSQL-backed telemetry (Table~\ref{tab:ch6_load_test} and Figure~\ref{fig:ch6_opt_load}).
-  \item \textbf{Real-World Construction CCTV Video \& Live Observability Verification:} Verified smooth end-to-end execution across our local test videos in \texttt{video\_test/} spanning 1080p and 4K UHD construction scenes (\nolinkurl{construction_site_workers_1080p.mp4}, \nolinkurl{10810476-hd_1920_1080_30fps.mp4}, \nolinkurl{13921040-uhd_3840_2160_30fps.mp4}, \texttt{brickmasonry 11.mp4}, \texttt{concreting 10.mp4}) as well as synthetic Y4M WebRTC feeds over \texttt{/ws/webcam} (35 ms RTT). During live 6-container streaming, Prometheus scraped Linux cgroup v2 working-set RAM at \textbf{86.7--91.2 MB} for \texttt{api-gateway} (matching \texttt{docker stats} at \texttt{86.48 MiB}) and \textbf{3,020.6 MB} (\texttt{2.950 GiB}) for \texttt{ai-inference} (matching \texttt{2.944 GiB}).
+  \item \textbf{Real-World Construction CCTV Video \& Live Observability Verification:} Verified smooth end-to-end execution across our local test videos in \texttt{video\_test/} spanning 1080p and 4K UHD construction scenes (\nolinkurl{construction_site_workers_1080p.mp4}, \nolinkurl{10810476-hd_1920_1080_30fps.mp4}, \nolinkurl{13921040-uhd_3840_2160_30fps.mp4}, \texttt{brickmasonry 11.mp4}, \texttt{concreting 10.mp4}) as well as synthetic Y4M WebRTC feeds over \texttt{/ws/webcam} (35--46 ms RTT, 34.7 FPS / 25.9 ms infer). During stabilized live 6-container streaming, Prometheus scraped Linux cgroup v2 working-set RAM at \textbf{86.7--91.2 MB} for \texttt{api-gateway} (matching \texttt{docker stats} at \texttt{86.48--88.91 MiB}) and \textbf{3,009.3--3,020.6 MB} (\texttt{2.94--2.95 GiB}) for \texttt{ai-inference} (matching \texttt{2.939--2.944 GiB}) at \textbf{45.3 fps / 13.3 ms} latency and \textbf{Gallery IDs = 2}.
   \item \textbf{User Acceptance Testing (UAT) and SUS Protocol:} A standardized 10-item System Usability Scale (SUS) questionnaire~\cite{brooke1996sus} (5-point Likert, $\text{SUS} = 2.5 \sum c_i \in [0, 100]$, target $\ge 68.0$) paired with four timed operational scenarios (Camera Switch \& Solo Focus locking directly on GDUT 5-class head detections via \texttt{\#viewportFocusBadge} and CSV export; GDUT 5-Class Hot-Swap via \nolinkurl{/api/switch_model}; Evidence Lightbox + HITL Feedback; and Image Audit Upload) is packaged in \nolinkurl{docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md} and reproduced in Appendix D. External safety-officer field scoring ($N \ge 10$) remains scheduled post-defense; zero synthetic SUS scores are fabricated.
 \end{enumerate}
 
