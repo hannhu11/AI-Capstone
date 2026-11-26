@@ -1076,3 +1076,66 @@ def test_reid_plain_shirt_long_term_keeps_strict_deep_veto():
         prof, strip_b_patterned, deep_mid, skip_hard_veto=False, dt_seconds=15.0
     )
     assert veto_pat is False
+
+
+def test_pipeline_startup_syncs_bytetrack_for_none_conf_and_c960_auto_select():
+    """Verify CCTVSurveillancePipeline syncs ByteTrack thresholds at startup and dashboard avoids V-Cam."""
+    from pathlib import Path as _Path
+    from src.config import config as global_cfg
+    from src.engine.pipeline import CCTVSurveillancePipeline
+
+    saved = (
+        global_cfg.conf_threshold,
+        global_cfg.none_conf_threshold,
+        global_cfg.track_high_thresh,
+        global_cfg.new_track_thresh,
+        global_cfg.model_path,
+        global_cfg.device,
+    )
+    try:
+        global_cfg.conf_threshold = 0.35
+        global_cfg.none_conf_threshold = 0.25
+        global_cfg.track_high_thresh = 0.30
+        global_cfg.new_track_thresh = 0.30
+        global_cfg.model_path = "nonexistent_ci_stub.pt"
+        global_cfg.device = "cpu"
+
+        pipe = CCTVSurveillancePipeline(video_source="nonexistent_startup_test.mp4")
+        assert pipe.tracker.track_thresh <= 0.25 + 1e-6
+        assert pipe.tracker.new_track_thresh <= 0.25 + 1e-6
+
+        none_det = np.array([[100.0, 80.0, 180.0, 170.0, 0.27, 4.0]], dtype=np.float32)
+        tracks = []
+        for _ in range(2):
+            tracks = pipe.tracker.update(none_det, frame=None)
+        assert len(tracks) == 1
+        tracks[0].head_cls_name = "none"
+
+        dummy_frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        reports, _ = pipe.safety_engine.evaluate_frame(
+            tracks,
+            [],
+            dummy_frame,
+            is_helmet_only=True,
+            role_policy=pipe.role_policy,
+            class_names={0: "blue", 1: "white", 2: "yellow", 3: "red", 4: "none"},
+        )
+        assert len(reports) == 1
+        assert reports[0]["current_class"] == "none"
+        assert reports[0]["violation_streak"] >= 1
+        assert reports[0]["debounce_frames"] == global_cfg.consecutive_violation_frames
+
+        dash_html = (_Path(__file__).resolve().parent.parent / "src" / "web" / "templates" / "dashboard.html").read_text(
+            encoding="utf-8"
+        )
+        assert "/c960|emeet/i" in dash_html
+        assert "/v-cam|virtual/i" in dash_html
+    finally:
+        (
+            global_cfg.conf_threshold,
+            global_cfg.none_conf_threshold,
+            global_cfg.track_high_thresh,
+            global_cfg.new_track_thresh,
+            global_cfg.model_path,
+            global_cfg.device,
+        ) = saved

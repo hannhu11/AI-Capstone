@@ -1622,6 +1622,10 @@
           sel.innerHTML = '<option value="">No webcam detected (grant permission on Start)</option>';
           return;
         }
+        const prevVal = sel.value;
+        let matchedPrev = false;
+        let preferredIdx = -1;
+        let firstNonVirtualIdx = -1;
         cams.forEach((c, idx) => {
           const opt = document.createElement('option');
           opt.value = c.deviceId;
@@ -1630,9 +1634,20 @@
           const baseName = rawLabel ? rawLabel.split(/[\\/]/).pop() : '';
           const lbl = isPathLabel ? `Virtual Camera (${baseName || 'stream'})` : (rawLabel || `USB Camera #${idx + 1}`);
           opt.textContent = lbl;
-          if (/c960|ultra/i.test(lbl)) opt.selected = true;
+          const isVirtual = /v-cam|virtual/i.test(lbl);
+          const isPhysicalC960 = /c960|emeet/i.test(lbl) && !isVirtual;
+          if (prevVal && c.deviceId === prevVal) matchedPrev = true;
+          if (preferredIdx === -1 && isPhysicalC960) preferredIdx = idx;
+          if (firstNonVirtualIdx === -1 && !isVirtual) firstNonVirtualIdx = idx;
           sel.appendChild(opt);
         });
+        if (matchedPrev) {
+          sel.value = prevVal;
+        } else if (preferredIdx >= 0) {
+          sel.selectedIndex = preferredIdx;
+        } else if (firstNonVirtualIdx >= 0) {
+          sel.selectedIndex = firstNonVirtualIdx;
+        }
       } catch (e) {
         sel.innerHTML = '<option value="">Default Webcam</option>';
       }
@@ -1828,6 +1843,9 @@
       const resTag = rh >= 1080 ? '1080p' : (rh <= 480 ? '480p' : '720p');
       const devOpt = document.getElementById('webcamDeviceSelect').selectedOptions[0];
       const devLabel = devOpt ? devOpt.textContent.slice(0, 32) : 'C960 Ultra';
+      if (/v-cam|virtual/i.test(devLabel)) {
+        showToast('Warning: Virtual camera selected (may output black frames if inactive). Switch to physical EMEET SmartCam C960 Ultra if preview is blank.');
+      }
 
       const constraints = {
         video: {

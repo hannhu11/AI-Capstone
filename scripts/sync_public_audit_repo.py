@@ -446,7 +446,7 @@ def sync_export(init_git: bool = False) -> Path:
 
     manifest = {
         "repo": "https://github.com/hannhu11/AI-Capstone",
-        "scope": "AEGIS-CCTV Enterprise VMS v2.5.2 (GDUT-HWD 5-Class Clean-Room Export)",
+        "scope": "AEGIS-CCTV Enterprise VMS v2.5.3 (GDUT-HWD 5-Class Clean-Room Export)",
         "total_files": len(manifest_entries) + 1,
         "total_size_mb": round(total_bytes / (1024 * 1024), 3),
         "max_single_file_mb": round(max_file_bytes / (1024 * 1024), 3),

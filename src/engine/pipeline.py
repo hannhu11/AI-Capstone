@@ -140,6 +140,7 @@ class CCTVSurveillancePipeline:
             match_thresh=config.match_thresh,
             grace_period=getattr(config, "track_grace_period", 2),
         )
+        self._sync_tracker_thresholds()
         self.safety_engine = SpatialSafetyEngine(
             head_box_ratio=config.head_box_ratio,
             torso_min_ratio=config.torso_min_ratio,
@@ -375,12 +376,19 @@ class CCTVSurveillancePipeline:
             self._refresh_read_caches_unlocked()
             print(f"📹 Switched Source to: {new_source} (Mode={getattr(self, 'source_type', 'video')})")
 
+    def _sync_tracker_thresholds(self) -> None:
+        """Synchronize ByteTrack entry thresholds with conf_threshold and none_conf_threshold."""
+        eff_low = min(float(config.conf_threshold), float(config.none_conf_threshold))
+        self.tracker.track_thresh = min(float(config.track_high_thresh), eff_low)
+        self.tracker.new_track_thresh = min(float(config.new_track_thresh), eff_low)
+
     def switch_model(self, new_model_path: str):
         """Hot-swaps detector weights dynamically, resetting trackers and alerts."""
         with self.lock:
             self.detector.load_model(new_model_path)
             config.model_path = new_model_path
             self._reset_session_metrics(clear_focus=True)
+            self._sync_tracker_thresholds()
             self._refresh_read_caches_unlocked()
             print(f"🔄 Switched Model Weights to: {new_model_path} (Clean Slate Active)")
 

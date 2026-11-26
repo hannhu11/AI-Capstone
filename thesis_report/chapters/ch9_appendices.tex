@@ -81,7 +81,7 @@ To guarantee full independent reproducibility for the Review 3 committee, Table~
 
 \begin{lstlisting}[basicstyle=\fontsize{7pt}{8pt}\selectfont\ttfamily, aboveskip=2pt, belowskip=2pt, caption={Standardized Project Repository Layout (\texttt{capstone AI/}, v2.5 Enterprise Stack).}, label={lst:app_repo_tree}]
 capstone AI/
-|-- .github/workflows/ci.yml               # CI: ruff (E9,F63,F7,F82) + compileall + 75 Clean-Room pytest + Gateway
+|-- .github/workflows/ci.yml               # CI: ruff (E9,F63,F7,F82) + compileall + 79 Clean-Room pytest + Gateway
 |-- requirements.txt / requirements_docker.txt
 |-- custom_ablation_modules.py             # CoordConv, RepConv, BiFormerBlockLite, Focal-EIoU
 |-- Dockerfile / Dockerfile.gateway        # GPU inference image & slim Gateway image
@@ -95,7 +95,7 @@ capstone AI/
 |   |-- db/database.py                     # SQLAlchemy 4-table audit DB (PostgreSQL 16 / SQLite fallback)
 |   |-- engine/{detector,pipeline,spatial_safety,bytetrack,gdut_reid,reid_tracker,kalman_tracker}.py
 |   `-- web/{app.py, gateway_client.py, templates/dashboard.html}
-|-- tests/                                 # 131 workspace pytest cases (75 Clean-Room CI cases)
+|-- tests/                                 # 135 workspace pytest cases (79 Clean-Room CI cases)
 |-- scripts/                               # Load tests, paired E2E opt, 16-NB Kaggle audit, thesis verifier, sync
 |-- Output/task3_eval_opt/                 # RTX 3050 opt, switch_to_deploy & paired E2E JSONs
 `-- thesis_report/                         # Complete LaTeX source & 300-DPI GDUT/UI figures
@@ -181,10 +181,10 @@ Table~\ref{tab:app_review3_18} maps every mandatory item from the faculty Review
 3 & Model Inference Optimization & \textbf{Done} & Vectorized \texttt{torch.gather}, verified \nolinkurl{RepConv.switch_to_deploy()} ($-300,992$ params), CUDA AMP FP16, micro-batch $N=4$. \\ \hline
 4 & Before vs. After Latency \& Memory Benchmark Table & \textbf{Done} & \nolinkurl{Output/task3_eval_opt/optimization_benchmark_table.json} ($73.4 \to 118.2$ FPS, conf diff $0.00033$), \nolinkurl{gdut_a6_switch_to_deploy_benchmark.json}, \& Paired E2E ($+0.16$ ms). \\ \hline
 5 & Citation \& Guardrails (LLM/RAG) & N/A (CV) & Computer Vision safety equivalent: String-First Color Guard, Symmetrical Debounce FSM ($K=8$), Confirm-Before-Mint Two-Stage Gate Re-ID, FP32 guard. \\ \hline
-6 & Automated CI/CD Pipeline & \textbf{Done} & \nolinkurl{.github/workflows/ci.yml} (\texttt{requirements.txt}, \texttt{ruff}, \texttt{compileall}, 74/75 Clean-Room stub \texttt{pytest}, Compose schema + \nolinkurl{Dockerfile.gateway} build). \\ \hline
+6 & Automated CI/CD Pipeline & \textbf{Done} & \nolinkurl{.github/workflows/ci.yml} (\texttt{requirements.txt}, \texttt{ruff}, \texttt{compileall}, 78/79 Clean-Room stub \texttt{pytest}, Compose schema + \nolinkurl{Dockerfile.gateway} build). \\ \hline
 7 & Containerized Architecture (Docker Compose) & \textbf{Done} & 6-microservice \nolinkurl{docker-compose.enterprise.yml} + Single-Node \nolinkurl{docker-compose.edge-simulation.yml} (4 vCPU, 6144M RAM, CUDA). \\ \hline
 8 & Monitoring \& Logging (Prometheus / Grafana) & \textbf{Done} & Pure ASGI middleware + \texttt{/metrics} (20 Prometheus metrics incl. Linux cgroup RAM) + 15-panel Grafana + Postgres/JSONL audit logs. \\ \hline
-9 & Unit \& Integration Testing & \textbf{Done} & \texttt{pytest tests -q}: \textbf{131 / 131 PASSED (workspace CPU)}; \textbf{74 passed, 1 skipped} in Clean-Room GitHub Actions CI stub mode. \\ \hline
+9 & Unit \& Integration Testing & \textbf{Done} & \texttt{pytest tests -q}: \textbf{135 / 135 PASSED (workspace CPU)}; \textbf{78 passed, 1 skipped} in Clean-Room GitHub Actions CI stub mode. \\ \hline
 10 & Load \& Stress Testing (RPS, Latency, Error) & \textbf{Done} & Dual benchmark via \nolinkurl{scripts/load_test_api.py}: 4A In-Process \textbf{446.7--501.1 RPS}; 4B 6-Container Docker \textbf{225.2--260.8 RPS}, \textbf{0.0\% error}. \\ \hline
 11 & User Acceptance Testing (UAT / SUS) & \textbf{Protocol Ready} & \nolinkurl{docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md} (10-item SUS + 4 scenarios; external site scoring post-defense, zero fabricated scores). \\ \hline
 12 & Capstone Thesis Report (60--100 pages) & \textbf{Done} & \nolinkurl{thesis_report/Capstone_Thesis_Report.pdf} (English, 100 pages strictly within 60--100 page spec, \texttt{Template\_AIP491}, GDUT 5-class). \\ \hline
