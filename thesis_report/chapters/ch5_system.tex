@@ -1,7 +1,7 @@
 \chapter{System Design and Implementation}
 \label{chap:system}
 
-To satisfy Stages 1 and 2 of the Review 3 defense checklist (\textit{UI/UX, Packaging, Inference Optimization, MLOps \& DevOps}), Group GFA26AI17 engineered the \textbf{AEGIS-CCTV Enterprise VMS v2.5} platform---a production-hardened surveillance system architected across a 6-microservice Enterprise Docker stack (\nolinkurl{docker-compose.enterprise.yml}) alongside a Single-Node Edge Docker profile (\nolinkurl{docker-compose.edge-simulation.yml}), tailored to execute \texttt{GDUT-HWD} five-class helmet and color detection in real time. Every component described below is verified directly against \texttt{src/}, \nolinkurl{Dockerfile.gateway}, \nolinkurl{docker-compose.enterprise.yml}, and \nolinkurl{.github/workflows/ci.yml}.
+To satisfy Stages 1 and 2 of the Review 3 defense checklist (\textit{UI/UX, Packaging, Inference Optimization, MLOps \& DevOps}), Group GFA26AI17 engineered the \textbf{AEGIS-CCTV Enterprise VMS v2.6} platform---a production-hardened surveillance system architected across a 6-microservice Enterprise Docker stack (\nolinkurl{docker-compose.enterprise.yml}) alongside a Single-Node Edge Docker profile (\nolinkurl{docker-compose.edge-simulation.yml}), tailored to execute \texttt{GDUT-HWD} five-class helmet and color detection in real time. Every component described below is verified directly against \texttt{src/}, \nolinkurl{Dockerfile.gateway}, \nolinkurl{docker-compose.enterprise.yml}, and \nolinkurl{.github/workflows/ci.yml}.
 
 \section{AI Model Integration}
 
@@ -25,7 +25,7 @@ Rather than coupling video decoding, PyTorch CUDA forward passes, alert I/O, Pos
   \node[layer, fill=blue!10, below=0.95cm of ai] (api) {5. Gateway \& Control (\texttt{api-gateway})\\{\scriptsize 42 REST + WS Routes, Circuit Breaker}};
   \node[layer, fill=yellow!12, below=0.95cm of ingest] (ui) {6. Enterprise VMS UI (\texttt{nginx})\\{\scriptsize Solo Focus Vector UI, Role Policy, Audit}};
 
-  \node[layer, fill=gray!14, below=0.85cm of api, minimum width=12.9cm] (ops) {7. MLOps, Packaging \& Observability Layer\\{\scriptsize 6-Container Enterprise + Edge Docker $\cdot$ Prometheus (20 metrics, cgroup RAM) + 15-Panel Grafana $\cdot$ CI (\texttt{ruff}, 135 \texttt{pytest})}};
+  \node[layer, fill=gray!14, below=0.85cm of api, minimum width=12.9cm] (ops) {7. MLOps, Packaging \& Observability Layer\\{\scriptsize 6-Container Enterprise + Edge Docker $\cdot$ Prometheus (20 metrics, cgroup RAM) + 15-Panel Grafana $\cdot$ CI (\texttt{ruff}, 139 \texttt{pytest})}};
 
   \draw[arrow] (ingest) -- (ai);
   \draw[arrow] (ai) -- (safety);
@@ -37,7 +37,7 @@ Rather than coupling video decoding, PyTorch CUDA forward passes, alert I/O, Pos
   \draw[arrow, dashed] (ui.south) -- ++(0,-0.45) -| ([xshift=-3.6cm]ops.north);
   \draw[arrow, dashed] (alert.south) -- ++(0,-0.45) -| ([xshift=3.6cm]ops.north);
 \end{tikzpicture}}
-\caption{Seven-layer software architecture of the 6-microservice \textbf{AEGIS-CCTV Enterprise VMS v2.5} platform executing GDUT-HWD five-class inference on edge GPU hardware.}
+\caption{Seven-layer software architecture of the 6-microservice \textbf{AEGIS-CCTV Enterprise VMS v2.6} platform executing GDUT-HWD five-class inference on edge GPU hardware.}
 \label{fig:ch5_vms_arch}
 \end{figure}
 
@@ -47,10 +47,10 @@ A major engineering challenge during Capstone Review 2--3 was guaranteeing seaml
 
 To eliminate this class of failure permanently, \texttt{SafetyObjectDetector} (\nolinkurl{src/engine/detector.py}) inspects \texttt{model.names} dynamically upon weight loading and sets two runtime flags: \nolinkurl{has_person_class} and \texttt{is\_helmet\_only}. When \nolinkurl{is_helmet_only == True}:
 \begin{enumerate}[leftmargin=1.8em, itemsep=2pt]
-  \item \textbf{Head-Level Tracking \& Zero Person-Class Collision:} \texttt{cls == 0} (\texttt{blue}) is strictly retained as a positive helmet detection; \texttt{person\_arr} returns an empty $(0, 6)$ placeholder array while \textbf{Head-Level ByteTrack} (\nolinkurl{get_head_tracks()}) tracks all five head and helmet classes directly and couples seamlessly with \texttt{UpperTorsoReIDGallery} without needing full-body \texttt{person} detections.
+  \item \textbf{Head-Level Tracking, Class-Agnostic NMS \& Bare-Head Gate:} \texttt{cls == 0} (\texttt{blue}) is strictly retained as a positive helmet detection; \texttt{person\_arr} returns an empty $(0, 6)$ placeholder array while \textbf{Head-Level ByteTrack} (\nolinkurl{get_head_tracks()}) tracks all five classes directly with \textbf{Class-Agnostic NMS} (\texttt{agnostic\_nms=True}, IoU $0.45$, eliminating duplicate cross-color head boxes) and a separate bare-head threshold (\nolinkurl{NONE_CONF_THRESHOLD=0.25}, configurable via \nolinkurl{/api/settings}).
   \item \textbf{Bypass Bipartite Person Attenuation:} Standard person-centric pipelines attenuate orphan helmet scores outside person boxes; in Helmet-Only mode, \texttt{pipeline.py} bypasses bipartite attenuation so distant helmets and bare heads (\texttt{none}) retain full detection sensitivity.
-  \item \textbf{Direct Head-Centric Compliance Evaluation:} \texttt{SpatialSafetyEngine} routes \texttt{blue}, \texttt{white}, \texttt{yellow}, and \texttt{red} detections to \texttt{COMPLIANT} status (recording color counts for live 5-bar horizontal Role \& Helmet Color Distribution telemetry, Figures~\ref{fig:ch5_ui_main}--\ref{fig:ch5_ui_focus}) and routes \texttt{none} detections directly to \texttt{VIOLATION} (\nolinkurl{MISSING_SAFETY_HELMET}) under spatial proximity debouncing ($\Delta d_{\text{norm}} \le 0.08$).
-  \item \textbf{Visual Collision Prevention:} During OpenCV frame rendering, \nolinkurl{pipeline._render_annotations()} skips redundant equipment-box overlay loops in Helmet-Only mode, producing crisp 2 px industrial bounding boxes and dark translucent badges without overlapping text.
+  \item \textbf{Deterministic Head-Tracked Routing (\texttt{use\_head\_tracking=True}):} \texttt{SpatialSafetyEngine} routes GDUT streams exclusively through \nolinkurl{_evaluate_head_tracked_frame()} (preventing legacy \texttt{HEAD\_V\_1} fallback during tentative frames and suppressing Kalman coasting ghost boxes), maps colors to \texttt{COMPLIANT}/\texttt{VIOLATION} under spatial debouncing ($\Delta d_{\text{norm}} \le 0.08$), and computes instantaneous non-EMA compliance KPIs.
+  \item \textbf{Visual Collision Prevention \& Single-Source Overlay:} During OpenCV and vector rendering, \nolinkurl{pipeline._render_annotations()} skips redundant equipment loops in Helmet-Only mode and resolves role tags from a single source of truth matching the active stabilized helmet class (Figures~\ref{fig:ch5_ui_main}--\ref{fig:ch5_ui_focus}).
 \end{enumerate}
 
 \subsection{String-First Helmet Color Resolution and Stationary-Worker Protection}
@@ -88,10 +88,10 @@ We resolved both faults permanently via \textbf{Double-Checked Locking} (\texttt
 
 To stabilize persistent worker identities under brief occlusions and helmet-color monitoring without deploying biometric facial recognition (strictly respecting workplace privacy), \nolinkurl{src/engine/gdut_reid.py} implements a multi-stage \textbf{Non-Biometric Upper-Torso Appearance Re-ID} engine (\texttt{UpperTorsoReIDGallery}), while \nolinkurl{src/engine/reid_tracker.py} is retained purely as a legacy compatibility helper for older full-body fallback paths:
 \begin{enumerate}[leftmargin=1.8em, itemsep=2pt]
-  \item \textbf{Confirm-Before-Mint Gate (\texttt{min\_confirm\_hits = 6}):} Newly observed tracks remain \texttt{TENTATIVE} until observed across six consecutive frames before receiving a persistent gallery identity, preventing one-frame detection noise from inflating \texttt{unique\_ids}.
+  \item \textbf{Confirm-Before-Mint Gate (\texttt{min\_confirm\_hits = 6}) \& 10-Frame Prior Hysteresis:} Newly observed tracks remain \texttt{TENTATIVE} across six consecutive hits before minting a persistent ID, while \nolinkurl{last_known_helmet_color} (\texttt{PRIOR <COLOR>}) requires 10 positive-color frames to prevent 1--2 frame glare/background flickers from sticking.
   \item \textbf{Two-Stage Appearance \& MobileNetV3 Gate:} Fast 3-strip HSV/Lab + quadrant HOG histograms score active matches in $\approx 2.7$ ms/frame; unpromoted candidates bypass the heavier \texttt{MobileNetV3-Small} \nolinkurl{deep_extractor.extract()} pass unless an eligible exited gallery profile passes spatial proximity ($\mathrm{dist\_norm} \le 0.25$) or coarse strip similarity ($\ge 0.45$).
   \item \textbf{Anti-Hijack TTL Guard (\texttt{hijack\_excluded\_ids}):} Temporary ID exclusions created when two workers cross tightly carry a strict 15-frame Time-To-Live (\texttt{frame\_idx + 15}) automatically pruned inside \nolinkurl{associate_batch()}, preventing permanent gallery lockout.
-  \item \textbf{Solo Focus Vector UI \& Binary WebSocket (\texttt{C960 Ultra}):} Clicking any tracked worker (or \texttt{Focus} in the Personnel Registry) activates \textbf{Solo Focus} natively on GDUT 5-class streams, rendering crisp trajectory vectors client-side with \nolinkurl{DRAW_VIDEO_HUD=False} and displaying an interactive header pill (\texttt{\#viewportFocusBadge}, e.g., \texttt{SOLO FOCUS: ID \#1 | WORKER | LOCKED}) alongside a customizable Role-by-Color inspector (\texttt{/api/roles}). Live camera mode streams raw binary JPEG blobs (\texttt{0xFF 0xD8}, received via \nolinkurl{msg["bytes"]} with query params \nolinkurl{return_image=false} and JSON fallback for text frames in \nolinkurl{src/web/app.py}) over \texttt{WS /ws/webcam} (verified at 35--46 ms RTT and 34.7 FPS / 25.9 ms inference on \texttt{C960 Ultra} virtual-camera QA).
+  \item \textbf{Solo Focus Vector UI \& Monotonic Binary WebSocket (\texttt{C960 Ultra}):} Clicking any tracked worker (or \texttt{Focus}) activates \textbf{Solo Focus} natively on GDUT streams, gating trajectory vector lines strictly to the locked ID (\nolinkurl{DRAW_VIDEO_HUD=False}) alongside \texttt{\#viewportFocusBadge} and customizable roles (\texttt{/api/roles}). Live camera mode downscales WebSocket captures ($\le 640$ px longest side) with a monotonic 1-in-flight request sequence (\texttt{webcamReqSeq}) over raw binary JPEG \texttt{WS /ws/webcam} (\texttt{0xFF 0xD8}, \nolinkurl{return_image=false} in \nolinkurl{src/web/app.py}) while pausing background video decoding.
 \end{enumerate}
 
 Figures~\ref{fig:ch5_ui_main} and~\ref{fig:ch5_ui_focus} present live authenticated screenshots captured via headless Chromium Playwright on our RTX 3050 workstation.
@@ -99,7 +99,7 @@ Figures~\ref{fig:ch5_ui_main} and~\ref{fig:ch5_ui_focus} present live authentica
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.96\textwidth]{figures/ui_01_main.png}
-\caption{Main enterprise desktop UI (\texttt{1920$\times$1080}) of \textbf{AEGIS-CCTV VMS v2.5} running \texttt{GDUT-HWD} 5-class inference (\texttt{43.1 FPS}, \texttt{14.4 ms}), displaying Role-by-Color filters, active ID \texttt{\#1 WORKER | YELLOW}, KPI cards, and Incident Audit log.}
+\caption{Main enterprise desktop UI (\texttt{1920$\times$1080}) of \textbf{AEGIS-CCTV VMS v2.6} running \texttt{GDUT-HWD} 5-class inference (\texttt{43.1 FPS}, \texttt{14.4 ms}), displaying Role-by-Color filters, active ID \texttt{\#1 WORKER | YELLOW}, KPI cards, and Incident Audit log.}
 \label{fig:ch5_ui_main}
 \end{figure}
 
@@ -168,7 +168,7 @@ To satisfy Review 3 Stage 1 Items 1.1 and 1.3 (interactive input upload, visual 
 
 \subsection{Six-Microservice Enterprise Stack and Edge Hardware Simulation}
 
-AEGIS-CCTV v2.5 supports two complementary Docker deployment topologies:
+AEGIS-CCTV v2.6 supports two complementary Docker deployment topologies:
 \begin{itemize}[leftmargin=1.8em, itemsep=3pt]
   \item \textbf{Production Six-Microservice Enterprise Stack (\nolinkurl{docker-compose.enterprise.yml}):} Separates concerns across an isolated Docker bridge network (\texttt{aegis-net}): (1) \texttt{frontend-nginx} (\texttt{:8080}) serving the web UI, snapshots, and reverse proxy; (2) \texttt{api-gateway} (\texttt{:8000} internal) built via slim \nolinkurl{Dockerfile.gateway} implementing \texttt{gateway\_client.py} with a deterministic \texttt{HALF\_OPEN} single-probe Circuit Breaker (\texttt{close()} resource lifecycle and strict 2xx JSON parsing prior to \nolinkurl{_record_success()}); (3) GPU \texttt{ai-inference} (\texttt{:8001} internal) running YOLOv11s + Re-ID under \texttt{cpus: "4.0"}, \texttt{memory: 6144M}; (4) \texttt{postgres:16-alpine} managing four persistent SQLAlchemy tables with \texttt{session\_id} isolation; (5) \texttt{prometheus} (\texttt{:9090}) scraping both \texttt{api-gateway:8000/metrics} and \texttt{ai-inference:8001/metrics}; and (6) pre-provisioned 15-panel \texttt{grafana} (\texttt{:3000}).
   \item \textbf{Single-Node Edge Simulation Profile (\nolinkurl{docker-compose.edge-simulation.yml}):} Packages inference, spatial safety FSM, MJPEG streaming, and UI inside one GPU container for tight 4--8 GB embedded hardware (\texttt{cpus: "4.0"}, \texttt{memory: 6144M}, zero-copy frame sharing, healthcheck probing \nolinkurl{http://localhost:8000/api/metrics}).
@@ -178,7 +178,7 @@ AEGIS-CCTV v2.5 supports two complementary Docker deployment topologies:
 
 \subsection{One-Click Operations and Automated GitHub Actions CI/CD}
 
-For reliable field handoff and live Review 3 demonstration, Windows batch orchestrators wrap Docker operations (\nolinkurl{start_docker_edge.bat} with automated CUDA HTTP healthcheck polling, and \nolinkurl{switch_to_gdut.bat} calling \nolinkurl{POST /api/switch_model}). Continuous Integration is automated via \nolinkurl{.github/workflows/ci.yml} on every push and pull request to \texttt{main} across two chained jobs: (1) \texttt{lint-and-test} caches pip dependencies via \texttt{requirements.txt}, installs CPU PyTorch + \texttt{ruff}, runs \texttt{ruff check --select E9,F63,F7,F82 src tests}, executes bytecode compilation (\texttt{python -m compileall -q src tests scripts}), and runs \texttt{python -m pytest tests -v} in weightless CI stub mode across all 79 Clean-Room public repository tests (\textbf{78 passed, 1 skipped} cleanly when git-ignored \texttt{.pt} binaries are absent, while the full local workspace passes \textbf{135/135} on CPU and \textbf{134 passed, 1 skipped} in stub mode); and (2) \texttt{docker-build-check} validates both \texttt{docker-compose.edge-simulation.yml} and \texttt{docker-compose.enterprise.yml} schemas and compiles \nolinkurl{Dockerfile.gateway}.
+For reliable field handoff and live Review 3 demonstration, Windows batch orchestrators wrap Docker operations (\nolinkurl{start_docker_edge.bat} with automated CUDA HTTP healthcheck polling, and \nolinkurl{switch_to_gdut.bat} calling \nolinkurl{POST /api/switch_model}). Continuous Integration is automated via \nolinkurl{.github/workflows/ci.yml} on every push and pull request to \texttt{main} across two chained jobs: (1) \texttt{lint-and-test} caches pip dependencies via \texttt{requirements.txt}, installs CPU PyTorch + \texttt{ruff}, runs \texttt{ruff check --select E9,F63,F7,F82 src tests}, executes bytecode compilation (\texttt{python -m compileall -q src tests scripts}), and runs \texttt{python -m pytest tests -v} in weightless CI stub mode across all 83 Clean-Room public repository tests (\textbf{82 passed, 1 skipped} cleanly when git-ignored \texttt{.pt} binaries are absent, isolated via \nolinkurl{tests/conftest.py}, while the full local workspace passes \textbf{139/139} on CPU and \textbf{138 passed, 1 skipped} in stub mode); and (2) \texttt{docker-build-check} validates both \texttt{docker-compose.edge-simulation.yml} and \texttt{docker-compose.enterprise.yml} schemas and compiles \nolinkurl{Dockerfile.gateway}.
 
 \section{Scalability and Maintenance}
 

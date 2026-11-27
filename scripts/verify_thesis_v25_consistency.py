@@ -24,6 +24,10 @@ BANNED_SUBSTRINGS = [
     "74 passed, 1 skipped",
     "74/75",
     "131/131",
+    "78 passed, 1 skipped",
+    "78/79",
+    "135/135",
+    "134 passed, 1 skipped",
     r"\nolinkurl{ruff check",
     r"\nolinkurl{python -m compileall",
 ]
@@ -58,15 +62,17 @@ def verify_thesis_consistency() -> None:
     for t4_val in ("8.0", "7.5", "8.3", "8.9", "8.5", "9.2", "7.4", "7.7", "8.4", "9.1"):
         assert t4_val in ch6, f"Missing verified T4 latency {t4_val} ms in ch6_results.tex"
 
-    # Clean-Room CI (79 tests / 78 passed, 1 skipped) vs local workspace (135)
+    # Clean-Room CI (83 tests / 82 passed, 1 skipped) vs local workspace (139) + v2.6 safeguards
     for name, txt in (
         ("frontmatter.tex", front),
         ("ch5_system.tex", ch5),
         ("ch6_results.tex", ch6),
         ("ch9_appendices.tex", ch9),
     ):
-        assert "78 passed, 1 skipped" in txt, f"Missing Clean-Room 78/79 CI distinction in {name}"
-        assert "135" in txt, f"Missing workspace 135 pytest count in {name}"
+        assert "82 passed, 1 skipped" in txt, f"Missing Clean-Room 82/83 CI distinction in {name}"
+        assert "139" in txt, f"Missing workspace 139 pytest count in {name}"
+    assert "agnostic_nms=True" in ch5 or r"agnostic\_nms=True" in ch5, "ch5_system.tex missing agnostic_nms=True"
+    assert "tests/conftest.py" in ch9, "ch9_appendices.tex missing tests/conftest.py isolation"
 
     # 6-microservice docker-compose.enterprise.yml documented in Appendix D
     assert "docker-compose.enterprise.yml" in ch9 and "tab:app_enterprise_stack" in ch9, (

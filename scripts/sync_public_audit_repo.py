@@ -59,6 +59,7 @@ WHITELIST_SCRIPTS = [
     "scripts/run_local_dashboard.py",
     "scripts/check_c960_webcam_live.py",
     "scripts/verify_thesis_v25_consistency.py",
+    "scripts/export_thesis_to_docx.py",
     "scripts/sync_public_audit_repo.py",
 ]
 
@@ -202,8 +203,8 @@ Monitoring:
    cd AI-Capstone
    cp .env.example .env
    ```
-2. **Download Deploy Checkpoint & Thesis PDF (GitHub Releases):**
-   Heavy binaries (`rep_yolo11s_gdut_a6_deploy.pt` and `Capstone_Thesis_Report_FA26AI16_GFA26AI17.pdf`) are distributed via the repository's **GitHub Releases** tab rather than git blobs:
+2. **Download Deploy Checkpoint, Thesis PDF & Google-Docs DOCX (GitHub Releases):**
+   Heavy binaries (`rep_yolo11s_gdut_a6_deploy.pt`, `Capstone_Thesis_Report.pdf` 100p, and `Capstone_Thesis_Report.docx`) are distributed via the repository's **GitHub Releases** tab rather than git blobs:
    - Place `rep_yolo11s_gdut_a6_deploy.pt` at `Output/GDUT_Bộ số 1_stage2-full-train-run-a6/deploy_weights/rep_yolo11s_gdut_a6_deploy.pt` (or set `MODEL_PATH` in `.env`).
    - Place test video clip (e.g., `construction_site_workers_1080p.mp4`) in `video_test/`.
 3. **Launch Full 6-Container Enterprise Stack:**
