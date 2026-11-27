@@ -1,0 +1,283 @@
+\chapter{System Design and Implementation}
+\label{chap:system}
+
+To deliver production-ready UI/UX, containerized packaging, edge inference optimization, and MLOps observability, we engineered the \textbf{AEGIS-CCTV Enterprise VMS v3.0} platform---a production-hardened surveillance system architected across a 6-microservice Enterprise Docker stack (\nolinkurl{docker-compose.enterprise.yml}) alongside a Single-Node Edge Docker profile (\nolinkurl{docker-compose.edge-simulation.yml}), tailored to execute \texttt{GDUT-HWD} five-class helmet and color detection in real time. Every component described below is verified directly against \texttt{src/}, \nolinkurl{src/db/database.py}, \nolinkurl{Dockerfile.gateway}, \nolinkurl{docker-compose.enterprise.yml}, and \nolinkurl{.github/workflows/ci.yml}.
+
+\section{AI Model Integration}
+
+\subsection{Seven-Layer Industrial VMS Architecture}
+
+Rather than coupling video decoding, PyTorch CUDA forward passes, alert I/O, PostgreSQL persistence, and HTTP rendering inside an unisolated monolith, AEGIS-CCTV separates responsibilities across seven software layers deployed onto six Docker microservices (illustrated in Figure~\ref{fig:ch5_vms_arch}): (1) \textbf{Video \& Binary WebSocket Ingestion Layer} (1080p/4K MP4/RTSP capture with $\le 1920$ px downscaling, playback seek/speed/resolution controls, plus \texttt{C960 Ultra} webcam streaming over Binary WebSocket \texttt{/ws/webcam}); (2) \textbf{AI Inference \& Dynamic Taxonomy Layer} (\nolinkurl{src/engine/detector.py} + \nolinkurl{custom_ablation_modules.py}); (3) \textbf{Tracking, Re-ID \& Spatial Compliance Layer} (\nolinkurl{src/engine/bytetrack.py}, \nolinkurl{gdut_reid.py} with Confirm-Before-Mint \& Two-Stage Gate, legacy fallback \texttt{reid\_tracker.py}, and \nolinkurl{spatial_safety.py} with Role-by-Color policies); (4) \textbf{Asynchronous Alerting \& Forensic I/O Layer} (\nolinkurl{src/alerting/alert_manager.py}, \texttt{telegram\_bot.py}, \texttt{zalo\_bot.py}); (5) \textbf{Resilient Gateway \& Database Control Plane} (\nolinkurl{src/web/app.py}, \nolinkurl{gateway_client.py} with \texttt{HALF\_OPEN} single-probe Circuit Breaker, and \nolinkurl{src/db/database.py} managing 4 PostgreSQL 16 tables with \texttt{session\_id}); (6) \textbf{Enterprise Light VMS UI} (\nolinkurl{src/web/templates/dashboard.html}, modeled after Milestone XProtect and Siemens Siveillance); and (7) \textbf{MLOps \& Observability Layer} (6-container Docker Compose, Prometheus \texttt{/metrics} with 20 metrics + Linux cgroup v2 working-set RAM, 15-panel Grafana, and GitHub Actions CI/CD).
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{\begin{tikzpicture}[
+  node distance=0.55cm and 0.65cm,
+  layer/.style={rectangle, rounded corners=3pt, draw=fptblue, fill=slatehdr, thick, align=center, font=\footnotesize\bfseries, minimum height=0.88cm, minimum width=3.9cm},
+  subbox/.style={rectangle, rounded corners=2pt, draw=gray!70, fill=white, align=center, font=\scriptsize, minimum height=0.72cm, minimum width=3.1cm},
+  arrow/.style={-{Stealth[length=2.4mm]}, thick, color=fptblue!85!black}
+]
+  \node[layer, fill=blue!8] (ingest) {1. Video \& Binary WS Ingestion\\{\scriptsize RTSP / MP4 Seek-Speed / \texttt{C960 Ultra /ws/webcam}}};
+  \node[layer, fill=orange!10, right=1.0cm of ingest] (ai) {2. AI Inference (\texttt{ai-inference})\\{\scriptsize GDUT 5-Cls (\texttt{Rep-YOLO11s}) / Hot-Swap}};
+  \node[layer, fill=green!10, right=1.0cm of ai] (safety) {3. Re-ID \& Safety FSM\\{\scriptsize \texttt{gdut\_reid.py} Two-Stage Gate / $K=8$}};
+
+  \node[layer, fill=red!8, below=0.95cm of safety] (alert) {4. Async Alerting \& Forensics\\{\scriptsize ThreadPool Crops + TG/Zalo + \texttt{postgres:16}}};
+  \node[layer, fill=blue!10, below=0.95cm of ai] (api) {5. Gateway \& Control (\texttt{api-gateway})\\{\scriptsize 42 REST + WS Routes, Circuit Breaker}};
+  \node[layer, fill=yellow!12, below=0.95cm of ingest] (ui) {6. Enterprise VMS UI (\texttt{nginx})\\{\scriptsize Solo Focus Vector UI, Role Policy, Audit}};
+
+  \node[layer, fill=gray!14, below=0.85cm of api, minimum width=12.9cm] (ops) {7. MLOps, Packaging \& Observability Layer\\{\scriptsize 6-Container Enterprise + Edge Docker $\cdot$ Prometheus (20 metrics, cgroup RAM) + 15-Panel Grafana $\cdot$ CI (\texttt{ruff}, 139 \texttt{pytest})}};
+
+  \draw[arrow] (ingest) -- (ai);
+  \draw[arrow] (ai) -- (safety);
+  \draw[arrow] (safety) -- (alert);
+  \draw[arrow] (safety) -- (api);
+  \draw[arrow] (api) -- (ui);
+  \draw[arrow] (alert) -- (api);
+  \draw[arrow, dashed] (api) -- (ops);
+  \draw[arrow, dashed] (ui.south) -- ++(0,-0.45) -| ([xshift=-3.6cm]ops.north);
+  \draw[arrow, dashed] (alert.south) -- ++(0,-0.45) -| ([xshift=3.6cm]ops.north);
+\end{tikzpicture}}
+\caption{Seven-layer software architecture of the 6-microservice \textbf{AEGIS-CCTV Enterprise VMS v3.0} platform executing GDUT-HWD five-class inference on edge GPU hardware.}
+\label{fig:ch5_vms_arch}
+\end{figure}
+
+\subsection{Dynamic Taxonomy Adapter and Helmet-Only Operational Mode}
+
+A primary software integration challenge was guaranteeing seamless operation when loading our five-class \texttt{GDUT-HWD} checkpoints (\texttt{\{0: 'blue', 1: 'white', 2: 'yellow', 3: 'red', 4: 'none'\}}), which contain head/helmet detections without full-body \texttt{person} or \texttt{safety\_vest} bounding boxes. In naive surveillance engines that hard-code \texttt{cls == 0} as \texttt{person}, loading a GDUT checkpoint misclassifies every \texttt{blue} helmet as a human body and crashes downstream relational rules.
+
+To eliminate this class of failure permanently, \texttt{SafetyObjectDetector} (\nolinkurl{src/engine/detector.py}) inspects \texttt{model.names} dynamically upon weight loading and sets two runtime flags: \nolinkurl{has_person_class} and \texttt{is\_helmet\_only}. When \nolinkurl{is_helmet_only == True}:
+\begin{enumerate}[leftmargin=1.8em, itemsep=2pt]
+  \item \textbf{Head-Level Tracking, Class-Agnostic NMS \& Bare-Head Gate:} \texttt{cls == 0} (\texttt{blue}) is strictly retained as a positive helmet detection; \texttt{person\_arr} returns an empty $(0, 6)$ placeholder array while \textbf{Head-Level ByteTrack} (\nolinkurl{get_head_tracks()}) tracks all five classes directly with \textbf{Class-Agnostic NMS} (\texttt{agnostic\_nms=True}, IoU $0.45$, eliminating duplicate cross-color head boxes) and a separate bare-head threshold (\nolinkurl{NONE_CONF_THRESHOLD=0.25}, configurable via \nolinkurl{/api/settings}).
+  \item \textbf{Bypass Bipartite Person Attenuation:} Standard person-centric pipelines attenuate orphan helmet scores outside person boxes; in Helmet-Only mode, \texttt{pipeline.py} bypasses bipartite attenuation so distant helmets and bare heads (\texttt{none}) retain full detection sensitivity.
+  \item \textbf{Deterministic Head-Tracked Routing (\texttt{use\_head\_tracking=True}):} \texttt{SpatialSafetyEngine} routes GDUT streams exclusively through \nolinkurl{_evaluate_head_tracked_frame()} (preventing legacy \texttt{HEAD\_V\_1} fallback during tentative frames and suppressing Kalman coasting ghost boxes), maps colors to \texttt{COMPLIANT}/\texttt{VIOLATION} under spatial debouncing ($\Delta d_{\text{norm}} \le 0.08$), and computes instantaneous non-EMA compliance KPIs.
+  \item \textbf{Visual Collision Prevention \& Single-Source Overlay:} During OpenCV and vector rendering, \nolinkurl{pipeline._render_annotations()} skips redundant equipment loops in Helmet-Only mode and resolves role tags from a single source of truth matching the active stabilized helmet class (Figures~\ref{fig:ch5_ui_main}--\ref{fig:ch5_ui_focus}).
+\end{enumerate}
+
+\subsection{String-First Helmet Color Resolution and Stationary-Worker Protection}
+
+Forensic field testing uncovered two subtle production defects that were systematically diagnosed, resolved, and locked with dedicated regression tests:
+\begin{itemize}[leftmargin=1.8em, itemsep=3pt]
+  \item \textbf{Resolution of the GDUT Yellow-to-Blue Color Bug:} Earlier code evaluated an integer fallback map \texttt{HELMET\_COLOR\_MAP = \{2: "blue", ..., 6: "yellow"\}} before checking string class names via Python short-circuit \texttt{or}. Under GDUT-HWD (\texttt{cls=2} is \texttt{"yellow"}), every yellow helmet was erroneously overridden to \texttt{"blue"}. Listing~\ref{lst:ch5_color_fix} illustrates our permanent \textbf{String-First Color Resolution} fix in \nolinkurl{src/engine/spatial_safety.py}, verified by \nolinkurl{scripts/test_dynamic_taxonomy_gdut.py}.
+  \item \textbf{Stationary-Worker PPE Preservation:} Earlier background-clutter filtering tagged static non-person detections stationary for $>30$ frames as furniture and suppressed them. On construction sites, welders, electricians, and supervisors routinely remain stationary for minutes; suppressing static helmets caused bounding boxes to vanish and triggered false violation floods. We permanently removed static-furniture suppression for all PPE classes and added \nolinkurl{tests/test_stationary_worker_ppe.py} verifying 100 consecutive stationary frames with zero lost boxes and zero false alerts.
+\end{itemize}
+
+\begin{lstlisting}[language=Python, caption={String-First Helmet Color Resolution Preventing GDUT \texttt{cls=2} Misclassification (\nolinkurl{src/engine/spatial_safety.py}).}, label={lst:ch5_color_fix}]
+def resolve_helmet_color(cls_id: int, raw_name: str) -> str:
+    """Resolve helmet color strictly from model taxonomy string first."""
+    name_clean = str(raw_name or "").strip().lower()
+    # 1. Explicit guard: never treat non-helmet classes as helmets
+    if any(tok in name_clean for tok in ("vest", "person", "worker", "human", "none")):
+        return ""
+    # 2. String-First resolution (immune to cross-dataset class-ID shifts)
+    for color_key in ("yellow", "blue", "white", "red", "green"):
+        if color_key in name_clean:
+            return color_key
+    # 3. Integer fallback only when model metadata provides no semantic name
+    if not name_clean or name_clean.isdigit():
+        return HELMET_COLOR_MAP.get(int(cls_id), "")
+    return ""
+\end{lstlisting}
+
+\subsection{Zero-Downtime Model Hot-Swap and Concurrency Safety}
+
+Operators can switch checkpoints live without restarting the Docker container via either the Web UI Control Panel (\nolinkurl{POST /api/switch_model}) or the one-click utility script \nolinkurl{switch_to_gdut.bat}. Early deployment testing revealed two concurrency hazards under simultaneous browser requests (\texttt{GET /}, \texttt{/video\_feed}, \texttt{/api/metrics}, \texttt{/api/status}): (1) unsynchronized lazy pipeline initialization spawned duplicate CUDA contexts, blacking out the MJPEG feed; and (2) declaring lock-acquiring endpoints as \texttt{async def} blocked Uvicorn's main \texttt{asyncio} event loop.
+
+We resolved both faults permanently via \textbf{Double-Checked Locking} (\texttt{threading.Lock()}) inside \nolinkurl{_LazyPipelineProxy} (\nolinkurl{src/engine/pipeline.py}) and converting lock-acquiring FastAPI routes (\texttt{get\_metrics}, \texttt{get\_status}, \texttt{switch\_model}, \nolinkurl{switch_video_source}, \nolinkurl{predict_single_image}) to synchronous \texttt{def} handlers automatically offloaded by Starlette/FastAPI onto dedicated worker threads. As verified in \nolinkurl{test_api_switch_model_hot_swap}, swapping weights clears stale tracker buffers, updates \texttt{is\_helmet\_only}, and resumes inference in under 1.5 seconds without dropping active MJPEG viewers.
+
+\subsection{Non-Biometric Upper-Torso Re-ID (\texttt{gdut\_reid.py}), Solo Focus, and Binary WebSocket}
+
+To stabilize persistent worker identities under brief occlusions and helmet-color monitoring without deploying biometric facial recognition (strictly respecting workplace privacy), \nolinkurl{src/engine/gdut_reid.py} implements a multi-stage \textbf{Non-Biometric Upper-Torso Appearance Re-ID} engine (\texttt{UpperTorsoReIDGallery}), while \nolinkurl{src/engine/reid_tracker.py} is retained purely as a legacy compatibility helper for older full-body fallback paths:
+\begin{enumerate}[leftmargin=1.8em, itemsep=2pt]
+  \item \textbf{Confirm-Before-Mint Gate (\texttt{min\_confirm\_hits = 6}) \& 10-Frame Prior Hysteresis:} Newly observed tracks remain \texttt{TENTATIVE} across six consecutive hits before minting a persistent ID, while \nolinkurl{last_known_helmet_color} (\texttt{PRIOR <COLOR>}) requires 10 positive-color frames to prevent 1--2 frame glare/background flickers from sticking.
+  \item \textbf{Two-Stage Appearance \& MobileNetV3 Gate:} Fast 3-strip HSV/Lab + quadrant HOG histograms score active matches in $\approx 2.7$ ms/frame; unpromoted candidates bypass the heavier \texttt{MobileNetV3-Small} \nolinkurl{deep_extractor.extract()} pass unless an eligible exited gallery profile passes spatial proximity ($\mathrm{dist\_norm} \le 0.25$) or coarse strip similarity ($\ge 0.45$).
+  \item \textbf{Anti-Hijack TTL Guard (\texttt{hijack\_excluded\_ids}):} Temporary ID exclusions created when two workers cross tightly carry a strict 15-frame Time-To-Live (\texttt{frame\_idx + 15}) automatically pruned inside \nolinkurl{associate_batch()}, preventing permanent gallery lockout.
+  \item \textbf{Solo Focus Vector UI \& Monotonic Binary WebSocket (\texttt{C960 Ultra}):} Clicking any tracked worker (or \texttt{Focus}) activates \textbf{Solo Focus} natively on GDUT streams, gating trajectory vector lines strictly to the locked ID (\nolinkurl{DRAW_VIDEO_HUD=False}) alongside \texttt{\#viewportFocusBadge} and customizable roles (\texttt{/api/roles}). Live camera mode downscales WebSocket captures ($\le 640$ px longest side) with a monotonic 1-in-flight request sequence (\texttt{webcamReqSeq}) over raw binary JPEG \texttt{WS /ws/webcam} (\texttt{0xFF 0xD8}, \nolinkurl{return_image=false} in \nolinkurl{src/web/app.py}) while pausing background video decoding.
+\end{enumerate}
+
+Figures~\ref{fig:ch5_ui_main} and~\ref{fig:ch5_ui_focus} present live authenticated screenshots captured via headless Chromium Playwright on our RTX 3050 workstation.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.84\textwidth]{figures/ui_01_main.png}
+\caption{Main enterprise desktop UI (\texttt{1920$\times$1080}) of \textbf{AEGIS-CCTV Enterprise VMS v3.0} running \texttt{GDUT-HWD} 5-class inference (\texttt{43.1 FPS}, \texttt{14.4 ms}), displaying Role-by-Color filters, active ID \texttt{\#1 WORKER | YELLOW}, KPI cards, and Incident Audit log.}
+\label{fig:ch5_ui_main}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.84\textwidth]{figures/ui_05_solo_focus.png}
+\caption{Active \textbf{Solo Focus Mode} (\texttt{SOLO FOCUS: ID \#1 | WORKER | LOCKED}) with trajectory overlay, clean HTML \texttt{\#viewportFocusBadge}, Locked Target Inspector, and verified CSV registry export (\nolinkurl{aegis_personnel_registry.csv}).}
+\label{fig:ch5_ui_focus}
+\end{figure}
+
+\subsection{Database Architecture and Four-Table Relational Schema}
+
+All persistent compliance telemetry, operator audit feedback, role-by-color governance policies, and Re-ID personnel sessions are managed through a unified SQLAlchemy ORM schema in \nolinkurl{src/db/database.py} targeting PostgreSQL 16 in Docker (\texttt{postgres:16-alpine}) with automatic SQLite WAL fallback (\nolinkurl{Output/aegis_vms.db}) during standalone local execution. Figure~\ref{fig:ch5_db_erd} depicts the four relational tables and their logical foreign associations, while Table~\ref{tab:ch5_db_schema} documents exact column constraints matching \nolinkurl{src/db/database.py}.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{0.92\textwidth}{!}{\begin{tikzpicture}[
+  tbl/.style={rectangle, rounded corners=3pt, draw=fptblue, fill=white, thick, align=left, font=\scriptsize, inner sep=6pt, minimum width=5.6cm},
+  hdr/.style={fill=slatehdr, font=\scriptsize\bfseries},
+  rel/.style={-{Stealth[length=2.2mm]}, thick, dashed, color=fptblue!85!black},
+  lbl/.style={font=\tiny\itshape, fill=white, inner sep=1.5pt}
+]
+  \node[tbl] (role) at (0, 0) {
+    \textbf{\color{fptblue}\texttt{role\_policies} (\texttt{RolePolicyRecord})}\\[2pt]{\color{fptblue!45}\rule{5.2cm}{0.55pt}}\\[2pt]
+    \textbf{PK} \texttt{color\_key}: \texttt{String(32)} (blue/white/yellow/red/none)\\
+    \texttt{role\_title}: \texttt{String(128)} (e.g., WORKER, HSE)\\
+    \texttt{short\_code}: \texttt{String(32)} | \texttt{hex\_color}: \texttt{String(16)}\\
+    \texttt{bgr\_json}: \texttt{String(64)} | \texttt{severity}: \texttt{String(32)}\\
+    \texttt{updated\_at\_utc}: \texttt{DateTime}
+  };
+  \node[tbl] (inc) at (9.8, 0) {
+    \textbf{\color{fptblue}\texttt{incidents} (\texttt{IncidentRecord})}\\[2pt]{\color{fptblue!45}\rule{5.2cm}{0.55pt}}\\[2pt]
+    \textbf{PK} \texttt{id}: \texttt{Integer} (autoinc) | \textbf{UQ} \texttt{alert\_id}: \texttt{String(96)}\\
+    \texttt{camera\_id}: \texttt{String(64)} | \textbf{IDX} \texttt{worker\_id}: \texttt{String(64)}\\
+    \texttt{helmet\_color}, \texttt{historical\_helmet\_color}: \texttt{String(32)}\\
+    \texttt{role\_title}, \texttt{custom\_label} | \texttt{confidence}: \texttt{Float}\\
+    \texttt{violation\_duration\_frames}: \texttt{Integer} | \texttt{bbox\_json}: \texttt{Text}\\
+    \texttt{snapshot\_filename}, \texttt{crop\_filename}, \texttt{created\_at\_utc}
+  };
+  \node[tbl] (pers) at (0, -4.3) {
+    \textbf{\color{fptblue}\texttt{personnel\_sessions} (\texttt{PersonnelSessionRecord})}\\[2pt]{\color{fptblue!45}\rule{5.2cm}{0.55pt}}\\[2pt]
+    \textbf{PK} \texttt{id}: \texttt{Integer} | \textbf{IDX} \texttt{session\_id}: \texttt{String(64)}\\
+    \textbf{IDX} \texttt{worker\_id}: \texttt{Integer} | \texttt{source\_name}: \texttt{String(256)}\\
+    \texttt{custom\_label}: \texttt{String(64)} | \texttt{current\_class}: \texttt{String(32)}\\
+    \texttt{historical\_helmet\_color}: \texttt{String(32)} | \texttt{status}: \texttt{String(32)}\\
+    \texttt{total\_frames\_seen}: \texttt{Integer} | \texttt{updated\_at\_utc}: \texttt{DateTime}
+  };
+  \node[tbl] (fb) at (9.8, -4.3) {
+    \textbf{\color{fptblue}\texttt{operator\_feedback} (\texttt{OperatorFeedbackRecord})}\\[2pt]{\color{fptblue!45}\rule{5.2cm}{0.55pt}}\\[2pt]
+    \textbf{PK} \texttt{id}: \texttt{Integer} | \textbf{IDX} \texttt{item\_id}: \texttt{String(96)}\\
+    \textbf{IDX} \texttt{worker\_id}: \texttt{Integer (nullable)}\\
+    \texttt{verdict}: \texttt{String(32)} (confirm / false\_positive / edit\_label)\\
+    \texttt{corrected\_label}: \texttt{String(64)} | \texttt{note}: \texttt{Text}\\
+    \texttt{source\_type}, \texttt{model\_path}, \texttt{snapshot\_filename}, \texttt{timestamp\_utc}
+  };
+
+  \draw[rel] (role.east) -- node[lbl, above=3pt, align=center] {\texttt{color\_key}\\$\leftrightarrow$ \texttt{helmet\_color}} (inc.west);
+  \draw[rel] (role.south) -- node[lbl, right=3pt] {\texttt{color\_key} $\leftrightarrow$ \texttt{current\_class}} (pers.north);
+  \draw[rel] (inc.south) -- node[lbl, right=3pt] {\texttt{alert\_id} $\leftrightarrow$ \texttt{item\_id}} (fb.north);
+  \draw[rel] (pers.east) -- node[lbl, above=3pt] {\texttt{worker\_id}} (fb.west);
+\end{tikzpicture}}
+\caption{Relational Entity--Relationship Diagram (ERD) implemented in \nolinkurl{src/db/database.py} spanning PostgreSQL 16 (Enterprise Docker) and SQLite WAL fallback.}
+\label{fig:ch5_db_erd}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Four-Table Relational Database Specification Verified Against \nolinkurl{src/db/database.py}.}
+\label{tab:ch5_db_schema}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.16}
+\begin{tabular}{|l|l|l|p{6.2cm}|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Table (\texttt{ORM Class})} & \textbf{Primary Key} & \textbf{Indexed / Logical Keys} & \textbf{Operational Persistence Role} \\
+\hline
+\texttt{incidents} (\texttt{IncidentRecord}) & \texttt{id} (Int) & \texttt{alert\_id} (Unique), \texttt{camera\_id}, \texttt{worker\_id}, \texttt{helmet\_color} & Stores debounced bare-head violations, confidence, frame duration, evidence snapshot/crop paths, and box JSON. \\ \hline
+\texttt{operator\_feedback} (\texttt{OperatorFeedbackRecord}) & \texttt{id} (Int) & \texttt{item\_id} (Idx), \texttt{worker\_id} (Int, nullable) & Captures HITL verdicts (\texttt{confirm}, \texttt{false\_positive}, \texttt{edit\_label}), corrected class labels, and active checkpoint path. \\ \hline
+\texttt{role\_policies} (\texttt{RolePolicyRecord}) & \texttt{color\_key} (Str 32) & Defaults seeded for 5 GDUT classes & Persists customizable construction site roles, short codes (\texttt{SUP/MEP}, \texttt{WORKER}), hex/BGR colors, and severity flags. \\ \hline
+\texttt{personnel\_sessions} (\texttt{PersonnelSessionRecord}) & \texttt{id} (Int) & \texttt{session\_id} (Idx), \texttt{worker\_id} (Idx) & Tracks active/exited persistent Re-ID identities, custom operator labels, historical helmet color, and cumulative frame counts. \\ \hline
+\end{tabular}}
+\end{table}
+
+\section{Data Flow and Processing}
+
+\subsection{End-to-End Inference, Debouncing, and Alerting Sequence}
+
+Figure~\ref{fig:ch5_sequence} charts the temporal execution sequence from CCTV frame acquisition through debounced violation dispatch and Human-in-the-Loop feedback capture.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{\begin{tikzpicture}[
+  font=\scriptsize,
+  actor/.style={rectangle, draw=fptblue, fill=slatehdr, thick, rounded corners=2pt, minimum width=2.0cm, minimum height=0.6cm, align=center, font=\scriptsize\bfseries},
+  msg/.style={-{Stealth[length=2mm]}, thick, color=fptblue!85!black},
+  ret/.style={-{Stealth[length=2mm]}, dashed, color=gray!80!black}
+]
+  \node[actor] (cam) at (0, 0) {CCTV / Video\\Thread};
+  \node[actor] (det) at (3.2, 0) {Rep-YOLO11s\\(CUDA GDUT)};
+  \node[actor] (fsm) at (6.4, 0) {Safety FSM\\($K=8$, 30s)};
+  \node[actor] (io)  at (9.6, 0) {Alert / Disk\\ThreadPool};
+  \node[actor] (ui)  at (12.8, 0) {FastAPI \&\\VMS Browser};
+
+  \foreach \x in {0, 3.2, 6.4, 9.6, 12.8} {
+    \draw[gray!60, densely dashed] (\x, -0.35) -- (\x, -7.85);
+  }
+
+  \draw[msg] (0, -0.95) -- node[above, yshift=1pt, fill=white, inner sep=1.2pt] {BGR Frame ($\le 1920$px)} (3.2, -0.95);
+  \draw[ret] (3.2, -1.65) -- node[above, yshift=1pt, fill=white, inner sep=1.2pt] {5-Cls Detections + \texttt{infer\_ms}} (6.4, -1.65);
+  \draw[msg] (6.4, -2.20) -- (7.05, -2.20) -- (7.05, -2.58) -- (6.4, -2.58);
+  \node[right, align=left, fill=white, inner sep=1.5pt] at (7.10, -2.39) {String-First Color\\[-1pt]\& Streak $k \leftarrow k+1$};
+  \node[draw=orange!80!black, fill=orange!10, rounded corners=2pt, align=center] at (6.4, -3.35) {Check $k \ge 8$ frames\\\& cooldown $> 30$s};
+  \draw[msg] (6.4, -4.58) -- node[above, yshift=1pt, align=center, fill=white, inner sep=1.2pt] {Trigger \texttt{MISSING\_HELMET}\\[-1pt]+ Forensic Crop} (9.6, -4.58);
+  \draw[msg] (9.6, -5.45) -- node[above, yshift=1pt, align=center, fill=white, inner sep=1.2pt] {Async JPEG Snapshot\\[-1pt]+ TG/Zalo POST} (12.8, -5.45);
+  \draw[msg] (0, -6.30) -- node[above, yshift=1pt, fill=white, inner sep=1.5pt] {Annotated JPEG (Zero-Copy Buffer)} (12.8, -6.30);
+  \draw[ret] (12.8, -7.22) -- node[above, yshift=1pt, align=center, fill=white, inner sep=1.2pt] {\nolinkurl{POST /api/feedback}\\[-1pt](Confirm / False / Edit)} (9.6, -7.22);
+\end{tikzpicture}}
+\caption{End-to-end execution sequence diagram for real-time GDUT-HWD inference, symmetrical violation debouncing, non-blocking alert dispatch, and Human-in-the-Loop feedback logging.}
+\label{fig:ch5_sequence}
+\end{figure}
+
+\subsection{Symmetrical Debounce Finite State Machine (FSM)}
+
+In dynamic construction footage, single-frame occlusions (e.g., a beam momentarily crossing a helmet) would flood safety channels if alerts fired instantaneously. Our \textbf{Symmetrical Debounce FSM} (\nolinkurl{src/engine/spatial_safety.py}) enforces two hysteresis bounds:
+\begin{itemize}[leftmargin=1.8em, itemsep=2pt]
+  \item \textbf{Activation Threshold ($K = 8$ consecutive frames):} A bare-head (\texttt{none}) detection matched within normalized spatial radius $\Delta d_{\text{norm}} \le 0.08$ must persist for $K = 8$ consecutive processed frames before transitioning from \texttt{TENTATIVE} to \nolinkurl{CONFIRMED_VIOLATION}.
+  \item \textbf{Reset Hysteresis ($R = 2$ frames) and Per-Entity Cooldown ($T_{\text{cool}} = 30\text{ s}$):} Two consecutive compliant frames reset the streak counter cleanly, while a 30-second cooldown window prevents repeated Telegram/Zalo notifications for the same persistent incident.
+  \item \textbf{Non-Blocking Forensic Snapshot Generation:} Upon state transition to \nolinkurl{CONFIRMED_VIOLATION}, a dedicated \nolinkurl{ThreadPoolExecutor(max_workers=2)} asynchronously composites a high-resolution JPEG evidence snapshot featuring a top severity banner and Picture-in-Picture (PiP) zoomed crop around the violating head, preserving smooth video frame pacing.
+\end{itemize}
+
+\subsection{Image Audit Modal and Human-in-the-Loop (HITL) Feedback}
+
+To support interactive input verification, visual bounding-box inspection, persistent history storage, and continuous ground-truth curation, the Web UI exposes two dedicated workflows backed by FastAPI endpoints in \texttt{src/web/app.py}:
+\begin{enumerate}[leftmargin=1.8em, itemsep=2pt]
+  \item \textbf{Single-Image Audit (\nolinkurl{POST /api/predict_image}):} Safety engineers upload any JPEG/PNG site photograph through the \textit{Image Audit} modal. The backend decodes the image in memory, executes the active GDUT detector, draws color-coded boxes (crimson for \texttt{none}, emerald for compliant helmets) with confidence labels, and returns both structured JSON detections (bounding boxes, classes, \texttt{inference\_ms}) and a Base64-encoded annotated JPEG for immediate browser preview.
+  \item \textbf{Human-in-the-Loop Operator Feedback (\nolinkurl{POST/GET /api/feedback}):} Every incident card in the live audit stream and every Image Audit result provides three one-click verdict buttons---\texttt{Confirm}, \texttt{False Positive}, and \texttt{Edit Label} (plus optional operator note). Submitted records append atomically as structured JSON Lines into \nolinkurl{Output/operator_feedback.jsonl} with UTC timestamp, model path, snapshot filename, and corrected label, creating an auditable dataset for future Active Learning cycles.
+\end{enumerate}
+
+\section{Deployment Strategy}
+
+\subsection{Six-Microservice Enterprise Stack and Edge Hardware Simulation}
+
+AEGIS-CCTV v3.0 supports two complementary Docker deployment topologies:
+\begin{itemize}[leftmargin=1.8em, itemsep=3pt]
+  \item \textbf{Production Six-Microservice Enterprise Stack (\nolinkurl{docker-compose.enterprise.yml}):} Separates concerns across an isolated Docker bridge network (\texttt{aegis-net}): (1) \texttt{frontend-nginx} (\texttt{:8080}) serving the web UI, snapshots, and reverse proxy; (2) \texttt{api-gateway} (\texttt{:8000} internal) built via slim \nolinkurl{Dockerfile.gateway} implementing \texttt{gateway\_client.py} with a deterministic \texttt{HALF\_OPEN} single-probe Circuit Breaker (\texttt{close()} resource lifecycle and strict 2xx JSON parsing prior to \nolinkurl{_record_success()}); (3) GPU \texttt{ai-inference} (\texttt{:8001} internal) running YOLOv11s + Re-ID under \texttt{cpus: "4.0"}, \texttt{memory: 6144M}; (4) \texttt{postgres:16-alpine} managing four persistent SQLAlchemy tables with \texttt{session\_id} isolation; (5) \texttt{prometheus} (\texttt{:9090}) scraping both \texttt{api-gateway:8000/metrics} and \texttt{ai-inference:8001/metrics}; and (6) pre-provisioned 15-panel \texttt{grafana} (\texttt{:3000}).
+  \item \textbf{Single-Node Edge Simulation Profile (\nolinkurl{docker-compose.edge-simulation.yml}):} Packages inference, spatial safety FSM, MJPEG streaming, and UI inside one GPU container for tight 4--8 GB embedded hardware (\texttt{cpus: "4.0"}, \texttt{memory: 6144M}, zero-copy frame sharing, healthcheck probing \nolinkurl{http://localhost:8000/api/metrics}).
+\end{itemize}
+
+\noindent\textbf{FP32 Numerical Stability Guard (\texttt{USE\_HALF=False}):} In both GPU profiles, the default runtime sets \texttt{USE\_HALF=False} while allowing hardware TensorCore TF32 (\nolinkurl{ALLOW_TF32=True}) on Ampere+ GPUs, protecting \texttt{CoordConv} coordinate linear spaces and \texttt{BiFormerBlockLite} attention softmax from FP16 overflow. Whenever selective FP16 acceleration is enabled, \nolinkurl{torch.cuda.amp.autocast(dtype=torch.float16)} keeps attention and grid generation in FP32 while convolutions run in FP16.
+
+\subsection{One-Click Operations and Automated GitHub Actions CI/CD}
+
+For reliable field handoff and live operational demonstration, Windows batch orchestrators wrap Docker operations (\nolinkurl{start_docker_edge.bat} with automated CUDA HTTP healthcheck polling, and \nolinkurl{switch_to_gdut.bat} calling \nolinkurl{POST /api/switch_model}). Continuous Integration is automated via \nolinkurl{.github/workflows/ci.yml} on every push and pull request to \texttt{main} across two chained jobs: (1) \texttt{lint-and-test} caches pip dependencies via \texttt{requirements.txt}, installs CPU PyTorch + \texttt{ruff}, runs \texttt{ruff check --select E9,F63,F7,F82 src tests}, executes bytecode compilation (\texttt{python -m compileall -q src tests scripts}), and runs \texttt{python -m pytest tests -v} in weightless CI stub mode across all 83 Clean-Room public repository tests (\textbf{82 passed, 1 skipped} cleanly when git-ignored \texttt{.pt} binaries are absent, isolated via \nolinkurl{tests/conftest.py}, while the full local workspace passes \textbf{139/139} on CPU and \textbf{138 passed, 1 skipped} in stub mode); and (2) \texttt{docker-build-check} validates both \texttt{docker-compose.edge-simulation.yml} and \texttt{docker-compose.enterprise.yml} schemas and compiles \nolinkurl{Dockerfile.gateway}.
+
+\section{Scalability and Maintenance}
+
+\subsection{Prometheus Cgroup Working-Set Telemetry and 15-Panel Grafana}
+
+For production observability and resource auditing, \texttt{src/web/app.py} integrates a custom zero-copy ASGI middleware (\nolinkurl{_TelemetryASGIMiddleware}) avoiding Starlette \texttt{BaseHTTPMiddleware} body-buffering overhead. Crucially, to ensure accurate container memory reporting rather than reading shared host RAM inside Linux containers, \nolinkurl{_collect_host_telemetry()} queries Linux cgroup v2 \texttt{memory.current - inactive\_file} (or cgroup v1 cache-subtracted RSS fallback), matching live \texttt{docker stats} within $<1$ MB (\texttt{86.7--91.2 MB} reported by \texttt{api-gateway} vs. \texttt{86.48 MiB} in \texttt{docker stats}; \texttt{3020.6 MB} on \texttt{ai-inference} vs. \texttt{2.944 GiB}).
+
+Across \texttt{ai-inference} and \texttt{api-gateway}, the \texttt{/metrics} endpoints expose 20 Prometheus gauges and counters (\texttt{aegis\_cctv\_*} and \texttt{aegis\_gateway\_*}, \nolinkurl{text/plain; version=0.0.4}) feeding our 15-panel Grafana dashboard (Figure~\ref{fig:ch5_ui_grafana}), while \nolinkurl{GET /api/benchmark/summary} feeds host telemetry and all four benchmark suites into the interactive \textit{Runtime \& SLA} modal (Figure~\ref{fig:ch5_ui_sla}).
+
+\subsection{Enterprise VMS Ergonomics, Multi-Stream Scaling, and Active Learning}
+
+Following faculty UX feedback during Review 2, the frontend dashboard (\nolinkurl{src/web/templates/dashboard.html}) was redesigned into a clean, high-contrast flat light enterprise VMS layout modeled after Milestone XProtect and Siemens Siveillance (replacing dark decorative chrome with neutral slate cards, \texttt{tabular-nums} monospace telemetry, a matte \texttt{\#0B0F17} CCTV viewport bezel, Role Policy configurator, and interactive Solo Focus inspector). Figures~\ref{fig:ch5_ui_sla} and~\ref{fig:ch5_ui_grafana} document the live telemetry modal and Grafana observability stack during GPU streaming.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.84\textwidth]{figures/ui_03_sla_modal.png}
+\caption{Interactive \textit{Runtime Performance, Optimization \& Edge SLA Telemetry} modal displaying live GPU status, \nolinkurl{RepConv.switch_to_deploy()} FP32 parity, Optimization Progression, and Paired End-to-End Strip vs. MobileNetV3 Re-ID breakdown.}
+\label{fig:ch5_ui_sla}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.84\textwidth]{figures/ui_06_grafana.png}
+\caption{Live 15-panel Grafana dashboard (\texttt{AEGIS-CCTV Enterprise VMS // GDUT-HWD 5-Class Telemetry}) populated by Prometheus scrapes during active 6-container streaming (showing \texttt{Gateway DB Status=1}, \texttt{Circuit Breaker=0 CLOSED}, \texttt{Pipeline Throughput=45.3 fps / 13.3 ms}, \texttt{Gallery Persistent IDs=2}, and Linux cgroup RAM footprints).}
+\label{fig:ch5_ui_grafana}
+\end{figure}
+
+For site-wide scalability, the micro-batching engine processes $N \in \{1, 2, 4, 8\}$ concurrent 1080p streams per edge node (benchmarked quantitatively in Chapter~\ref{chap:results}); scaling horizontally deploys multiple GPU \texttt{ai-inference} workers behind \texttt{api-gateway} and \texttt{nginx} while storing centralized incidents in \texttt{postgres:16}. Long-term maintenance follows an Active Learning loop logging operator verdicts (\nolinkurl{Output/operator_feedback.jsonl} and PostgreSQL) to refine hard-negative \texttt{none} cases over time.

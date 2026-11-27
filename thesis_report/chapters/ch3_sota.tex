@@ -1,0 +1,174 @@
+\chapter{Existing Systems/State of the Art}
+\label{chap:sota}
+
+\section{Overview of the Field}
+
+Automated construction safety monitoring sits at the intersection of \textbf{real-time visual object detection}, \textbf{fine-grained attribute classification} (distinguishing helmet chromatic categories under outdoor illumination variance), and \textbf{edge Video Management Systems (VMS)}. Unlike offline photographic benchmarks where multi-second Transformer ensembles can be tolerated, live site surveillance imposes strict operational ceilings: edge accelerators must decode 1080p--4K CCTV feeds, localize dozens of small-scale heads and hardhats simultaneously at $\ge 25$ frames per second (FPS), suppress transient occlusion jitter, and dispatch actionable alerts with sub-second latency while preserving worker privacy inside on-premises networks.
+
+Over the past six years, the research community has transitioned from general-purpose PPE feasibility studies~\cite{wu2019hardhats,nath2020deep,wang2021fast} toward specialized lightweight YOLO derivatives engineered explicitly for complex construction, coal-mining, and power-grid environments~\cite{song2024improved,zhao2025yolodcrcf,song2025yolov8,wu2025advancing,chen2025improved,zuo2025enhanced,wang2026yolov11ncoalmine}. Yet despite rapid proliferation of novel neck modules, attention mechanisms, and bounding-box regression losses, rigorous cross-study comparison remains notoriously fragile due to inconsistent dataset splits, unverified duplicate leakage, mixed class taxonomies (binary presence vs. multi-color classification), and missing inference-deployment benchmarks.
+
+\section{Historical Context}
+
+Early automated hardhat inspection systems relied on handcrafted computer vision pipelines combining Histogram of Oriented Gradients (HOG) human detectors, skin-tone color thresholding, circular Hough transforms, and Support Vector Machine (SVM) classifiers. While computationally inexpensive, handcrafted features collapsed rapidly under partial scaffolding occlusion, non-frontal viewpoints, backlighting, and helmet wear-and-tear.
+
+The deep learning era catalyzed two distinct waves of object detectors:
+\begin{enumerate}[leftmargin=1.8em, itemsep=3pt]
+  \item \textbf{Two-Stage Region Proposal Detectors (2015--2019):} Architectures such as Faster R-CNN coupled a Region Proposal Network (RPN) with RoI-aligned classification heads. Although accurate on medium-to-large targets, two-stage inference overhead and multi-pass feature pooling prevented real-time multi-camera execution on edge GPUs. Early benchmark creators---most notably Wu et al.~\cite{wu2019hardhats}, who introduced the five-class \textbf{GDUT-HWD} dataset (3,174 images, 18,893 annotated instances) alongside Single Shot MultiBox Detector with Reverse Progressive Attention (SSD-RPA)---demonstrated that one-stage detectors could balance localization speed with helmet color discrimination.
+  \item \textbf{Anchor-Free One-Stage YOLO Evolution (2020--2026):} Multi-scale Feature Pyramid Networks (FPN)~\cite{lin2017feature} and bidirectional Path Aggregation Networks (PAN)~\cite{liu2018path} enabled single-shot detectors to fuse high-resolution spatial detail from shallow layers (P3, stride 8) with rich semantic context from deep layers (P5, stride 32). Modern Ultralytics releases abandoned brittle hand-tuned anchor boxes in favor of anchor-free decoupled detection heads, \textbf{Task-Aligned Learning (TAL)}~\cite{feng2021tood}, and \textbf{Distribution Focal Loss (DFL)}~\cite{li2020generalized}. \texttt{YOLOv8}~\cite{jocher2023yolov8} standardized the \texttt{C2f} gradient-rich cross-stage block and \texttt{SPPF} pyramid pooling; \texttt{YOLOv9}~\cite{wang2024yolov9} introduced Programmable Gradient Information (PGI) and GELAN; \texttt{YOLOv10}~\cite{wang2024yolov10} explored dual-label NMS-free heads; \texttt{YOLO11}~\cite{ultralytics2024yolo11} refined efficiency via \texttt{C3k2} blocks, depthwise-separable classification head convolutions, and the \texttt{C2PSA} spatial attention block at P5; and \texttt{YOLOv12}~\cite{tian2025yolov12} introduced area-attention centric backbones.
+\end{enumerate}
+
+\section{Key Studies and Theories}
+
+This section reviews the core mathematical mechanisms underpinning our ablation architecture (\texttt{A0--A6}) and our two reproduced state-of-the-art helmet detection baselines (\texttt{B1} and \texttt{B2}).
+
+\subsection{Backbone and Neck Foundations: YOLOv8s vs. YOLO11s}
+
+Both \texttt{YOLOv8s}~\cite{jocher2023yolov8} and \texttt{YOLO11s}~\cite{ultralytics2024yolo11} follow a three-part topology---Backbone, bidirectional PAN Neck, and three-scale anchor-free decoupled Detection Head operating on output strides 8, 16, and 32 (yielding $80 \times 80 + 40 \times 40 + 20 \times 20 = 8,400$ anchor points for a $640 \times 640$ input). However, they differ structurally in three ways critical to our experiments:
+\begin{itemize}[leftmargin=1.8em, itemsep=2pt]
+  \item \textbf{Feature Extraction Blocks:} \texttt{YOLOv8s} employs \texttt{C2f} bottleneck blocks throughout backbone and neck, whereas \texttt{YOLO11s} replaces \texttt{C2f} with \texttt{C3k2} (configurable smaller kernel bottlenecks) to reduce parameter count and FLOPs.
+  \item \textbf{Deep-Stage Context Module:} \texttt{YOLOv8s} terminates its backbone with \texttt{SPPF} at \texttt{layer 9} ($512 \times 20 \times 20$). \texttt{YOLO11s} appends a Cross-Stage Partial with Pyramid Squeeze Attention (\texttt{C2PSA}) module immediately after \texttt{SPPF} at \texttt{layer 10}. As verified empirically in Chapter VI, replacing \texttt{C2PSA} versus appending after \texttt{SPPF} fundamentally alters pretrained transfer stability.
+  \item \textbf{Classification Head Topology:} In \texttt{YOLOv8s}, the classification branch (\texttt{cv3}) uses two standard $3 \times 3$ Conv-BN-SiLU (CBS) blocks followed by a $1 \times 1$ projection. In \texttt{YOLO11s}, \texttt{cv3} replaces standard convolutions with two depthwise-separable ($3 \times 3$ depthwise + $1 \times 1$ pointwise) clusters prior to the final $1 \times 1$ logit layer, trimming head FLOPs substantially.
+\end{itemize}
+
+\subsection{Structural Re-Parameterization (RepVGG / RepConv)}
+
+Introduced by Ding et al.~\cite{ding2021repvgg}, Structural Re-Parameterization decouples training-time representational capacity from inference-time hardware latency. During training, a \texttt{RepConv} block evaluates parallel linear convolutional paths over input tensor $\mathbf{X} \in \mathbb{R}^{B \times C_{\text{in}} \times H \times W}$ before applying a single shared non-linear activation $\sigma(\cdot)$ (SiLU):
+\begin{equation}
+\mathbf{Y} = \sigma\!\left(\mathrm{BN}_3(\mathrm{Conv}_{3\times 3}(\mathbf{X})) + \mathrm{BN}_1(\mathrm{Conv}_{1\times 1}(\mathbf{X})) + \mathbb{I}_{[C_{\text{in}}=C_{\text{out}} \land s=1]} \cdot \mathrm{BN}_{\text{id}}(\mathbf{X})\right).
+\label{eq:sota_repconv_train}
+\end{equation}
+Because convolution and inference-mode Batch Normalization (using frozen running statistics $\mu, \sigma^2$, scale $\gamma$, and shift $\beta$) are strictly affine linear operators, each branch $b \in \{3, 1, \text{id}\}$ collapses algebraically into an equivalent kernel $\mathbf{W}'_b$ and bias $\mathbf{b}'_b$:
+\begin{equation}
+\mathbf{W}'_b = \frac{\gamma_b}{\sqrt{\sigma_b^2 + \epsilon}} \odot \mathbf{W}_b, \qquad \mathbf{b}'_b = \beta_b - \frac{\mu_b \gamma_b}{\sqrt{\sigma_b^2 + \epsilon}},
+\label{eq:sota_bn_fold}
+\end{equation}
+where $1 \times 1$ kernels $\mathbf{W}'_1$ are zero-padded to $3 \times 3$ (centered at index $(1,1)$) and optional identity branches map to Kronecker delta $3 \times 3$ kernels. Summing across branches produces a single $3 \times 3$ biased convolution:
+\begin{equation}
+\mathbf{W}_{\text{eq}} = \mathbf{W}'_3 + \mathrm{Pad}_{1 \to 3}(\mathbf{W}'_1) + \mathbf{W}'_{\text{id}}, \qquad \mathbf{b}_{\text{eq}} = \mathbf{b}'_3 + \mathbf{b}'_1 + \mathbf{b}'_{\text{id}}.
+\label{eq:sota_repconv_fuse}
+\end{equation}
+Crucially, in our \texttt{GDUT-HWD A6} architecture, all six \texttt{RepConv} layers operate at downsampling stride $s = 2$, so the identity term in Eq.~\eqref{eq:sota_repconv_train} is absent; structural fusion collapses the parallel $3 \times 3$ and $1 \times 1$ branches into one single-path $3 \times 3$ convolution with zero extra memory reads during deployment once \nolinkurl{switch_to_deploy()} is invoked.
+
+\subsection{Spatial Coordinate Encoding (CoordConv)}
+
+Standard 2D convolutions are translation-equivariant by construction, making it surprisingly difficult for convolutional networks to infer absolute pixel coordinates~\cite{liu2018coordconv}. In fixed-mount construction CCTV cameras, perspective foreshortening creates strong vertical-axis priors: distant workers in the upper frame region appear drastically smaller than foreground workers near the lower frame edge. \texttt{CoordConv} appends two deterministic coordinate channels $\mathbf{X}_{\text{grid}}, \mathbf{Y}_{\text{grid}} \in [-1, 1]^{H \times W}$ along the channel dimension prior to convolution:
+\begin{equation}
+\tilde{\mathbf{X}} = \mathrm{Concat}\!\left([\mathbf{X}_{\text{RGB}}, \, \mathbf{X}_{\text{grid}}, \, \mathbf{Y}_{\text{grid}}], \, \text{dim}=1\right) \in \mathbb{R}^{B \times 5 \times H \times W}.
+\label{eq:sota_coordconv}
+\end{equation}
+Because excessive coordinate injection across every layer can overfit fixed camera geometries, best practice---adopted in our configurations \texttt{A2} and \texttt{A6}---restricts \texttt{CoordConv} strictly to the network stem (\texttt{layer 0}) with zero-initialized coordinate filter weights so Stage 1 behavior is preserved at epoch 0.
+
+\subsection{Bi-Level Routing Attention (BiFormer)}
+
+Dense self-attention scales quadratically $\mathcal{O}((HW)^2)$ with spatial resolution, making full global attention prohibitive for real-time edge detectors. Zhu et al.~\cite{zhu2023biformer} proposed \textbf{BiFormer}, which performs query-adaptive sparse attention in two stages: (1) coarse \textbf{region-level routing} partitions the feature map into non-overlapping regions of size $r \times r$, computes region-averaged queries and keys $(\mathbf{Q}^r, \mathbf{K}^r)$, constructs a region-to-region affinity matrix $\mathbf{A}^r = \mathbf{Q}^r (\mathbf{K}^r)^\top / \sqrt{C}$, and retains only the top-$k$ most relevant key-value region indices $\mathbf{I}^r = \mathrm{topK}(\mathbf{A}^r, k)$; (2) fine-grained \textbf{token-to-token attention} gathers tokens exclusively from those $k$ routed regions:
+\begin{equation}
+\mathrm{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \mathrm{softmax}\!\left(\frac{\mathbf{Q}\,\mathbf{K}(\mathbf{I}^r)^\top}{\sqrt{d_k}}\right)\mathbf{V}(\mathbf{I}^r).
+\label{eq:sota_biformer}
+\end{equation}
+By placing our lightweight \texttt{BiFormerBlockLite} ($r=8$, $k=4$, $h=4$, $C=512$, $d_k=128$) exclusively at the low-resolution P5 feature map ($20 \times 20$, padded to $24 \times 24$ for $3 \times 3 = 9$ regions), each query region attends to $4 \times 64 = 256$ gathered key-value tokens rather than all global pixels across P3/P4.
+
+\subsection{Task-Aligned Assignment, Distribution Focal Loss, and Focal-EIoU}
+
+Modern anchor-free YOLO training optimizes three coupled objectives guided by the \textbf{Task-Aligned Assigner (TAL)}~\cite{feng2021tood}. For every ground-truth instance, TAL scores candidate anchor points via an alignment metric $t = s^{\alpha} \cdot u^{\beta}$ combining classification confidence $s$ and predicted-vs-target IoU $u$ ($\alpha = 0.5$, $\beta = 6.0$, $\text{top-}k = 10$ in Ultralytics), using detached predictions to prevent assignment feedback instability.
+
+Classification is trained with \texttt{BCEWithLogitsLoss} against IoU-modulated soft targets. Edge distance localization uses \textbf{Distribution Focal Loss (DFL)}~\cite{li2020generalized}, which models each box side distance as a discrete probability distribution over $\text{reg\_max} = 16$ bins and focuses cross-entropy on the two integer bins $(y_i, y_{i+1})$ bracketing the continuous target $y$:
+\begin{equation}
+\mathcal{L}_{\text{DFL}}(S_i, S_{i+1}) = -\left((y_{i+1} - y)\log(S_i) + (y - y_i)\log(S_{i+1})\right).
+\label{eq:sota_dfl}
+\end{equation}
+
+For geometric box overlap, stock YOLO employs \textbf{Complete IoU (CIoU)}~\cite{zheng2020distance}, which couples width and height via an aspect-ratio penalty $v = \frac{4}{\pi^2}(\arctan \frac{w^{gt}}{h^{gt}} - \arctan \frac{w}{h})^2$. Because proportional scaling $(w, h) \to (cw, ch)$ yields zero aspect-ratio gradient in CIoU, Zhang et al.~\cite{zhang2022focal} proposed \textbf{Efficient IoU (EIoU)} and its quality-modulated variant \textbf{Focal-EIoU}, decoupling center distance, width error, and height error explicitly:
+\begin{equation}
+\mathcal{L}_{\text{EIoU}} = 1 - \mathrm{IoU} + \frac{\rho^2(\mathbf{b}, \mathbf{b}^{gt})}{(w^c)^2 + (h^c)^2} + \frac{(w - w^{gt})^2}{(w^c)^2} + \frac{(h - h^{gt})^2}{(h^c)^2}, \qquad \mathcal{L}_{\text{Focal-EIoU}} = \mathrm{IoU}^{\gamma} \cdot \mathcal{L}_{\text{EIoU}},
+\label{eq:sota_focal_eiou}
+\end{equation}
+where $w^c$ and $h^c$ denote the width and height of the smallest enclosing box covering prediction $\mathbf{b}$ and target $\mathbf{b}^{gt}$, and $\gamma = 0.5$ in our configurations \texttt{A4} and \texttt{A6}. Note that in our implementation, the $\mathrm{IoU}^{0.5}$ factor remains attached to the autograd graph and down-weights low-IoU regressions while sharpening high-IoU localization---an effect whose empirical trade-off on five-class GDUT-HWD is audited directly in Chapter VI.
+
+\subsection{Reproduced State-of-the-Art Baselines: B1 and B2}
+
+To ground our evaluation against published peer-reviewed safety helmet detectors under strict methodological parity, we reproduced both contemporary SOTA baselines on the identical deduplicated five-class \texttt{GDUT-HWD} split (\texttt{ce2a883e}) and matched Stage 2 hyperparameters (Figure~\ref{fig:ch3_baselines_arch}):
+
+\begin{enumerate}[leftmargin=1.8em, itemsep=4pt]
+  \item \textbf{Baseline 1 (\texttt{B1: YOLO11n-DCRCF} -- Zhao et al., 2025~\cite{zhao2025yolodcrcf}):} Originally proposed for power-grid helmet and glove detection on two-class SHWD~\cite{shwd_dataset} (achieving $90.90\%$ P, $88.50\%$ R, $92.70\%$ mAP@50, and $60.60\%$ mAP@50--95 trained from scratch for 300 epochs with SGD), \texttt{YOLO-DCRCF} injects \textbf{Modulated Deformable Convolution v2 (\texttt{ModulatedDCNv2})}~\cite{zhu2019deformable} into deep backbone stages (\texttt{model.6} and \texttt{model.8}, using a shared 27-channel predictor outputting 18 spatial offsets and 9 modulation masks) and replaces standard PAN concatenation with four \textbf{Selective Boundary Aggregation (\texttt{SBA})} neck blocks (\texttt{model.11, 13, 15, 17}) employing bidirectional sigmoid gating $a \cdot \sigma(\mathrm{conv}(a)) + (1 - \mathrm{gate}_a) \cdot b \cdot \sigma(\mathrm{conv}(b))$ feeding a three-scale \texttt{Detect} head at \texttt{model.19}. Under our unified five-class GDUT reproduction (\texttt{ce2a883e}), \texttt{B1} totals \textbf{6,802,005 training parameters} (\textbf{6,796,045} fused deployed parameters; $2.6\times$ larger than stock \texttt{YOLO11n}), with only \textbf{1,783,391 parameters (26.22\%)} transferred from Stage 1 and 78 parameter tensors freshly initialized inside \texttt{SBA} and \texttt{ModulatedDCNv2}.
+  \item \textbf{Baseline 2 (\texttt{B2: YOLOv8s-DWR-ASPP-NWD} -- Song et al., 2024~\cite{song2024improved}):} Published in \textit{Scientific Reports} (reporting $91.80\%$ P, $86.60\%$ R, $92.00\%$ mAP@50, and $62.20\%$ mAP@50--95 on expanded two-class SHWD~\cite{shwd_dataset} over 100 SGD epochs), \texttt{B2} wraps \texttt{YOLOv8s} backbone \texttt{C2f} modules (\texttt{model.2, 4, 6}) with \textbf{Dilation-wise Residual (\texttt{DWR})} multi-rate dilated convolutions (rates 1, 3, 5), replaces \texttt{SPPF} at \texttt{model.9} with \textbf{Atrous Spatial Pyramid Pooling (\texttt{ASPP})} (dilations 6, 12, 18 plus global average pooling), retains the stock PAN neck and detection head, and replaces box regression with a convex combination of CIoU and \textbf{Normalized Gaussian Wasserstein Distance (NWD)}~\cite{wang2021nwd}:
+  \begin{equation}
+  \mathcal{L}_{\text{CIoU-NWD}} = 0.5 \cdot \mathcal{L}_{\text{CIoU}} + 0.5 \cdot \left(1 - \exp\!\left(-\frac{\sqrt{W_2^2(\mathcal{N}_p, \mathcal{N}_g)}}{C}\right)\right), \qquad C = 12.8\text{ px}.
+  \label{eq:sota_nwd}
+  \end{equation}
+  In our unified five-class GDUT reproduction (\texttt{ce2a883e}), \texttt{B2} expands to \textbf{16,284,863 training parameters} (\textbf{16,275,615} fused deployed parameters) while transferring \textbf{10,612,223 parameters (65.17\%)} across 349 Stage 1 tensors (with 41 newly initialized \texttt{DWR}/\texttt{ASPP} tensors).
+\end{enumerate}
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig_baseline_b1_yolo11n_dcrcf.jpg}
+  \caption{\texttt{B1}: \texttt{YOLO11n-DCRCF} (Zhao et al., 2025~\cite{zhao2025yolodcrcf}) combining \texttt{DCNv2} backbone stages and bidirectional \texttt{SBA} (RCF) neck blocks.}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig_baseline_b2_yolov8s_dwr_aspp_nwd.png}
+  \caption{\texttt{B2}: \texttt{YOLOv8s-DWR-ASPP-NWD} (Song et al., 2024~\cite{song2024improved}) inserting \texttt{DWR} blocks, \texttt{ASPP}, and NWD box loss.}
+\end{subfigure}
+\caption{Architectural topologies of the two peer-reviewed state-of-the-art safety helmet detection baselines reproduced under our unified \texttt{ce2a883e} five-class GDUT-HWD Stage 1 protocol.}
+\label{fig:ch3_baselines_arch}
+\end{figure}
+
+Additional 2025--2026 helmet literature confirms strong community interest in lightweight multi-scale enhancement: Song \& Li~\cite{song2025yolov8} and Chen et al.~\cite{chen2025improved} customized \texttt{YOLOv8n} for complex scenes; Wu et al.~\cite{wu2025advancing} introduced \texttt{YOLOv8-CGS}; Zuo et al.~\cite{zuo2025enhanced} combined three lightweight modules in \texttt{Sensors}; and Wang et al.~\cite{wang2026yolov11ncoalmine} adapted \texttt{YOLOv11n} with RFAConv for underground coal mines. However, nearly all evaluate binary helmet detection without color-safe augmentation audits or integrated edge VMS verification.
+
+\section{Technological Advancements}
+
+Four recent technological shifts directly enable the systems architecture engineered in Chapter V:
+\begin{itemize}[leftmargin=1.8em, itemsep=3pt]
+  \item \textbf{Mixed-Precision Tensor Cores and Structural Fusion:} Modern edge GPUs (NVIDIA Ampere/Ada architectures including RTX 3050 and Jetson Orin) execute FP16 tensor operations via PyTorch Automatic Mixed Precision (\texttt{torch.cuda.amp.autocast}) at $1.5\times$--$2.0\times$ lower latency than FP32 while retaining FP32 accumulation in numerically sensitive layers (\texttt{CoordConv} grid generation and \texttt{BiFormer} attention softmax). Combined with \nolinkurl{RepConv.switch_to_deploy()} branch fusion and micro-batching ($N=4$), single-node GPUs comfortably serve multiple 1080p streams.
+  \item \textbf{Asynchronous Microservices \& Binary WebSocket Transport (FastAPI + Nginx + PostgreSQL 16):} Decoupling the control-plane API Gateway (\texttt{api-gateway} with \texttt{HALF\_OPEN} single-probe Circuit Breaker and PostgreSQL 16 persistence) from GPU inference (\texttt{ai-inference}) behind Nginx enables fault-isolated telemetry, Prometheus/Grafana observability, Binary WebSocket (\texttt{/ws/webcam}) live webcam ingestion, and non-blocking image audits without stalling CUDA inference threads.
+  \item \textbf{Containerized Edge \& Multi-Service Reproducibility (Docker + NVIDIA Container Toolkit):} Resource-constrained Docker Compose profiles (\nolinkurl{docker-compose.enterprise.yml} for 6-microservice production VMS and \nolinkurl{docker-compose.edge-simulation.yml} for \texttt{cpus: "4.0"}, \texttt{memory: 6144M} single-node emulation) guarantee deterministic deployment.
+  \item \textbf{Multi-Object Tracking and Temporal Debouncing:} Pairing frame-level detectors with ByteTrack~\cite{zhang2022bytetrack} or spatial proximity debouncing ($K=8$ consecutive frames + 30s cooldown) transforms noisy frame-by-frame detections into reliable incident logs suitable for industrial alerting over Telegram and Zalo webhooks.
+\end{itemize}
+
+\section{Comparison of Existing Systems}
+
+Table~\ref{tab:ch3_system_comparison} contrasts representative commercial VMS platforms, published academic helmet detectors, and our proposed \textbf{AEGIS-CCTV Enterprise VMS v3.0} platform across taxonomy depth, methodological audit rigor, edge deployment readiness, and observability.
+
+\begin{table}[htbp]
+\centering
+\caption{Multi-Dimensional Comparison of Existing Commercial VMS Platforms, Published Academic Helmet Detectors, and AEGIS-CCTV Enterprise VMS v3.0.}
+\label{tab:ch3_system_comparison}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.22}
+\begin{tabular}{|p{3.1cm}|p{2.3cm}|p{2.2cm}|p{2.2cm}|p{2.3cm}|p{2.4cm}|}
+\hline
+\rowcolor{slatehdr}
+\textbf{System / Study} & \textbf{Taxonomy} & \textbf{Data Audit \& Color Safety} & \textbf{Multi-Backbone / Multi-Seed} & \textbf{Edge VMS \& Alerting} & \textbf{CI/CD, Tests \& Telemetry} \\
+\hline
+Commercial VMS (Milestone / Genetec + Cloud AI) & Custom plugin (often binary PPE) & Closed vendor datasets & Proprietary black box & Enterprise VMS, high license cost & Commercial SLA, closed source \\
+\hline
+SSD-RPA (Wu et al., 2019~\cite{wu2019hardhats}) & 5-class GDUT-HWD & Raw 3,174 split (6 leaks unflagged) & Single-stage VGG/SSD & Offline evaluation only & None \\
+\hline
+YOLOv8s-DWR-ASPP-NWD (Song 2024~\cite{song2024improved}) & 2-class SHWD & Standard YOLO aug & Single backbone, single seed & Offline notebook only (16.3M params) & None \\
+\hline
+YOLO-DCRCF (Zhao 2025~\cite{zhao2025yolodcrcf}) & 2-class SHWD / power grid & Standard YOLO aug & Single backbone, 300ep scratch & Offline notebook only & None \\
+\hline
+YOLOv8-CGS / RFAConv (2025--2026~\cite{wu2025advancing,wang2026yolov11ncoalmine}) & 2-class helmet/head & Standard HSV jitter & Single backbone & No VMS, no Docker, no load test & None \\
+\hline
+\rowcolor{slatehdr}
+\textbf{AEGIS-CCTV v3.0 (Ours -- V1 + V2)} & \textbf{5-cls GDUT + 2-cls SHWD \& HHW (\texttt{V1})} & \textbf{SHA-256 dedup (3,168 clean) + \texttt{hsv\_h/s=0}} & \textbf{Dual-backbone (\texttt{A0--A6}) + unified \texttt{B1/B2} + 3-seed \texttt{V1}} & \textbf{6-Container Docker VMS, Agnostic NMS, Re-ID, TG/Zalo} & \textbf{GitHub CI (\texttt{ruff}), 139 \texttt{pytest}, 501/261 RPS, Grafana} \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+\section{Gaps in the Literature/Technology}
+
+Synthesizing the literature and commercial landscape exposes four concrete gaps directly addressed in this work:
+\begin{itemize}[leftmargin=1.8em, itemsep=3pt]
+  \item \textbf{Gap G1 (Unchecked Data Leakage and Chromatic Corruption in Multi-Color Helmet Benchmarks):} Existing GDUT-HWD studies rarely verify exact pixel duplicates across \texttt{trainval} and \texttt{test} splits or disable hue/saturation jitter when training multi-color helmet classifiers.
+  \item \textbf{Gap G2 (Lack of Unified-Protocol Audits for Published SOTA Helmet Detectors):} Published architectures such as \texttt{YOLO-DCRCF} and \texttt{YOLOv8s-DWR-ASPP-NWD}~\cite{zhao2025yolodcrcf,song2024improved} were originally benchmarked on two-class \texttt{SHWD}~\cite{shwd_dataset} and are rarely evaluated under identical five-class dataset fingerprints, warm-start recipes, and bare-head recall breakdowns, obscuring domain-shift drops and parameter-transfer bottlenecks.
+  \item \textbf{Gap G3 (Absence of Function-Preserving Initialization and Honest Negative Reporting in Ablations):} Complex multi-module YOLO variants rarely log pre-finetune initialization checks or per-worker DDP module inventories, obscuring whether performance changes arise from architectural merit, broken weight transfer, or augmentation shifts.
+  \item \textbf{Gap G4 (Severe Research-to-Production Gap in Edge Surveillance Software):} Academic helmet repositories almost universally stop at static \texttt{.pt} weights without dynamic taxonomy adaptation for Helmet-Only models, String-First color resolution, stationary-worker protection, verified \texttt{RepConv} deploy fusion, containerized edge packaging, or Prometheus/CI verification.
+\end{itemize}
+
+\section{Justification for the Project}
+
+Our architecture and engineering suite directly closes Gaps \textbf{G1--G4}. Rather than proposing another unverified architectural tweak evaluated solely on a single noisy split, this work pairs \textbf{forensic empirical rigor}---exact SHA-256 deduplication on \texttt{GDUT-HWD}, color-preserving augmentation, dual-backbone controlled ablations (\texttt{A0--A6}), unified \texttt{ce2a883e} Stage 1 SOTA comparisons (\texttt{B1}, \texttt{B2}) across all 15 reproducible Kaggle runs (\ref{app:kaggle_catalog}), and three-seed cross-domain validation (\textbf{Proposed V1} on \texttt{SHWD}~\cite{shwd_dataset} and zero-shot \texttt{HHW}~\cite{hard_hat_workers_mvd})---with \textbf{industrial-grade software delivery} via the 6-microservice \textbf{AEGIS-CCTV Enterprise VMS v3.0}. Reporting mixed negative results candidly (such as \texttt{A1} surpassing \texttt{A6} internally while \texttt{V2 A6} still decisively outperforming \texttt{B1} and \texttt{B2}) alongside verified RTX 3050 optimization gains ($1.61\times$ GPU speedup to 118.2 FPS, $8.46$ ms/frame) equips practitioners with trustworthy deployment guidance.
