@@ -1,0 +1,178 @@
+\chapter{Project Management Plan}
+\label{chap:pmp}
+
+\section{Team Work}
+
+\subsection{Team Structure and Roles}
+
+Group \textbf{GFA26AI17 (Group NTD)} operates under a flat, engineering-driven Agile/Scrum organizational structure tailored for a three-member Artificial Intelligence capstone team. Rather than siloing research from software delivery, every member maintains end-to-end comprehension of the dataset pipeline, model architectures, and production runtime while holding clear primary ownership over designated technical pillars. Table~\ref{tab:ch2_team_roles} specifies member roles, core technical ownership, Kaggle/Git artifacts, and backup responsibilities.
+
+\begin{table}[htbp]
+\centering
+\caption{Team Structure, Primary Ownership, and Artifact Accountability (Group GFA26AI17).}
+\label{tab:ch2_team_roles}
+\small
+\renewcommand{\arraystretch}{1.24}
+\begin{tabularx}{\textwidth}{|p{3.1cm}|p{2.3cm}|X|p{2.8cm}|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Member \& ID} & \textbf{Role} & \textbf{Primary Technical Responsibilities} & \textbf{Key Artifacts} \\
+\hline
+\textbf{Nguyen Han Nhu} \newline \texttt{SE183644} & Team Leader, Systems \& MLOps Architect & Project planning, supervisor liaison, AEGIS-CCTV Enterprise VMS v3.0 backend (\texttt{FastAPI} Gateway + AI Inference), Circuit Breaker, PostgreSQL 16 schema, flat light UI, Binary WebSocket webcam streaming, Confirm-Before-Mint non-biometric Upper-Torso Re-ID (\texttt{gdut\_reid.py}), Dynamic Taxonomy Adapter, Class-Agnostic NMS, String-First color fix, 6-microservice Enterprise \& Edge Docker packaging, GitHub Actions CI/CD (\texttt{ruff} + \nolinkurl{Dockerfile.gateway}), Prometheus/Grafana telemetry, \texttt{SHWD\_V1} archiving, RTX 3050 optimization \& Dual Load benchmarks, thesis integration. & \texttt{src/}, \texttt{tests/} (139), \texttt{SHWD\_V1/}, \texttt{docker-compose*}, \texttt{ci.yml}, \texttt{thesis\_report/} \\
+\hline
+\textbf{Nguyen Van Thanh} \newline \texttt{SE180387} & Lead ML Research Engineer & GDUT-HWD VOC-to-YOLO validation, SHA-256 RGB pixel deduplication, color-preserving HardAug, Stage 1 \& Stage 2 \texttt{A0--A6} ablations (\texttt{YOLO11s}/\texttt{YOLOv8s}), unified \texttt{ce2a883e} Stage 1 SOTA Baselines (\texttt{B1: YOLO11n-DCRCF}, \texttt{B2: YOLOv8s-DWR-ASPP-NWD}), unified comparator, final 1,587-image test evaluation, overall architecture schematics. & All 15 Official Kaggle Notebooks (\texttt{nvthanh2004}), \texttt{Overall.pdf}, \texttt{Baselines/} \\
+\hline
+\textbf{Tran Pham Tuan Dung} \newline \texttt{SE183674} & Research Validation \& QA Support & Literature survey synthesis, UI/UX field scenario preparation, UAT/SUS survey packaging, live construction video test curation, and report proofreading/formatting verification. & \texttt{docs/UAT\_SURVEY*}, \texttt{video\_test/}, thesis proofing \\
+\hline
+\end{tabularx}
+\end{table}
+
+Cross-functional peer review was mandatory for all major artifacts: all 15 Kaggle notebooks and raw CSV/JSON outputs produced by Thanh (\texttt{nvthanh2004}) were independently cross-verified 1-to-1 by Nhu via \nolinkurl{scripts/audit_kaggle_gdut_truth.py} (\texttt{75/75 MATCH}) before thesis integration, and AEGIS-CCTV deployment pipelines were tested end-to-end directly on Thanh's canonical GDUT five-class weights.
+
+\subsection{Communication Plan}
+
+Structured, multi-channel communication prevented experimental drift across distributed Kaggle training jobs and local VMS development. Table~\ref{tab:ch2_comm_plan} outlines the project's communication governance throughout the Fall 2026 term.
+
+\begin{table}[htbp]
+\centering
+\caption{Stakeholder and Internal Team Communication Plan.}
+\label{tab:ch2_comm_plan}
+\small
+\renewcommand{\arraystretch}{1.20}
+\begin{tabularx}{\textwidth}{|p{2.9cm}|p{2.4cm}|p{2.5cm}|X|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Channel / Ritual} & \textbf{Frequency} & \textbf{Participants} & \textbf{Purpose and Mandatory Outputs} \\
+\hline
+Supervisor Review Meeting & Weekly (60 min) & All 3 members + M.Sc. Ha Anh Vu & Progress audit, methodological critique, dataset/architecture sign-off, Review 1--3 milestone readiness. \\
+\hline
+Sprint Planning \& Retrospective & Bi-weekly (90 min) & All 3 members & Backlog reprioritization, GPU quota allocation across Kaggle accounts, risk register updates. \\
+\hline
+Daily Async Standup (Discord / Zalo) & Daily (10 min) & All 3 members & Blockers, running Kaggle job status, PR review assignments, hardware telemetry logs. \\
+\hline
+GitHub Issues \& Pull Requests & Continuous & All 3 members & Version-controlled code reviews, automated \texttt{pytest} + Docker CI checks before merging into \texttt{main}. \\
+\hline
+Formal Milestone Reviews & Review 1, 2, 3 & Team + Supervisor + External Committee & Formal defense checkpoints verifying scope alignment, baseline rigor, ablation completeness, and live product demo. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\section{Project Management Approach}
+
+\subsection{Work Breakdown Structure (WBS)}
+
+The 14-week capstone schedule was decomposed into four sequential yet overlapping engineering sprints aligned directly with FPT University's AIP491 Review 1, Review 2, and Review 3 deliverables. Every work package carries explicit inputs, compute/software resources, assigned owners, and verifiable acceptance criteria (Table~\ref{tab:ch2_wbs}).
+
+\begin{longtable}{|>{\centering\arraybackslash}p{1.0cm}|>{\raggedright\arraybackslash}p{2.9cm}|>{\raggedright\arraybackslash}p{4.9cm}|>{\raggedright\arraybackslash}p{2.0cm}|>{\raggedright\arraybackslash}p{2.5cm}|}
+\caption{Four-Sprint Work Breakdown Structure (WBS) for Capstone Project FA26AI16.}
+\label{tab:ch2_wbs} \\
+\hline
+\rowcolor{slatehdr}
+\textbf{WBS} & \textbf{Work Package} & \textbf{Deliverables \& Acceptance Criteria} & \textbf{Owner(s)} & \textbf{Timeline / Sprint} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{slatehdr}
+\textbf{WBS} & \textbf{Work Package} & \textbf{Deliverables \& Acceptance Criteria} & \textbf{Owner(s)} & \textbf{Timeline / Sprint} \\
+\hline
+\endhead
+\hline
+\endfoot
+1.1 & Problem Framing \& Literature Review & Proposal approval, literature matrix of 25+ papers, selection of B1 (Zhao 2025) and B2 (Song 2024). & Nhu, Thanh, Dung & Weeks 1--2 (Sprint 1) \\ \hline
+1.2 & GDUT-HWD Audit \& Deduplication & Exact VOC-to-YOLO converter, SHA-256 pixel duplicate audit (6 trainval duplicates removed), \nolinkurl{dataset_manifest.json}. & Thanh & Weeks 2--3 (Sprint 1) \\ \hline
+1.3 & Color-Preserving HardAug Pipeline & Offline Albumentations pipeline (\nolinkurl{hsv_h=0, hsv_s=0}) generating 1,265 augmented train images (\texttt{2,530} Stage 2 total). & Thanh & Week 3 (Sprint 1) \\ \hline
+2.1 & Stage 1 Backbone Training & Stock \texttt{YOLOv8s} and \texttt{YOLO11s} trained on 1,265 base GDUT images (\texttt{lr0=0.0003}, \texttt{seed=3407}); \texttt{A0} validation baseline. & Thanh & Weeks 4--5 (Sprint 2) \\ \hline
+2.2 & SOTA Baseline Reproduction (\texttt{B1}, \texttt{B2}) & Clean unified \texttt{ce2a883e} reproduction of \texttt{YOLO11n-DCRCF} and \texttt{YOLOv8s-DWR-ASPP-NWD} on GDUT Val (316) and Test (1,587). & Thanh & Weeks 5--6 (Sprint 2) \\ \hline
+2.3 & Auxiliary Cross-Domain Benchmark (\texttt{SHWD\_V1}) & Three-seed binary \texttt{SHWD} ablations (\texttt{A0--A4}), controlled YOLO baselines, and zero-shot \texttt{HHW} evaluation. & Nhu & Weeks 6--8 (Sprint 2--3) \\ \hline
+3.1 & Custom Modules \& Preflight Check & Implementation of \texttt{CoordConv}, \texttt{RepConv}, \texttt{BiFormerBlockLite}, \texttt{Focal-EIoU}, function-preserving init, 12-config preflight check. & Thanh & Weeks 6--7 (Sprint 3) \\ \hline
+3.2 & Stage 2 Controlled Ablations (\texttt{A1--A6}) & Independent DDP training of \texttt{A1--A6} on both \texttt{YOLO11s} and \texttt{YOLOv8s}; worker architecture audits and \nolinkurl{initialization_check.json}. & Thanh & Weeks 7--9 (Sprint 3) \\ \hline
+3.3 & Official 1,587-Image Final Test Eval & Consolidated test evaluation of all 14 checkpoints (\texttt{S1/A0} + \texttt{A1--A6} $\times 2$ backbones) on locked GDUT test split. & Thanh & Weeks 9--10 (Sprint 3) \\ \hline
+4.1 & AEGIS-CCTV VMS Backend \& UI & FastAPI MJPEG streaming server, Dynamic Taxonomy Adapter (Helmet-Only mode), String-First color fix, Milestone/Siemens-inspired Flat Light Enterprise VMS UI, Image Audit, HITL Feedback. & Nhu & Weeks 8--11 (Sprint 3--4) \\ \hline
+4.2 & Inference Optimization \& Profiling & Vectorized \texttt{torch.gather}, \nolinkurl{RepConv.switch_to_deploy()} verification, CUDA AMP FP16, micro-batching ($N=4$), RTX 3050 multi-stream profiling. & Nhu & Weeks 11--12 (Sprint 4) \\ \hline
+4.3 & Docker, CI/CD, Monitoring \& Testing & 6-microservice Enterprise + Single-Node Edge Docker, GitHub Actions CI/CD (\texttt{ruff} + Gateway build), Prometheus/Grafana (20 metrics, Linux cgroup RAM), 139 \texttt{pytest} cases (83 Clean-Room CI), Dual Load Test (501.1 / 260.8 RPS), UAT/SUS protocol. & Nhu & Weeks 12--13 (Sprint 4) \\ \hline
+4.4 & Thesis Report, Slides \& Defense Prep & Complete 100-page English Capstone Report (\texttt{Template\_AIP491}, within the 60--100 page spec), 20--25 defense slides, 3--5 min backup demo video, archival sync. & Nhu, Thanh, Dung & Weeks 13--14 (Sprint 4) \\
+\end{longtable}
+
+\subsection{Risk Management}
+
+Proactive risk identification prevented catastrophic schedule slips, silent metric distortion, and live defense failures. Table~\ref{tab:ch2_risk_matrix} documents the ten highest-priority technical and operational risks tracked throughout the project, along with executed mitigation actions.
+
+\begin{longtable}{|>{\centering\arraybackslash}p{0.9cm}|>{\raggedright\arraybackslash}p{2.8cm}|>{\centering\arraybackslash}p{1.5cm}|>{\centering\arraybackslash}p{1.5cm}|>{\raggedright\arraybackslash}p{6.6cm}|}
+\caption{Project Risk Register and Executed Mitigation Strategies.}
+\label{tab:ch2_risk_matrix} \\
+\hline
+\rowcolor{slatehdr}
+\textbf{ID} & \textbf{Risk Description} & \textbf{Prob.} & \textbf{Impact} & \textbf{Preventive Measure \& Executed Contingency} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{slatehdr}
+\textbf{ID} & \textbf{Risk Description} & \textbf{Prob.} & \textbf{Impact} & \textbf{Preventive Measure \& Executed Contingency} \\
+\hline
+\endhead
+\hline
+\endfoot
+R01 & Train--test pixel leakage inflating GDUT test metrics & High & Critical & Implemented RGB pixel SHA-256 deduplication; detected and removed 6 exact duplicates from \texttt{trainval} while keeping all 1,587 test images intact. \\ \hline
+R02 & HSV color jitter corrupting helmet color labels & High & High & Hard-locked \texttt{hsv\_h = 0.0} and \texttt{hsv\_s = 0.0} across both offline Albumentations and Ultralytics online augmentation. \\ \hline
+R03 & DDP multi-GPU workers reverting custom modules to stock Conv & Medium & Critical & Moved graph patching inside \nolinkurl{ResearchTrainer.get_model()} per worker and persisted \nolinkurl{architecture_rank_*.json} plus post-load checkpoint verification. \\ \hline
+R04 & Representation shock when replacing pretrained layers & High & High & Implemented function-preserving Stage 1 conversion (\texttt{coord\_from\_conv}, \texttt{rep\_from\_conv}, zero-BN residual \texttt{BiFormer}) and audited via \nolinkurl{initialization_check.json}. \\ \hline
+R05 & Hard-coded class ID lookup misclassifying GDUT yellow helmets as blue & High & High & Replaced index-first lookup with String-First color resolution in \nolinkurl{spatial_safety.py} and verified via \nolinkurl{test_dynamic_taxonomy_gdut.py}. \\ \hline
+R06 & Stationary-object filter erasing stationary workers in CCTV streams & Medium & High & Disabled static-furniture suppression for PPE classes and added 100-frame stationary regression tests (\nolinkurl{test_stationary_worker_ppe.py}). \\ \hline
+R07 & GPU initialization race condition causing black MJPEG video screen & Medium & High & Implemented Double-Checked Locking in \nolinkurl{_LazyPipelineProxy}, moved blocking API endpoints to ThreadPool (\texttt{def}), and added CUDA healthcheck polling in \nolinkurl{start_docker_edge.bat}. \\ \hline
+R08 & Secret/token exposure in Git repository or reports & Medium & Critical & Removed all hardcoded bot/Kaggle tokens from tracked files, migrated secrets to ignored \texttt{.env}, and ran automated regex secret scans prior to commit. \\ \hline
+R09 & Kaggle weekly GPU quota exhaustion during multi-model runs & High & Medium & Scheduled Kaggle T4x2 runs efficiently under \texttt{nvthanh2004} across all 15 official notebooks with automated manifest checkpointing. \\ \hline
+R10 & Network outage or GPU driver glitch during live Review 3 defense & Medium & High & Containerized 6-microservice Enterprise and single-node offline Docker stacks with local 1080p/4K test videos plus a pre-recorded 3--5 minute backup demonstration video. \\
+\end{longtable}
+
+\subsection{Quality Management}
+
+Quality assurance was enforced across both the \textbf{machine learning research track} and the \textbf{software engineering track} through objective, automated verification gates:
+
+\begin{enumerate}[leftmargin=1.8em, itemsep=3pt]
+  \item \textbf{Cryptographic Provenance and Manifest Locking:} Every GDUT dataset build writes \nolinkurl{preparation_complete.json}, \nolinkurl{duplicate_audit.json}, and \nolinkurl{dataset_manifest.json}. Every Kaggle training run records the SHA-256 \nolinkurl{dataset_fingerprint}, source Stage 1 checkpoint hash, output \texttt{best.pt} hash, per-rank module inventory (\nolinkurl{architecture_rank_0/1.json}), and re-evaluated \texttt{val\_check} metrics inside \nolinkurl{run_manifest.json}.
+  \item \textbf{Preflight Software Integration Testing:} Before launching full Kaggle training, \nolinkurl{GDUT_architecture_integration_check.ipynb} verifies all 12 model configurations (\texttt{A1--A6} $\times$ \texttt{YOLO11s}/\texttt{YOLOv8s}) on synthetic $2 \times 3 \times 64 \times 64$ tensors for finite forward/loss values, non-zero custom-module gradients, checkpoint save/reload equivalence, decoded output shape $2 \times 9 \times 84$, and sample \texttt{RepConv} fusion parity.
+  \item \textbf{Automated CI/CD and Regression Verification:} Every commit to \texttt{main} triggers GitHub Actions (\nolinkurl{.github/workflows/ci.yml}) executing static \texttt{ruff} checks (\texttt{E9,F63,F7,F82}), bytecode compilation (\texttt{python -m compileall -q src tests scripts}), all 83 Clean-Room CI \texttt{pytest} cases (\textbf{82 passed, 1 skipped} cleanly in weightless stub mode), Docker Compose schema validation, and slim Gateway image building (\nolinkurl{Dockerfile.gateway}), while the full local workspace suite passes all \textbf{139/139} regression tests on CPU (\textbf{138 passed, 1 skipped} in stub mode).
+  \item \textbf{Document Verification Gates:} This LaTeX report is compiled via \texttt{lualatex $\rightarrow$ bibtex $\rightarrow$ lualatex $\rightarrow$ lualatex} and audited by an automated PyMuPDF verification script confirming exact 100-page bounds (strictly within the 60--100 page specification), zero unresolved cross-references or citation markers, zero \texttt{Overfull} box warnings, zero stray non-English diacritics, and direct visual inspection of rendered PNG pages.
+\end{enumerate}
+
+\subsection{Budget and Funding}
+
+As an undergraduate university capstone project, \textbf{FA26AI16} was engineered to maximize compute efficiency with zero external commercial funding by combining Kaggle's free cloud GPU tiers with student-owned workstation hardware and open-source software stacks. Table~\ref{tab:ch2_budget} summarizes estimated equivalent resource costs and actual out-of-pocket expenditure.
+
+\begin{table}[htbp]
+\centering
+\caption{Project Resource Utilization and Cost Summary.}
+\label{tab:ch2_budget}
+\small
+\renewcommand{\arraystretch}{1.20}
+\begin{tabularx}{\textwidth}{|p{3.6cm}|p{3.3cm}|p{2.3cm}|X|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Resource Category} & \textbf{Specification} & \textbf{Actual Cost} & \textbf{Equivalent Cloud / Operational Notes} \\
+\hline
+Cloud GPU Training (Kaggle) & Dual NVIDIA Tesla T4 (2$\times$16 GB VRAM, 30 hrs/wk quota) & \$0 USD & Used for all 15 official \texttt{GDUT-HWD} Stage 1, \texttt{A0--A6}, and unified \texttt{B1/B2} runs (\texttt{nvthanh2004}) plus 3-seed \texttt{SHWD\_V1} runs. \\
+\hline
+Local Edge Workstation & NVIDIA RTX 3050 Laptop GPU (4 GB VRAM), Windows 11, Docker Desktop & Existing personal hardware & Used for AEGIS-CCTV VMS hosting, Docker Edge simulation, RTX 3050 inference optimization, and API load testing. \\
+\hline
+Software \& MLOps Stack & PyTorch, Ultralytics, Albumentations, FastAPI, Docker, GitHub Actions, LuaLaTeX & \$0 USD & 100\% open-source / free academic licensing; zero proprietary SaaS fees. \\
+\hline
+Alerting Channels & Telegram Bot API \& Zalo Bot Webhook & \$0 USD & Free developer bot tiers integrated via asynchronous webhook dispatcher. \\
+\hline
+Report Printing \& Binding & Hardcover gold-embossed thesis copies for Review 3 committee & $\approx$\$25 USD & Self-funded by Group GFA26AI17 for final university archival submission. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Change Management Process}
+
+All changes to research scope, dataset taxonomy, architectural topology, or software interfaces followed a four-step Change Control Protocol: (1) \textbf{Change Proposal} triggered by empirical audit findings or faculty committee review feedback; (2) \textbf{Impact Assessment} quantifying effects on dataset comparability, GPU budget, and VMS API backward compatibility; (3) \textbf{Supervisor/Team Approval} logged in meeting minutes and \texttt{memory.md}; and (4) \textbf{Versioned Cutover} with explicit archival of superseded artifacts.
+
+Two pivotal change requests shaped the final quality of Project \textbf{FA26AI16}:
+\begin{itemize}[leftmargin=1.8em, itemsep=3pt]
+  \item \textbf{CR-01 (Taxonomy Consolidation and Unified Baseline Protocol):} Following dataset integrity audits and the retirement of unharmonized early baselines, the team formally consolidated all five-class capstone evaluations onto the SHA-256 deduplicated \texttt{GDUT-HWD} dataset (3,168 images, 18,849 boxes) using all 15 official \texttt{nvthanh2004} Kaggle notebooks sharing the identical \texttt{ce2a883e} manifest, while cleanly archiving the three-seed binary \texttt{SHWD}/\texttt{HHW} (\textbf{Proposed V1}) benchmark under \texttt{SHWD\_V1/}.
+  \item \textbf{CR-02 (Architecture Diagram Reconciliation and Enterprise VMS Redesign):} Prior to Review 3, a code-to-diagram forensic audit revealed that legacy schematics depicted \texttt{RepConv} only in the neck and \texttt{BiFormer} inside PAN, whereas the canonical code places six \texttt{RepConv} blocks across both backbone and neck and \texttt{BiFormerBlockLite} at backbone P5 (\texttt{layer 10} on \texttt{YOLO11s}). The diagram was updated to \nolinkurl{GDUT_A6_YOLO11s_Overall_Simplified.pdf}, and following supervisor UI feedback, the AEGIS-CCTV dashboard was redesigned from a dark neon prototype into a clean Milestone/Siemens-inspired flat light enterprise VMS interface backed by a 6-microservice architecture and PostgreSQL 16 relational persistence.
+\end{itemize}
+
+\subsection{Closure and Evaluation}
+
+Formal project closure encompasses five concrete handoff gates: (1) complete verification of the 18-item Task 3 self-assessment checklist (documented in Appendix C); (2) synchronization of the finalized English thesis PDF and matching reflowable \texttt{.docx} export (\nolinkurl{Capstone_Thesis_Report_FA26AI16_GFA26AI17.{pdf,docx}}, strictly $\le 100$ PDF pages) with matching SHA-256 digests; (3) verification that the Clean-Room public repository passes GitHub Actions CI (\texttt{82 passed, 1 skipped} across 83 Clean-Room tests) and builds \nolinkurl{Dockerfile.gateway}, while the full workspace passes \texttt{pytest tests -q} (\texttt{139/139} CPU; \texttt{138 passed, 1 skipped} stub); (4) publication and 1-to-1 verification of all 15 official \texttt{nvthanh2004} Kaggle notebooks (\texttt{75/75 MATCH}) alongside \texttt{SHWD\_V1/} for independent reproducibility; and (5) archiving verified artifacts into \texttt{memory.md} alongside the defense slide deck and backup demonstration video.

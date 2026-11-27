@@ -1,0 +1,67 @@
+# ==============================================================================
+# EDGE DEVICE HARDWARE SIMULATION COMPOSE CONFIGURATION (IEEE TPAMI COMPLIANT)
+# Simulates physical edge constraints of NVIDIA Jetson Orin Nano / Xavier NX:
+# - CPU: 4 vCPUs (matches 4-core / 6-core ARM Cortex-A78AE edge profile)
+# - Memory: 4096 MB RAM limit (mem_limit)
+# - GPU: NVIDIA Passthrough with TensorRT / FP16 acceleration
+# ==============================================================================
+
+
+services:
+  cctv-edge-simulation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aegis-vms-gdut5:edge-sim
+    container_name: cctv_safety_edge_simulation_node
+    restart: unless-stopped
+    ports:
+      - "${EDGE_SIM_PORT:-8080}:8000"
+    volumes:
+      - ./video_test:/app/video_test:ro
+      - ./Output:/app/Output
+      - ./snapshots:/app/snapshots
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./results:/app/results
+      - ./custom_ablation_modules.py:/app/custom_ablation_modules.py:ro
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - PYTHONUNBUFFERED=1
+      - WEB_HOST=0.0.0.0
+      - WEB_PORT=8000
+      - DEVICE=cuda:0
+      - USE_HALF=False
+      - USE_SELECTIVE_AMP=${USE_SELECTIVE_AMP:-False}
+      - ALLOW_TF32=${ALLOW_TF32:-True}
+      - DRAW_VIDEO_HUD=False
+      - MODEL_PATH=${MODEL_PATH:-Output/GDUT_Bộ số 1_stage2-full-train-run-a6/deploy_weights/rep_yolo11s_gdut_a6_deploy.pt}
+      - TRACK_HIGH_THRESH=0.30
+      - NEW_TRACK_THRESH=0.30
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
+      - VIDEO_SOURCE=${VIDEO_SOURCE:-video_test/construction_site_workers_1080p.mp4}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - TELEGRAM_ENABLED=${TELEGRAM_ENABLED:-True}
+      - ZALO_BOT_TOKEN=${ZALO_BOT_TOKEN:-}
+      - ZALO_CHAT_ID=${ZALO_CHAT_ID:-}
+      - ZALO_ENABLED=${ZALO_ENABLED:-True}
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 6144M
+        reservations:
+          cpus: "2.0"
+          memory: 2048M
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

@@ -1,0 +1,166 @@
+"""
+src/alerting/telegram_bot.py
+============================
+Telegram Bot Alert Dispatcher for Construction Safety Violations.
+Bot Token: configured via TELEGRAM_BOT_TOKEN in .env (@safety_helmet_cctv_bot)
+Features:
+- Markdown formatted safety violation messages.
+- Photo attachment with bounding box overlays.
+- Dynamic chat_id discovery from /getUpdates.
+- Connection testing and diagnostic logging.
+"""
+
+from __future__ import annotations
+import os
+import time
+import requests
+from pathlib import Path
+from typing import Dict, Any, Optional, Tuple
+
+from src.config import config, update_env_file
+
+
+class TelegramAlertBot:
+    """Dispatches real-time alerts to Telegram."""
+
+    def __init__(self, token: Optional[str] = None, chat_id: Optional[str] = None):
+        self.token = token or config.telegram_bot_token
+        self.chat_id = chat_id or config.telegram_chat_id
+        self.api_base = f"https://api.telegram.org/bot{self.token}"
+
+    def test_connection(self) -> Tuple[bool, Dict[str, Any]]:
+        """Verify bot token validity with getMe."""
+        url = f"{self.api_base}/getMe"
+        try:
+            r = requests.get(url, timeout=5.0)
+            data = r.json()
+            if r.status_code == 200 and data.get("ok"):
+                return True, data.get("result", {})
+            return False, {"error": data.get("description", "Unknown error"), "code": r.status_code}
+        except Exception as e:
+            return False, {"error": str(e)}
+
+    def discover_latest_chat_id(self) -> Optional[str]:
+        """Auto-discovers the latest chat_id by querying getUpdates."""
+        url = f"{self.api_base}/getUpdates"
+        try:
+            r = requests.get(url, timeout=5.0)
+            data = r.json()
+            if data.get("ok") and data.get("result"):
+                # Take the most recent message's chat id
+                for update in reversed(data["result"]):
+                    msg = update.get("message") or update.get("channel_post") or update.get("my_chat_member")
+                    if msg:
+                        chat = msg.get("chat", {})
+                        c_id = str(chat.get("id"))
+                        if c_id:
+                            self.chat_id = c_id
+                            config.telegram_chat_id = c_id
+                            update_env_file({"TELEGRAM_CHAT_ID": c_id})
+                            print(f"✅ Discovered & Saved Telegram Chat ID: {c_id} (Username: {chat.get('username')})")
+                            return c_id
+        except Exception as e:
+            print(f"⚠️ Telegram getUpdates error: {e}")
+        return None
+
+    def send_message(self, text: str, chat_id: Optional[str] = None) -> Tuple[bool, str]:
+        """Sends a text message with Markdown formatting and exponential backoff retry."""
+        target_chat = chat_id or self.chat_id or config.telegram_chat_id
+        if not target_chat:
+            target_chat = self.discover_latest_chat_id()
+        if not target_chat:
+            return False, "No Telegram Chat ID configured. Please open @safety_helmet_cctv_bot and press Start."
+
+        url = f"{self.api_base}/sendMessage"
+        payload = {
+            "chat_id": target_chat,
+            "text": text,
+            "parse_mode": "Markdown",
+        }
+
+        last_error = ""
+        for attempt in range(3):
+            try:
+                r = requests.post(url, json=payload, timeout=10.0)
+                data = r.json()
+                if r.status_code == 200 and data.get("ok"):
+                    return True, "Message sent successfully"
+                last_error = f"Telegram error {r.status_code}: {data.get('description', '')}"
+                if r.status_code == 409 or r.status_code >= 500:
+                    time.sleep(1.0 * (attempt + 1))
+            except Exception as e:
+                last_error = f"Network exception: {str(e)}"
+                time.sleep(1.0 * (attempt + 1))
+        return False, last_error
+
+    def send_photo(self, photo_path: str | Path, caption: str, chat_id: Optional[str] = None) -> Tuple[bool, str]:
+        """Uploads a photo snapshot along with caption with exponential backoff retry."""
+        target_chat = chat_id or self.chat_id or config.telegram_chat_id
+        if not target_chat:
+            target_chat = self.discover_latest_chat_id()
+        if not target_chat:
+            return False, "No Telegram Chat ID configured. Please open @safety_helmet_cctv_bot and press Start."
+
+        url = f"{self.api_base}/sendPhoto"
+        file_path = Path(photo_path)
+        if not file_path.exists():
+            return False, f"Snapshot file not found: {photo_path}"
+
+        last_error = ""
+        for attempt in range(3):
+            try:
+                with open(file_path, "rb") as f:
+                    files = {"photo": (file_path.name, f, "image/jpeg")}
+                    data = {
+                        "chat_id": target_chat,
+                        "caption": caption,
+                        "parse_mode": "Markdown",
+                    }
+                    r = requests.post(url, data=data, files=files, timeout=15.0)
+                    res = r.json()
+                    if r.status_code == 200 and res.get("ok"):
+                        return True, "Photo sent successfully"
+                    last_error = f"Telegram error {r.status_code}: {res.get('description', '')}"
+                    if r.status_code == 409 or r.status_code >= 500:
+                        time.sleep(1.0 * (attempt + 1))
+            except Exception as e:
+                last_error = f"Network exception: {str(e)}"
+                time.sleep(1.0 * (attempt + 1))
+        return False, last_error
+
+    def dispatch_alert(self, alert_event: Dict[str, Any]) -> Tuple[bool, str]:
+        """Formats and dispatches safety violation alert."""
+        v_list = [v.replace("_", " ") for v in alert_event.get("violations", [])]
+        v_str = "\n".join([f"  • *{v}*" for v in v_list])
+        helmet_info = (
+            f"✅ YES ({alert_event.get('helmet_color', 'unknown')})"
+            if alert_event.get("has_helmet")
+            else "❌ NO (BARE HEAD)"
+        )
+        role_info = alert_event.get("historical_role_title") or alert_event.get("role_title") or "Unclassified"
+        hist_col = alert_event.get("historical_helmet_color")
+        role_line = f"{role_info} (Prior Helmet: {hist_col})" if hist_col else role_info
+        label_suffix = f" [{alert_event['custom_label']}]" if alert_event.get("custom_label") else ""
+
+        caption = (
+            f"🚨 *CRITICAL SAFETY VIOLATION DETECTED* 🚨\n\n"
+            f"📍 *Camera:* `{alert_event.get('camera_id')}`\n"
+            f"🕒 *Timestamp:* `{alert_event.get('timestamp')}`\n"
+            f"👷 *Personnel ID:* `#{alert_event.get('worker_id')}{label_suffix}` (Conf: {alert_event.get('confidence', 0)*100:.1f}%)\n"
+            f"🏷️ *Site Role:* {role_line}\n"
+            f"⚠️ *Violations:*\n{v_str}\n\n"
+            f"🔍 *Check Summary:*\n"
+            f"  - Hard Hat: {helmet_info}\n"
+            f"  - Duration: {alert_event.get('violation_duration_frames', 0)} frames\n\n"
+            f"⚡ *Action Required:* HSE officer please verify immediately!"
+        )
+
+        snapshot_path = alert_event.get("snapshot_path")
+        if snapshot_path and Path(snapshot_path).exists():
+            ok, msg = self.send_photo(snapshot_path, caption)
+            if ok:
+                return True, msg
+            # Fallback to text message if photo send failed
+            return self.send_message(caption)
+        else:
+            return self.send_message(caption)
