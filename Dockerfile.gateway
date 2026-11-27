@@ -1,0 +1,44 @@
+# ==============================================================================
+# AEGIS-CCTV API GATEWAY & CONTROL-PLANE DOCKERFILE (LIGHTWEIGHT NO-TORCH)
+# Handles: Control-Plane REST APIs, PostgreSQL ORM, HITL, Role Policy, Bot Alerts
+# Proxies AI inference calls to `ai-inference` with Circuit Breaker isolation
+# ==============================================================================
+
+FROM python:3.10-slim
+
+LABEL maintainer="Capstone AI Research Team"
+LABEL description="AEGIS-CCTV Enterprise API Gateway & Control Plane (No-PyTorch)"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV SERVICE_MODE=gateway
+ENV WEB_HOST=0.0.0.0
+ENV WEB_PORT=8000
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    "fastapi>=0.110.0" \
+    "uvicorn[standard]>=0.28.0" \
+    "httpx>=0.27.0" \
+    "sqlalchemy>=2.0.0" \
+    "psycopg2-binary>=2.9.9" \
+    "psutil>=5.9.0" \
+    "requests>=2.31.0" \
+    "python-dotenv>=1.0.0" \
+    "python-multipart>=0.0.9" \
+    "pydantic>=2.0.0"
+
+COPY src/ /app/src/
+COPY .env.example /app/.env.example
+RUN cp /app/.env.example /app/.env && \
+    mkdir -p /app/video_test /app/Output /app/snapshots
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=20s --timeout=5s --start-period=15s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/status', timeout=3)" || exit 1
+
+CMD ["python", "-m", "src.web.app"]

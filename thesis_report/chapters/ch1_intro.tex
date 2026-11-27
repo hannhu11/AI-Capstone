@@ -1,0 +1,132 @@
+\chapter{Project Introduction}
+\label{chap:intro}
+
+\section{Overview}
+
+\subsection{Project Information}
+
+This capstone project (\textbf{FA26AI16}) is executed by Group \textbf{GFA26AI17 (Group NTD)} at the Department of Artificial Intelligence, FPT University, Ho Chi Minh City Campus, under the academic supervision of \textbf{M.Sc. Ha Anh Vu}. The project delivers a rigorously audited, reproducible deep learning research framework and an industrial edge Video Management System (\textbf{AEGIS-CCTV VMS Safety Suite}) dedicated to real-time construction safety helmet detection and four-color helmet classification on the deduplicated \textbf{GDUT-HWD} five-class benchmark (\texttt{blue}, \texttt{white}, \texttt{yellow}, \texttt{red}, and \texttt{none}). Table~\ref{tab:ch1_project_info} summarizes the formal administrative metadata of the project.
+
+\begin{table}[htbp]
+\centering
+\caption{Administrative Overview of Capstone Project FA26AI16 (Group GFA26AI17).}
+\label{tab:ch1_project_info}
+\small
+\renewcommand{\arraystretch}{1.22}
+\begin{tabularx}{\textwidth}{|>{\bfseries}p{4.3cm}|X|}
+\hline
+\rowcolor{slatehdr}
+Attribute & Official Project Specification \\
+\hline
+Project Name & Structural Re-Parameterization, Spatial Coordinate Encoding, and Multi-Domain Robustness for Real-Time Safety Helmet and Color Classification in Construction Surveillance \\
+\hline
+Capstone Project Code & \textbf{FA26AI16} (Course: AIP491 -- Artificial Intelligence Capstone) \\
+\hline
+Group Identifier & \textbf{GFA26AI17 (Group NTD)} \\
+\hline
+Team Leader & Nguyen Han Nhu -- Student ID: \texttt{SE183644} (\texttt{Nhunhse183644@fpt.edu.vn}) \\
+\hline
+Team Member 2 & Nguyen Van Thanh -- Student ID: \texttt{SE180387} (\texttt{ThanhnvSE180387@fpt.edu.vn}) \\
+\hline
+Team Member 3 & Tran Pham Tuan Dung -- Student ID: \texttt{SE183674} (\texttt{DungtptSE183674@fpt.edu.vn}) \\
+\hline
+Academic Supervisor & M.Sc. Ha Anh Vu (\texttt{AnhVH54@fe.edu.vn}) \\
+\hline
+Primary Benchmark & Deduplicated \texttt{GDUT-HWD} 5-Class (\texttt{blue}, \texttt{white}, \texttt{yellow}, \texttt{red}, \texttt{none}): 3,168 clean images (1,265 train / 316 val / 1,587 test; 18,849 boxes) \\
+\hline
+Target Deliverable & Reproducible 15-Notebook Kaggle Audit Suite (\texttt{75/75 MATCH}) + Isolated \texttt{SHWD\_V1} Auxiliary Evaluation + 6-Microservice Enterprise VMS Stack \& Single-Node Edge Docker (139 \texttt{pytest} / 83 CI) \\
+\hline
+Submission Milestone & Review 3 / Final Capstone Defense -- Ho Chi Minh City, November 2026 \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Project Overview}
+
+This report documents the complete research lifecycle, mathematical formulation, empirical evaluation, and production software engineering in alignment with the FPT University AIP491 capstone specification. The document is organized into nine top-level Roman-numeral chapters:
+
+\begin{itemize}[leftmargin=1.8em, itemsep=3pt]
+  \item \textbf{Chapter I (Project Introduction)} establishes the occupational safety context, measurable engineering objectives, formal problem statement, scientific and industrial significance, and strict project scope boundaries.
+  \item \textbf{Chapter II (Project Management Plan)} details the three-member team structure, communication cadence, four-sprint Work Breakdown Structure (WBS), ten-item risk register, quality assurance governance, resource budget, Review 1--3 change management, and project closure protocol.
+  \item \textbf{Chapter III (Existing Systems / State of the Art)} reviews the evolution of one-stage object detectors from early YOLO architectures to \texttt{YOLOv8s} and \texttt{YOLO11s}, analyzes the mathematical foundations of \texttt{RepConv}, \texttt{CoordConv}, \texttt{BiFormer}, \texttt{TAL}, \texttt{DFL}, and \texttt{Focal-EIoU}, dissects our two reproduced state-of-the-art baselines (\texttt{YOLO11n-DCRCF} and \texttt{YOLOv8s-DWR-ASPP-NWD}) with architectural schematics, compares commercial VMS platforms against academic detectors, and identifies four concrete literature gaps.
+  \item \textbf{Chapter IV (Methodology)} formalizes Research Questions \texttt{RQ1--RQ4}, documents our exploratory auxiliary cross-domain benchmark (\textbf{Proposed V1} on two-class \texttt{SHWD} and zero-shot \texttt{HHW}) alongside our primary five-class benchmark (\textbf{Proposed V2} on SHA-256 deduplicated \texttt{GDUT-HWD}), justifies color-preserving hard augmentation (\nolinkurl{hsv_h = 0, hsv_s = 0}), specifies the two-stage training protocol and seven-branch ablation matrix (\texttt{A0--A6}) across \texttt{YOLO11s} and \texttt{YOLOv8s}, presents the finalized overall architecture schematic alongside module-level equations and code listings, reconciles legacy diagrams against verified runtime graphs, and discusses ethical safeguards.
+  \item \textbf{Chapter V (System Design and Implementation)} describes the seven-layer \textbf{AEGIS-CCTV Enterprise VMS v3.0} architecture spanning six isolated microservices (\texttt{frontend-nginx}, \texttt{api-gateway} with \texttt{HALF\_OPEN} single-probe Circuit Breaker, GPU \texttt{ai-inference}, \texttt{postgres:16}, \texttt{prometheus}, \texttt{grafana}) plus a Single-Node Edge profile, detailing the four-table PostgreSQL relational Entity--Relationship schema (\nolinkurl{src/db/database.py}), Dynamic Taxonomy Adapter, Class-Agnostic NMS (\texttt{agnostic\_nms=True}), String-First color resolution, Confirm-Before-Mint non-biometric Upper-Torso Re-ID with Two-Stage Gate (\nolinkurl{src/engine/gdut_reid.py}), \texttt{C960 Ultra} Binary WebSocket (\texttt{/ws/webcam}), Solo Focus vector rendering, Double-Checked Locking hot-swap APIs, symmetrical 8-frame debouncing, and GitHub Actions CI/CD (\texttt{ruff} + \nolinkurl{Dockerfile.gateway}).
+  \item \textbf{Chapter VI (Results and Discussion)} reports complete, unvarnished empirical findings across all 15 public Kaggle notebooks (\texttt{75/75 MATCH}, Appendix~\ref{app:kaggle_catalog}) and our isolated \texttt{SHWD\_V1} archive: (1) unified \texttt{ce2a883e} Stage 1 protocol comparison against published baselines \texttt{B1} (\texttt{YOLO11n-DCRCF}) and \texttt{B2} (\texttt{YOLOv8s-DWR-ASPP-NWD}), proving \texttt{V2 A6 (YOLO11s)} surpasses both; (2) \texttt{A0--A6} validation and official 1,587-image test ablations including 4-decimal \texttt{summary.csv} resolution; (3) \textbf{Proposed V1} three-seed \texttt{SHWD} and zero-shot \texttt{HHW} cross-domain validation plus a unified synthesis table and candid failure-case / OOD error analysis; (4) Before-vs-After RTX 3050 optimization ($13.62 \to 8.46$ ms, 118.2 FPS), paired end-to-end Re-ID profiling ($+0.16$ ms amortized), and \nolinkurl{switch_to_deploy()} parity; and (5) 139/139 CPU \texttt{pytest} verification (82 passed, 1 skipped in Clean-Room CI), Dual Load Testing (501.1 / 260.8 RPS), and the UAT/SUS protocol.
+  \item \textbf{Chapter VII (Conclusion)} synthesizes key findings, articulates technical contributions, and candidly states four objective limitations alongside future research directions.
+  \item \textbf{Chapter VIII (References)} lists all verified academic references formatted consistently in IEEE style.
+  \item \textbf{Chapter IX (Appendices)} provides the complete Kaggle notebook catalog and SHA-256 manifest registry (Appendix A), full REST API specification (Appendix B), the 18-item Capstone Task 3 self-assessment evidence table (Appendix C), and Docker/CI/UAT artifacts (Appendix D).
+\end{itemize}
+
+\section{Project Background}
+
+Construction remains one of the most hazardous industrial sectors globally, accounting for a disproportionate share of fatal and severe non-fatal occupational injuries. Falling objects, overhead crane operations, structural scaffolding collapses, and accidental impacts against steel reinforcement routinely cause traumatic brain injuries (TBI). Regulatory safety standards worldwide---including OSHA 29 CFR 1926.100 in the United States, EN 397 across the European Union, and Vietnam's QCVN 18:2021/BXD national technical regulation on safety in construction---mandate continuous wearing of certified safety hardhats inside active work zones.
+
+Beyond binary compliance (helmet present versus bare head), modern construction governance relies heavily on \textbf{color-coded helmet taxonomies} to enforce role-based access control and rapid visual accountability across large civil engineering sites~\cite{wu2019hardhats,wang2021fast}:
+\begin{itemize}[leftmargin=1.8em, itemsep=2pt]
+  \item \textbf{White Helmet (\texttt{white}):} Project managers, structural engineers, architects, and authorized site inspectors permitted in high-complexity supervisory zones.
+  \item \textbf{Yellow Helmet (\texttt{yellow}):} General construction laborers, heavy-equipment operators, and earthmoving crews executing primary physical tasks.
+  \item \textbf{Blue Helmet (\texttt{blue}):} Electrical technicians, carpenters, technical specialists, and shift supervisors.
+  \item \textbf{Red Helmet (\texttt{red}):} Occupational Health and Safety (OHS) officers, fire wardens, and emergency response coordinators.
+  \item \textbf{Bare Head / No Helmet (\texttt{none}):} Personnel exhibiting an immediate, high-severity safety compliance violation requiring rapid supervisory intervention.
+\end{itemize}
+
+Traditionally, safety compliance has been enforced through manual site patrols or human operators watching multi-camera CCTV walls in Site Operations Centers (SOCs). Manual monitoring suffers from well-documented operational failures: visual fatigue causes operator attention to degrade sharply after 20 minutes of continuous screen watching, physical patrols cover only a tiny spatiotemporal fraction of a multi-hectare site, and human observers rarely maintain verifiable forensic logs of recurring compliance breaches.
+
+Recent advances in real-time deep learning object detectors---notably the anchor-free YOLO family (\texttt{YOLOv8}~\cite{jocher2023yolov8}, \texttt{YOLOv9}~\cite{wang2024yolov9}, \texttt{YOLOv10}~\cite{wang2024yolov10}, \texttt{YOLO11}~\cite{ultralytics2024yolo11}, and \texttt{YOLOv12}~\cite{tian2025yolov12})---enable automated visual inspection directly on CCTV streams. However, translating academic helmet detection prototypes into reliable construction-site deployments exposes serious methodological and engineering gaps. First, published helmet detectors frequently benchmark only two-class presence (\texttt{hat} vs. \texttt{person}) or train on unverified datasets containing cross-split image duplicates that artificially inflate test accuracy. Second, standard color jitter augmentations (\texttt{hsv\_h}, \texttt{hsv\_s}) routinely applied in generic object detection pipelines shift helmet hues across class boundaries (e.g., turning yellow helmets red or white), silently injecting label noise into five-class color detectors. Third, architectural papers often claim monotonic accuracy gains from adding deformable convolutions, attention blocks, or custom IoU losses without verifying weight-transfer integrity, pre-finetune function preservation, or matched multi-seed baselines. Fourth, standalone training notebooks do not satisfy industrial VMS requirements such as real-time MJPEG streaming, temporal violation debouncing, multi-channel alerting, containerized edge deployment, and live telemetry observability.
+
+Our research and engineering effort directly addresses both halves of this challenge: conducting an uncompromising, dual-phase empirical investigation spanning auxiliary cross-domain generalization (\texttt{SHWD\_V1}) and deduplicated five-class classification on \textbf{GDUT-HWD}, and engineering a complete, edge-ready surveillance software suite (\textbf{AEGIS-CCTV VMS v3.0}) capable of running GDUT five-class models in real time on constrained edge hardware.
+
+\section{Project Objective}
+
+To guide development and establish clear acceptance criteria, five Specific, Measurable, Achievable, Relevant, and Time-bound (SMART) project objectives govern the design:
+
+\begin{enumerate}[leftmargin=2.0em, itemsep=4pt]
+  \item \textbf{Objective O1 -- Forensically Audited Five-Class Data Pipeline:} Construct a deterministic, leakage-free preparation pipeline for \texttt{GDUT-HWD} (\texttt{blue}, \texttt{white}, \texttt{yellow}, \texttt{red}, \texttt{none}) that verifies 100\% XML-to-image consistency, removes all RGB pixel-identical duplicates between \texttt{trainval} and \texttt{test} via SHA-256 hashing while keeping all 1,587 official test images intact, records cryptographic dataset fingerprints (\nolinkurl{dataset_manifest.json}), and applies color-preserving offline hard augmentation (\texttt{hsv\_h = 0}, \texttt{hsv\_s = 0}) without altering helmet chromaticity.
+  \item \textbf{Objective O2 -- Unified-Protocol SOTA Baseline Reproduction:} Reproduce two peer-reviewed helmet detection baselines---Baseline 1 (\texttt{YOLO11n-DCRCF}~\cite{zhao2025yolodcrcf}) and Baseline 2 (\texttt{YOLOv8s-DWR-ASPP-NWD}~\cite{song2024improved})---under the identical \texttt{ce2a883e} deduplicated five-class GDUT-HWD splits and 48 matched Stage 2 hyperparameters, quantifying exact parameter-transfer ratios, official test generalization gaps relative to their two-class literature claims, and direct efficiency-vs-accuracy trade-offs against \texttt{Proposed V2 A6}.
+  \item \textbf{Objective O3 -- Controlled Two-Stage Architectural Ablation Across Dual Backbones:} Design and execute a seven-configuration controlled ablation study (\texttt{A0--A6}) spanning \texttt{CoordConv}, \texttt{RepConv}, \texttt{BiFormerBlockLite}, and \texttt{Focal-EIoU} on both \texttt{YOLO11s} and \texttt{YOLOv8s} using function-preserving Stage 1 initialization, DDP per-worker graph auditing, and strictly separated validation (316 images) and official test (1,587 images) evaluations targeting $\ge 88\%$ test mAP@50 and $\ge 92\%$ validation mAP@50.
+  \item \textbf{Objective O4 -- Edge Inference Optimization and Hardware Profiling:} Accelerate \texttt{Rep-YOLO11s-GDUT-A6} via vectorized \texttt{torch.gather} routing, mathematical \nolinkurl{RepConv.switch_to_deploy()} branch fusion (verified to IEEE FP32 precision), CUDA AMP FP16 execution, and micro-batching ($N=4$) to exceed the 25 FPS per-stream real-time SLA by $>3\times$ on an edge-class NVIDIA RTX 3050 GPU with zero detection-count drift.
+  \item \textbf{Objective O5 -- Enterprise VMS Packaging, MLOps, and Verification:} Deliver both the 6-microservice \textbf{AEGIS-CCTV Enterprise VMS v3.0} Docker stack (\texttt{nginx}, \texttt{api-gateway} + Circuit Breaker, \texttt{ai-inference}, \texttt{postgres:16}, \texttt{prometheus}, \texttt{grafana}) and a Single-Node Edge Docker profile with Dynamic Taxonomy Adaptation, Class-Agnostic NMS, String-First color resolution, Confirm-Before-Mint non-biometric Upper-Torso Re-ID (\texttt{gdut\_reid.py}), \texttt{C960 Ultra} Binary WebSocket, zero-downtime model hot-swap, symmetrical 8-frame debouncing, Telegram/Zalo alerting, Image Audit, HITL feedback, GitHub Actions CI/CD, 100\% CPU pass rate across $\ge 120$ automated \texttt{pytest} cases, and Dual Load Testing ($\ge 220$ RPS 6-container Docker / $\ge 440$ RPS in-process at $0.0\%$ error).
+\end{enumerate}
+
+\section{Problem Statement}
+
+Deploying an automated five-class safety helmet and color classification engine into active construction surveillance entails four intertwined scientific and systems-engineering problems:
+
+\begin{enumerate}[leftmargin=2.0em, itemsep=4pt]
+  \item \textbf{Small-Scale, Occluded, and Visually Ambiguous Bare Heads (\texttt{none}):} In elevated wide-angle construction CCTV frames, human heads and hardhats frequently occupy less than $32 \times 32$ pixels (under $0.25\%$ of frame area), appearing behind scaffolding meshes, rebar cages, shadows, and crane booms. Unlike vividly colored plastic hardhats (\texttt{yellow}, \texttt{white}, \texttt{blue}, \texttt{red}) that exhibit crisp dome silhouettes and specular reflectance, unprotected bare heads (\texttt{none}) exhibit extreme appearance variance across hair styles, caps, skin tones, and dark cluttered backgrounds. Even when bare heads constitute the largest class in the dataset (2,200 test boxes in \texttt{GDUT-HWD}), detectors consistently suffer their lowest recall and AP@50 on \texttt{none}, creating the highest safety risk.
+  \item \textbf{Chromatic Sensitivity and Dataset Integrity Hazards:} Generic object detection recipes apply random HSV hue and saturation shifts (\texttt{hsv\_h = 0.015}, \texttt{hsv\_s = 0.7}) that subtly or severely corrupt helmet color appearance relative to ground-truth color IDs. Simultaneously, unverified public benchmark splits often harbor exact duplicate images across \texttt{trainval} and \texttt{test} partitions (six exact pixel duplicates uncovered by our SHA-256 audit of raw \texttt{GDUT-HWD}), silently inflating reported generalization metrics unless systematically audited.
+  \item \textbf{Unverified Architectural Complexity vs. Transfer Integrity:} Modern helmet detection papers routinely replace standard convolutional necks or attention stages with deformable convolutions (\texttt{DCNv2}), boundary aggregation blocks (\texttt{SBA}), dilated residual networks (\texttt{DWR}), or sparse transformers (\texttt{BiFormer})~\cite{zhao2025yolodcrcf,song2024improved,zhu2023biformer}. When applied in fine-tuning regimes on medium-sized industrial datasets (1,265--2,530 training images), newly initialized parameters or disruptive replacements of pretrained blocks (such as replacing YOLO11's \texttt{C2PSA}) can induce severe representation shock, degrading mAP@50--95 and inflating inference latency relative to simpler, well-augmented baselines.
+  \item \textbf{Production Edge-Deployment Gap (Notebook-to-VMS Chasm):} Raw PyTorch detection scripts lack the fault-tolerant architecture needed on construction sites: fixed class-ID lookups misclassify GDUT \texttt{cls=2} (\texttt{yellow}) as \texttt{blue} when reused from multi-PPE models; single-frame detector flicker floods Telegram/Zalo channels with false alarms; naive stationary-object filters inadvertently erase stationary workers welding or inspecting; blocking synchronous API locks freeze MJPEG video streams; and edge deployments require reproducible Docker containers, live Prometheus resource telemetry, and automated CI regression verification.
+\end{enumerate}
+
+\section{Significance of the Project}
+
+This project delivers tangible value across three complementary dimensions:
+
+\begin{itemize}[leftmargin=1.8em, itemsep=4pt]
+  \item \textbf{Scientific and Methodological Significance:} Rather than presenting cherry-picked positive gains, our work exemplifies rigorous, reproducible empirical AI research. By enforcing SHA-256 dataset deduplication, cryptographic manifest tracking, function-preserving Stage 1 weight conversion, pre-finetune initialization audits, three-seed cross-domain \texttt{SHWD\_V1} evaluation, and unified-protocol SOTA comparisons across all 15 public Kaggle notebooks (Appendix~\ref{app:kaggle_catalog}), we uncover actionable scientific insights: (a) why \textbf{Proposed V2 \texttt{A6}} outperforms both \texttt{B1} and \texttt{B2} under unified protocols while color-preserving \texttt{A1} peaks internally; (b) how replacing \texttt{C2PSA} versus appending after \texttt{SPPF} governs transfer stability; and (c) how two-class \texttt{SHWD $\to$ HHW} cross-domain regularization (\textbf{Proposed V1}) complements five-class deployment.
+  \item \textbf{Software and MLOps Engineering Significance:} The \textbf{AEGIS-CCTV Enterprise VMS v3.0} platform demonstrates how deep learning models are hardened into production industrial software. Features such as four-table PostgreSQL relational persistence (\nolinkurl{src/db/database.py}), Dynamic Taxonomy Adaptation, Class-Agnostic NMS, String-First color decoding, Confirm-Before-Mint non-biometric Upper-Torso Re-ID with Two-Stage Gate, Double-Checked Locking GPU initialization, Circuit-Breaker gateway resilience, \texttt{C960 Ultra} Binary WebSocket streaming, vectorized \texttt{torch.gather} attention, verified \nolinkurl{RepConv.switch_to_deploy()} fusion, pure ASGI Prometheus telemetry (matching Linux cgroup v2 working-set RAM), 15-panel Grafana dashboards, and 139 automated \texttt{pytest} tests establish a reusable blueprint for edge computer vision engineering.
+  \item \textbf{Industrial and Societal Significance:} Enabling 24/7 automated helmet compliance and role-color verification on low-cost, on-premises edge hardware (RTX 3050 / Jetson-class nodes) lowers barrier-to-entry for Vietnamese and regional construction contractors. Local on-premises processing eliminates continuous cloud streaming fees, preserves worker visual privacy within the contractor's private LAN, and accelerates incident response to bare-head violations through real-time debounced alerts with zoomed forensic evidence snapshots.
+\end{itemize}
+
+\section{Project Scope \& Limitations}
+
+\subsection{Explicit Project Scope}
+
+To maintain unambiguous focus and scientific discipline, the scope of this work is bounded strictly as follows:
+\begin{itemize}[leftmargin=1.8em, itemsep=3pt]
+  \item \textbf{Primary Visual Task and Dataset (\textbf{Proposed V2}):} Exclusively five-class safety helmet detection and helmet color classification (\texttt{0: blue}, \texttt{1: white}, \texttt{2: yellow}, \texttt{3: red}, \texttt{4: none}) evaluated on deduplicated \textbf{GDUT-HWD} (3,168 clean images: 1,265 train / 316 validation / 1,587 official test; 2,530 Stage 2 training images with color-preserving hard augmentation), spanning fourteen \texttt{A0--A6} ablation checkpoints plus four unified \texttt{ce2a883e} baseline runs (\texttt{B1}, \texttt{B2}, Stage 1 \texttt{YOLO11n}, and comparator).
+  \item \textbf{Isolated Auxiliary Cross-Domain Benchmark (\textbf{Proposed V1}):} Binary two-class detection (\texttt{hat}, \texttt{person}) evaluated over three random seeds (\texttt{42, 1337, 2026}) on \textbf{SHWD}~\cite{shwd_dataset} (1,517 held-out test images) and zero-shot \textbf{HHW}~\cite{hard_hat_workers_mvd} (1,766 test images), archived independently under \texttt{SHWD\_V1/} strictly without cross-dataset arithmetic or exploratory multi-vest (\texttt{CHV}/unified) mixing.
+  \item \textbf{Production Software Deliverable:} The 6-microservice \textbf{AEGIS-CCTV Enterprise VMS v3.0} Docker stack and Single-Node Edge Docker profile operating natively in GDUT 5-class Helmet-Only mode verified via 139 automated \texttt{pytest} cases, RTX 3050 paired E2E/optimization profiling, and Dual Load Tests (in-process ASGI and 6-container Enterprise Docker up to $C=100$).
+\end{itemize}
+
+\subsection{Acknowledged Limitations}
+
+Five operational and experimental boundaries are documented transparently and analyzed in Chapters VI and VII:
+\begin{enumerate}[leftmargin=1.8em, itemsep=3pt]
+  \item \textbf{Single-Seed Execution on Five-Class \texttt{GDUT-HWD}:} While auxiliary two-class \texttt{Proposed V1} ablations (\texttt{SHWD\_V1/}) were replicated across three seeds (\texttt{42, 1337, 2026}), all 15 \texttt{GDUT-HWD} runs use deterministic \texttt{seed = 3407}; sub-percentage deltas among \texttt{A2--A6} should therefore be interpreted alongside multi-backbone consistency rather than standalone single-seed variance.
+  \item \textbf{Unfused Topology in \texttt{final\_test\_evaluation} vs. Fused Comparator:} The standalone 14-checkpoint test script (\nolinkurl{gdut-final-test-evaluation}) logged Tesla T4 latency without invoking \nolinkurl{switch_to_deploy()}, whereas \nolinkurl{gdut-baseline-and-a6-stage1-protocol-comparison} measured unified FP32 fused median latency (\texttt{15.207 ms} vs. \texttt{22.396 ms} \texttt{B2}) and local RTX 3050 benchmarks explicitly quantify \nolinkurl{switch_to_deploy()} parity.
+  \item \textbf{Confounded Augmentation Between \texttt{A1} and \texttt{A2--A6}:} Configuration \texttt{A1} used online \texttt{mixup = 0.1} and \texttt{hsv\_v = 0.45}, whereas \texttt{A2--A6} and \texttt{B1/B2} locked \texttt{mixup = 0.0} and \texttt{hsv\_v = 0.4}; this asymmetry is analyzed explicitly in Chapter VI.
+  \item \textbf{Out-of-Distribution (OOD) Non-Industrial Headgear:} Trained strictly on five construction classes, \texttt{GDUT-HWD} weights misclassify non-construction headwear (e.g., pith helmets or motorcycle helmets observed in webcam stress tests); such OOD failure modes are analyzed candidly in Chapter VI.
+  \item \textbf{Pending Large-Scale Field UAT Scoring:} Although the ten-item System Usability Scale (SUS) questionnaire and four operational UAT scenarios are complete in \nolinkurl{docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md}, external construction safety officer scoring ($N \ge 10$) remains scheduled post-defense; zero synthetic SUS scores are reported.
+\end{enumerate}
