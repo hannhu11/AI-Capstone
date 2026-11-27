@@ -1,0 +1,2743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AEGIS-VMS // INDUSTRIAL CCTV SURVEILLANCE (GDUT-HWD 5-Class)</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='2' fill='%230F4C81'/%3E%3Crect x='4' y='4' width='8' height='8' fill='%23FFFFFF'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-canvas: #F3F4F6;
+      --bg-surface: #FFFFFF;
+      --bg-subtle: #F8FAFC;
+      --border-hairline: #D1D5DB;
+      --border-strong: #9CA3AF;
+      --text-primary: #111827;
+      --text-secondary: #4B5563;
+      --text-muted: #6B7280;
+      --accent-steel: #0F4C81;
+      --accent-steel-hover: #0C3C66;
+      --accent-steel-bg: #EFF6FF;
+      --status-compliant: #15803D;
+      --status-compliant-bg: #DCFCE7;
+      --status-caution: #B45309;
+      --status-caution-bg: #FEF3C7;
+      --status-critical: #B91C1C;
+      --status-critical-bg: #FEE2E2;
+      --bezel-dark: #0D1117;
+      --radius: 4px;
+      --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+      font-size: 13px;
+      line-height: 1.4;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Top Operational Bar (2-Tier Milestone/Siemens Header) */
+    .topbar {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .topbar-primary {
+      height: 44px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .topbar-secondary {
+      min-height: 38px;
+      padding: 4px 14px;
+      background: var(--bg-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 10px;
+      height: 22px;
+      background: var(--accent-steel);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    .taxonomy-badge {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      padding: 2px 7px;
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-subtle);
+      color: var(--accent-steel);
+      border-radius: var(--radius);
+      white-space: nowrap;
+    }
+
+    .source-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .source-selectors {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .selector-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .seg-group {
+      display: inline-flex;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--bg-subtle);
+    }
+
+    .seg-btn {
+      border: none;
+      border-right: 1px solid var(--border-hairline);
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .seg-btn:last-child { border-right: none; }
+    .seg-btn:hover { background: #E5E7EB; color: var(--text-primary); }
+    .seg-btn.active {
+      background: var(--accent-steel);
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+
+    select.ctrl-select, input.ctrl-input {
+      height: 29px;
+      padding: 0 8px;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 12px;
+    }
+    select.ctrl-select:focus, input.ctrl-input:focus {
+      outline: 1px solid var(--accent-steel);
+      border-color: var(--accent-steel);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      height: 29px;
+      padding: 0 10px;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .btn:hover { background: var(--bg-subtle); border-color: var(--border-strong); }
+    .btn-primary {
+      background: var(--accent-steel);
+      border-color: var(--accent-steel);
+      color: #FFFFFF;
+    }
+    .btn-primary:hover { background: var(--accent-steel-hover); }
+    .btn-danger {
+      color: var(--status-critical);
+      border-color: #FCA5A5;
+      background: #FEF2F2;
+    }
+    .btn-danger:hover { background: var(--status-critical-bg); }
+    .btn-sm { height: 24px; padding: 0 8px; font-size: 11px; }
+    .btn.active-toggle {
+      background: var(--accent-steel);
+      color: #FFFFFF;
+      border-color: var(--accent-steel);
+    }
+
+    /* Main 3-Column SCADA Workspace */
+    .workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 308px minmax(520px, 1fr) 328px;
+      gap: 10px;
+      padding: 10px;
+      max-width: 1920px;
+      width: 100%;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 8px 11px;
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-hairline);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px 8px;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .panel-body {
+      padding: 10px;
+    }
+
+    .col-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    /* Filter Chips */
+    .chip-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .chip-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+
+    .filter-chip {
+      height: 25px;
+      padding: 0 8px;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .filter-chip:hover { background: var(--bg-subtle); border-color: var(--border-strong); }
+    .filter-chip.active {
+      background: var(--accent-steel);
+      border-color: var(--accent-steel);
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+    .filter-chip.active-danger {
+      background: var(--status-critical);
+      border-color: var(--status-critical);
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+
+    .swatch {
+      width: 9px;
+      height: 9px;
+      border-radius: 2px;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      flex-shrink: 0;
+    }
+
+    /* Tabs */
+    .tabs-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border-hairline);
+      background: var(--bg-subtle);
+    }
+    .tab-btn {
+      flex: 1;
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      padding: 7px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      color: var(--accent-steel);
+      border-bottom-color: var(--accent-steel);
+      background: var(--bg-surface);
+    }
+
+    /* Personnel Registry List */
+    .registry-list {
+      max-height: 520px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .worker-row {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .worker-row:last-child { border-bottom: none; }
+    .worker-row.focused {
+      background: var(--accent-steel-bg);
+      border-left: 3px solid var(--accent-steel);
+    }
+    .worker-row.violation {
+      background: #FFFBFB;
+    }
+
+    .worker-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .worker-id-tag {
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .pill-compliant { background: var(--status-compliant-bg); color: var(--status-compliant); }
+    .pill-violation { background: var(--status-critical-bg); color: var(--status-critical); }
+    .pill-memory { background: #E5E7EB; color: var(--text-secondary); }
+
+    .worker-role-line {
+      font-size: 11px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .worker-meta-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .worker-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    /* Center Viewport Monitor */
+    .viewport-bezel {
+      background: var(--bezel-dark);
+      border: 1px solid #1F2937;
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .viewport-header {
+      height: 30px;
+      padding: 0 10px;
+      background: #111827;
+      border-bottom: 1px solid #1F2937;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #E5E7EB;
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #viewportChannelLabel {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .rec-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #DC2626;
+    }
+    .rec-dot.paused { background: #D97706; }
+
+    .viewport-stage {
+      position: relative;
+      width: 100%;
+      background: var(--bezel-dark);
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .viewport-stage img,
+    .viewport-stage video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      user-select: none;
+    }
+
+    #webcamOverlayCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    #clickToFocusLayer {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      cursor: default;
+    }
+
+    .viewport-hint {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      z-index: 6;
+      background: rgba(17, 24, 39, 0.82);
+      color: #D1D5DB;
+      border: 1px solid #374151;
+      border-radius: 3px;
+      padding: 3px 7px;
+      font-size: 10px;
+      pointer-events: none;
+    }
+
+    /* Transport Control Bar */
+    .transport-bar {
+      background: var(--bg-subtle);
+      border-top: 1px solid var(--border-hairline);
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .transport-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .transport-btns {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .scrubber-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    input[type="range"].seek-slider {
+      flex: 1;
+      height: 5px;
+      accent-color: var(--accent-steel);
+      cursor: pointer;
+    }
+
+    /* Webcam C960 Panel */
+    .webcam-bar {
+      background: var(--bg-subtle);
+      border-top: 1px solid var(--border-hairline);
+      padding: 8px 10px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .webcam-bar.visible { display: flex; }
+
+    /* KPI Row */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius);
+      padding: 9px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .kpi-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .kpi-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.15;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* Analytics Row */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 10px;
+    }
+
+    .chart-box {
+      height: 196px;
+      position: relative;
+      width: 100%;
+    }
+
+    .focus-inspector-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .focus-inspector-table td {
+      padding: 5px 4px;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    .focus-inspector-table td:first-child {
+      color: var(--text-muted);
+      font-weight: 500;
+      width: 44%;
+    }
+
+    /* Right Column Audit Log */
+    .audit-log-list {
+      max-height: 675px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .audit-item {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border-hairline);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .audit-item:last-child { border-bottom: none; }
+
+    .audit-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .audit-body {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .audit-thumb {
+      width: 72px;
+      height: 48px;
+      object-fit: cover;
+      border: 1px solid var(--border-hairline);
+      border-radius: 3px;
+      cursor: pointer;
+      background: var(--bezel-dark);
+      flex-shrink: 0;
+    }
+
+    .audit-details {
+      flex: 1;
+      min-width: 0;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .hitl-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.58);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 780px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-head {
+      padding: 10px 14px;
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-hairline);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .modal-body { padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .modal-foot {
+      padding: 10px 14px;
+      background: var(--bg-subtle);
+      border-top: 1px solid var(--border-hairline);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    table.data-table th, table.data-table td {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+    table.data-table th {
+      background: var(--bg-subtle);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    .empty-state {
+      padding: 24px 12px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .status-toast {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 60;
+      background: #111827;
+      color: #F9FAFB;
+      border: 1px solid #374151;
+      border-radius: var(--radius);
+      padding: 7px 12px;
+      font-size: 12px;
+      display: none;
+    }
+    .status-toast.show { display: block; }
+
+    @media (max-width: 1280px) {
+      .workspace {
+        grid-template-columns: 280px minmax(420px, 1fr);
+      }
+      .right-col {
+        grid-column: 1 / -1;
+      }
+    }
+    @media (max-width: 900px) {
+      .workspace { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .analytics-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP OPERATIONAL BAR -->
+  <header class="topbar">
+    <div class="topbar-primary">
+      <div class="brand-group">
+        <span class="brand-mark"></span>
+        <span class="brand-title">AEGIS-VMS // INDUSTRIAL CCTV SURVEILLANCE</span>
+        <span class="taxonomy-badge" id="taxonomyBadge">GDUT-HWD 5-CLASS</span>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn" onclick="openModal('imageAuditModal')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          Image Audit
+        </button>
+        <button class="btn" onclick="openRolePolicyModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z"/></svg>
+          Role Policy
+        </button>
+        <button class="btn" onclick="openBenchmarkModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 3 5-6"/></svg>
+          Runtime &amp; SLA
+        </button>
+        <a class="btn" id="grafanaLinkBtn" href="http://localhost:3000" target="_blank" rel="noopener">Grafana</a>
+        <button class="btn" onclick="openSettingsModal()">Settings</button>
+      </div>
+    </div>
+
+    <div class="topbar-secondary">
+      <div class="source-controls">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="selector-label">Input Channel</span>
+          <div class="seg-group" role="group" aria-label="Source Mode">
+            <button class="seg-btn active" id="modeVideoBtn" onclick="setSourceMode('video')">Video File</button>
+            <button class="seg-btn" id="modeWebcamBtn" onclick="setSourceMode('webcam')">Live Webcam (C960 Ultra)</button>
+            <button class="seg-btn" id="modeUploadBtn" onclick="triggerVideoUpload()">Upload Video</button>
+            <button class="seg-btn" id="modeRtspBtn" onclick="openModal('rtspModal')">RTSP Stream</button>
+          </div>
+          <input type="file" id="videoUploadInput" accept="video/mp4,video/*" style="display:none" onchange="handleVideoUpload(this)" />
+        </div>
+
+        <div class="source-selectors">
+          <span class="selector-label" id="clipSelectorLabel">Clip</span>
+          <select class="ctrl-select" id="videoSourceSelect" onchange="switchSelectedVideo(this.value)" style="max-width:250px;overflow:hidden;text-overflow:ellipsis;" title="Select Video File"></select>
+          <span class="selector-label">Weights</span>
+          <select class="ctrl-select" id="modelSelect" onchange="switchSelectedModel(this.value)" style="max-width:280px;" title="Active Detection Model"></select>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3-COLUMN ENTERPRISE VMS WORKSPACE -->
+  <main class="workspace">
+
+    <!-- LEFT RAIL: FILTER / FOLLOW + PERSONNEL REGISTRY -->
+    <aside class="col-stack">
+      <section class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Follow &amp; Multi-Filter</span>
+          <button class="btn btn-sm" onclick="clearAllFilters()">Clear Filters</button>
+        </div>
+        <div class="panel-body">
+          <div class="chip-section-label">Helmet Color Filter</div>
+          <div class="chip-wrap" id="colorFilterChips">
+            <button class="filter-chip active" data-color="all" onclick="toggleColorFilter('all')">All</button>
+            <button class="filter-chip" data-color="white" onclick="toggleColorFilter('white')"><span class="swatch" style="background:#475569"></span>White</button>
+            <button class="filter-chip" data-color="yellow" onclick="toggleColorFilter('yellow')"><span class="swatch" style="background:#B45309"></span>Yellow</button>
+            <button class="filter-chip" data-color="blue" onclick="toggleColorFilter('blue')"><span class="swatch" style="background:#0F4C81"></span>Blue</button>
+            <button class="filter-chip" data-color="red" onclick="toggleColorFilter('red')"><span class="swatch" style="background:#991B1B"></span>Red</button>
+            <button class="filter-chip" data-color="none" onclick="toggleColorFilter('none')"><span class="swatch" style="background:#DC2626"></span>Bare Head</button>
+          </div>
+
+          <div class="chip-section-label">Site Role Filter</div>
+          <div class="chip-wrap" id="roleFilterChips"></div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;border-top:1px solid #E5E7EB;">
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;cursor:pointer;">
+              <input type="checkbox" id="violatorsOnlyChk" onchange="toggleViolatorsOnly(this.checked)" />
+              Violators Only (Bare Head)
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Personnel Re-ID Registry</span>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;">
+            <button class="btn btn-sm" id="clearFocusBtn" onclick="setFocusTrack(null)" style="display:none;">Clear Focus</button>
+            <button class="btn btn-sm" id="exportCsvBtn" onclick="exportRegistryCsv()" title="Export Personnel Re-ID CSV">Export CSV</button>
+            <button class="btn btn-sm" onclick="resetTrackingGallery()">Reset IDs</button>
+          </div>
+        </div>
+        <div class="tabs-bar">
+          <button class="tab-btn active" id="tabActiveBtn" onclick="switchRegistryTab('active')">Active On-Site (<span id="activeTabCount">0</span>)</button>
+          <button class="tab-btn" id="tabMemoryBtn" onclick="switchRegistryTab('memory')">Exited Memory (<span id="memoryTabCount">0</span>)</button>
+        </div>
+        <div class="registry-list" id="personnelRegistryList">
+          <div class="empty-state">Awaiting tracked personnel...</div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- CENTER STAGE: VIDEO MONITOR, TRANSPORT CONTROLS, KPI CARDS, ANALYTICS -->
+    <section class="col-stack">
+      <div class="viewport-bezel">
+        <div class="viewport-header">
+          <div class="live-indicator">
+            <span class="rec-dot" id="recDot"></span>
+            <span id="viewportChannelLabel">CH-01 // CCTV_GATE_A1</span>
+            <span id="viewportFocusBadge" class="mono" style="display:none;background:#0F4C81;color:#F8FAFC;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:600;margin-left:8px;"></span>
+          </div>
+          <div class="mono" style="color:#9CA3AF;font-size:11px;" id="viewportMetaReadout">
+            MODEL: LOADING | 0.0 FPS | 0.0 ms
+          </div>
+        </div>
+
+        <div class="viewport-stage" id="viewportStage">
+          <img id="liveStream" src="/video_feed" alt="Primary Surveillance Feed" />
+          <img id="webcamAnnotated" alt="C960 Ultra Annotated Stream" style="display:none;" />
+          <video id="localWebcamPreview" autoplay playsinline muted style="display:none;"></video>
+          <canvas id="webcamOverlayCanvas" style="display:none;"></canvas>
+          <canvas id="webcamCaptureCanvas" style="display:none;"></canvas>
+          <div id="clickToFocusLayer" title="Click tracked person to Solo Lock / Focus"></div>
+          <div class="viewport-hint" id="viewportHintText">Click bounding box to Solo Focus | Esc: Clear | Space: Play/Pause</div>
+        </div>
+
+        <!-- Video Transport Bar -->
+        <div class="transport-bar" id="videoTransportBar">
+          <div class="scrubber-wrap">
+            <input type="range" class="seek-slider" id="seekSlider" min="0" max="100" step="0.1" value="0" />
+            <span class="mono" id="timecodeReadout" style="font-size:11px;min-width:142px;text-align:right;">00:00 / 00:00 (0/0)</span>
+          </div>
+          <div class="transport-row">
+            <div class="transport-btns">
+              <button class="btn btn-primary btn-sm" id="playPauseBtn" onclick="togglePlayPause()">Pause</button>
+              <button class="btn btn-sm" onclick="seekRelative(-5)">-5s</button>
+              <button class="btn btn-sm" onclick="seekRelative(5)">+5s</button>
+              <button class="btn btn-sm" onclick="restartVideo()">Restart</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="font-size:11px;color:var(--text-secondary);">Speed
+                <select class="ctrl-select" id="speedSelect" onchange="setPlaybackSpeed(this.value)" style="height:24px;margin-left:3px;">
+                  <option value="0.5">0.5x</option>
+                  <option value="1" selected>1.0x</option>
+                  <option value="1.5">1.5x</option>
+                  <option value="2">2.0x</option>
+                </select>
+              </label>
+              <label style="font-size:11px;color:var(--text-secondary);">Resolution
+                <select class="ctrl-select" id="videoResSelect" onchange="setVideoResolution(this.value)" style="height:24px;margin-left:3px;">
+                  <option value="original" selected>Original</option>
+                  <option value="1080p">1080p</option>
+                  <option value="720p">720p</option>
+                  <option value="480p">480p</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- C960 Ultra Browser Direct Webcam Bar -->
+        <div class="webcam-bar" id="webcamControlBar">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <select class="ctrl-select" id="webcamDeviceSelect" style="max-width:220px;" title="Select USB Webcam"></select>
+            <button class="btn btn-sm" onclick="enumerateCameras()">Refresh</button>
+            <select class="ctrl-select" id="webcamResSelect" style="height:26px;">
+              <option value="640x480">640x480</option>
+              <option value="1280x720" selected>1280x720 (720p)</option>
+              <option value="1920x1080">1920x1080 (C960 Ultra)</option>
+            </select>
+            <select class="ctrl-select" id="webcamFpsSelect" style="height:26px;">
+              <option value="10">10 FPS</option>
+              <option value="15" selected>15 FPS</option>
+              <option value="20">20 FPS</option>
+              <option value="25">25 FPS</option>
+              <option value="30">30 FPS</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="mono" id="webcamWsStatus" style="font-size:11px;color:var(--text-muted);">WS: STANDBY</span>
+            <button class="btn btn-primary btn-sm" id="startWebcamBtn" onclick="toggleBrowserWebcam()">Start C960 Stream</button>
+            <button class="btn btn-sm" onclick="switchHostWebcamFallback()" title="Direct OpenCV CAP_DSHOW for Local Windows">Host CAM:0</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Active On-Site</span>
+          <span class="kpi-value mono" id="kpiActiveWorkers">0</span>
+          <span class="kpi-sub">Current tracked heads</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Unique IDs (Session)</span>
+          <span class="kpi-value mono" id="kpiGalleryCount">0</span>
+          <span class="kpi-sub">Persistent IDs retained</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Helmet Compliance</span>
+          <span class="kpi-value mono" id="kpiComplianceRate">100.0%</span>
+          <span class="kpi-sub" id="kpiComplianceSub">0 compliant</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Bare-Head Violations</span>
+          <span class="kpi-value mono" id="kpiViolations" style="color:var(--status-critical);">0</span>
+          <span class="kpi-sub">Active bare-head class (none)</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Throughput</span>
+          <span class="kpi-value mono" id="kpiThroughput">0.0 FPS</span>
+          <span class="kpi-sub mono" id="kpiLatencyMs">0.0 ms infer</span>
+        </div>
+      </div>
+
+      <!-- ANALYTICS + TARGET INSPECTOR -->
+      <div class="analytics-grid">
+        <section class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Role &amp; Helmet Color Distribution</span>
+            <span class="mono" style="font-size:10px;color:var(--text-muted);">GDUT 5-CLASS</span>
+          </div>
+          <div class="panel-body">
+            <div class="chart-box">
+              <canvas id="roleColorChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Locked Target Inspector</span>
+            <button class="btn btn-sm" onclick="setFocusTrack(null)">Release Lock</button>
+          </div>
+          <div class="panel-body" id="focusInspectorBody">
+            <div class="empty-state" style="padding:18px 8px;">No Solo Focus active. Click any bounding box in the monitor or [Focus] in the Personnel Registry.</div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- RIGHT RAIL: REAL-TIME INCIDENT AUDIT LOG -->
+    <aside class="col-stack right-col">
+      <section class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Incident Audit Log</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="mono" id="feedbackSummaryPill" style="font-size:10px;color:var(--text-muted);">HITL: 0</span>
+            <button class="btn btn-sm" onclick="clearAlertHistory()">Clear</button>
+          </div>
+        </div>
+        <div class="audit-log-list" id="incidentAuditList">
+          <div class="empty-state">No confirmed bare-head alerts recorded in current session.</div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- MODAL: IMAGE AUDIT -->
+  <div class="modal-backdrop" id="imageAuditModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <span class="modal-title">Single-Image Audit // GDUT-HWD 5-Class Verification</span>
+        <button class="btn btn-sm" onclick="closeModal('imageAuditModal')">Close</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="file" id="auditImageInput" accept="image/*" class="ctrl-input" style="padding:4px;flex:1;" />
+          <button class="btn btn-primary" onclick="runImageAudit()">Run Inference Audit</button>
+        </div>
+        <div id="auditResultContainer" style="display:none;flex-direction:column;gap:10px;">
+          <img id="auditResultImg" style="width:100%;max-height:380px;object-fit:contain;background:#0D1117;border:1px solid var(--border-hairline);border-radius:4px;" />
+          <div class="mono" id="auditResultSummary" style="font-size:12px;color:var(--text-secondary);"></div>
+          <table class="data-table">
+            <thead><tr><th>Class</th><th>Mapped Site Role</th><th>Confidence</th><th>BBox</th></tr></thead>
+            <tbody id="auditResultTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ROLE POLICY EDITOR -->
+  <div class="modal-backdrop" id="rolePolicyModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <span class="modal-title">Site Hierarchy // Helmet Color to Role Policy</span>
+        <button class="btn btn-sm" onclick="closeModal('rolePolicyModal')">Close</button>
+      </div>
+      <div class="modal-body">
+        <table class="data-table">
+          <thead>
+            <tr><th>GDUT Class</th><th>Role Title</th><th>Short Code</th><th>Badge Color</th><th>Policy Status</th></tr>
+          </thead>
+          <tbody id="rolePolicyTableBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="resetDefaultRolePolicy()">Reset Defaults</button>
+        <button class="btn btn-primary" onclick="saveRolePolicyEdits()">Save Role Policy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RUNTIME & SLA BENCHMARK -->
+  <div class="modal-backdrop" id="benchmarkModal">
+    <div class="modal-card" style="max-width:860px;">
+      <div class="modal-head">
+        <span class="modal-title">Runtime Performance, Optimization &amp; Edge SLA Telemetry</span>
+        <button class="btn btn-sm" onclick="closeModal('benchmarkModal')">Close</button>
+      </div>
+      <div class="modal-body" id="benchmarkModalBody">
+        <div class="empty-state">Loading Runtime &amp; SLA telemetry...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SETTINGS -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal-card" style="max-width:540px;">
+      <div class="modal-head">
+        <span class="modal-title">VMS Pipeline &amp; Alert Dispatcher Configuration</span>
+        <button class="btn btn-sm" onclick="closeModal('settingsModal')">Close</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <label style="font-size:12px;">Helmet Conf Threshold
+            <input type="number" step="0.05" min="0.1" max="0.95" class="ctrl-input" id="setConf" style="width:100%;margin-top:4px;" />
+          </label>
+          <label style="font-size:12px;">Bare-Head (none) Conf Threshold
+            <input type="number" step="0.05" min="0.1" max="0.95" class="ctrl-input" id="setNoneConf" style="width:100%;margin-top:4px;" />
+          </label>
+          <label style="font-size:12px;">NMS IoU Threshold
+            <input type="number" step="0.05" min="0.1" max="0.95" class="ctrl-input" id="setIou" style="width:100%;margin-top:4px;" />
+          </label>
+          <label style="font-size:12px;">Debounce Frames (K)
+            <input type="number" step="1" min="1" max="60" class="ctrl-input" id="setDebounce" style="width:100%;margin-top:4px;" />
+          </label>
+          <label style="font-size:12px;">Alert Cooldown (sec)
+            <input type="number" step="1" min="1" max="300" class="ctrl-input" id="setCooldown" style="width:100%;margin-top:4px;" />
+          </label>
+        </div>
+        <div style="border-top:1px solid var(--border-hairline);padding-top:10px;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;gap:8px;align-items:flex-end;">
+            <label style="flex:1;font-size:12px;">Telegram Chat ID
+              <input type="text" class="ctrl-input" id="setTelegramChatId" style="width:100%;margin-top:4px;" placeholder="Configured in .env" />
+            </label>
+            <button class="btn" onclick="testTelegram()">Test Ping</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end;">
+            <label style="flex:1;font-size:12px;">Zalo Chat ID / Webhook URL
+              <input type="text" class="ctrl-input" id="setZaloTarget" style="width:100%;margin-top:4px;" placeholder="Configured in .env" />
+            </label>
+            <button class="btn" onclick="testZalo()">Test Ping</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeModal('settingsModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Apply &amp; Persist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RTSP -->
+  <div class="modal-backdrop" id="rtspModal">
+    <div class="modal-card" style="max-width:460px;">
+      <div class="modal-head">
+        <span class="modal-title">Connect Network RTSP / HTTP Stream</span>
+        <button class="btn btn-sm" onclick="closeModal('rtspModal')">Close</button>
+      </div>
+      <div class="modal-body">
+        <label style="font-size:12px;">Stream URI
+          <input type="text" id="rtspUrlInput" class="ctrl-input" style="width:100%;margin-top:4px;" placeholder="rtsp://username:password@192.168.1.50:554/stream1" />
+        </label>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeModal('rtspModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="connectRtspStream()">Connect Stream</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EVIDENCE LIGHTBOX -->
+  <div class="modal-backdrop" id="evidenceLightboxModal">
+    <div class="modal-card" style="max-width:920px;">
+      <div class="modal-head">
+        <span class="modal-title" id="lightboxTitle">Violation Snapshot Evidence</span>
+        <button class="btn btn-sm" onclick="closeModal('evidenceLightboxModal')">Close</button>
+      </div>
+      <div class="modal-body" style="background:#0D1117;align-items:center;">
+        <img id="lightboxImg" style="max-width:100%;max-height:72vh;object-fit:contain;" />
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ACTION INPUT (REPLACEMENT FOR NATIVE PROMPT) -->
+  <div class="modal-backdrop" id="actionInputModal">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-head">
+        <span class="modal-title" id="actionModalTitle">Operator Input</span>
+        <button class="btn btn-sm" onclick="closeModal('actionInputModal')">Close</button>
+      </div>
+      <div class="modal-body">
+        <div id="actionModalDesc" style="font-size:12px;color:var(--text-secondary);"></div>
+        <input type="text" id="actionModalInput" class="ctrl-input" style="width:100%;" placeholder="Enter value..." />
+        <select id="actionModalSelect" class="ctrl-select" style="width:100%;display:none;"></select>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeModal('actionInputModal')">Cancel</button>
+        <button class="btn btn-primary" id="actionModalConfirmBtn" onclick="confirmActionInputModal()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-toast" id="statusToast"></div>
+
+  <script>
+    const STATE = {
+      sourceMode: 'video', // 'video' | 'webcam'
+      wasWebcamActive: false,
+      registryTab: 'active',
+      focusTrackId: null,
+      filterColors: [],
+      filterRoles: [],
+      violatorsOnly: false,
+      rolePolicy: {},
+      roleDefaults: {},
+      workers: [],
+      activeTracks: [],
+      isSeeking: false,
+      playback: { is_paused: false, current_sec: 0, duration_sec: 0, progress_pct: 0, speed: 1.0, resolution: 'original' },
+      webcamStream: null,
+      webcamSocket: null,
+      webcamLoopTimer: null,
+      webcamBusy: false,
+      webcamInFlight: false,
+      webcamReqSeq: 0,
+      webcamInFlightSeq: 0,
+      webcamLastSentAt: 0,
+      actionConfirmCb: null,
+    };
+
+    function openActionInputModal({ title, desc, defaultValue = '', selectOptions = null, onConfirm }) {
+      document.getElementById('actionModalTitle').textContent = title || 'Operator Input';
+      document.getElementById('actionModalDesc').textContent = desc || '';
+      const inp = document.getElementById('actionModalInput');
+      const sel = document.getElementById('actionModalSelect');
+      if (Array.isArray(selectOptions) && selectOptions.length > 0) {
+        inp.style.display = 'none';
+        sel.style.display = 'block';
+        sel.innerHTML = selectOptions.map(o =>
+          `<option value="${escHtml(o.value)}" ${o.value === defaultValue ? 'selected' : ''}>${escHtml(o.label)}</option>`
+        ).join('');
+      } else {
+        sel.style.display = 'none';
+        inp.style.display = 'block';
+        inp.value = defaultValue || '';
+      }
+      STATE.actionConfirmCb = onConfirm;
+      openModal('actionInputModal');
+      setTimeout(() => {
+        if (sel.style.display !== 'none') sel.focus();
+        else { inp.focus(); inp.select(); }
+      }, 30);
+    }
+
+    async function confirmActionInputModal() {
+      const sel = document.getElementById('actionModalSelect');
+      const inp = document.getElementById('actionModalInput');
+      const val = (sel.style.display !== 'none') ? sel.value : inp.value;
+      const cb = STATE.actionConfirmCb;
+      STATE.actionConfirmCb = null;
+      closeModal('actionInputModal');
+      if (typeof cb === 'function') {
+        await cb(val);
+      }
+    }
+
+    function escHtml(v) {
+      return String(v ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('statusToast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.remove('show'), 2600);
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function formatTime(sec) {
+      const s = Math.max(0, Math.floor(sec || 0));
+      const m = Math.floor(s / 60);
+      const rem = s % 60;
+      return String(m).padStart(2, '0') + ':' + String(rem).padStart(2, '0');
+    }
+
+    async function apiJson(url, opts = {}) {
+      const res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+        ...opts,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || res.statusText);
+      }
+      return res.json();
+    }
+
+    // --------------------------------------------------------------
+    // INITIALIZATION
+    // --------------------------------------------------------------
+    async function bootstrapDashboard() {
+      const grafanaBtn = document.getElementById('grafanaLinkBtn');
+      if (grafanaBtn) {
+        grafanaBtn.href = `${window.location.protocol}//${window.location.hostname || 'localhost'}:3000`;
+      }
+      await Promise.all([loadStatusAndModels(), loadVideos(), loadRolePolicy(), refreshFeedbackSummary()]);
+      bindTransportListeners();
+      bindCanvasClickToFocus();
+      window.addEventListener('resize', () => {
+        if (STATE.webcamSocket) drawWebcamOverlay();
+      });
+      const actionInp = document.getElementById('actionModalInput');
+      if (actionInp) {
+        actionInp.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); confirmActionInputModal(); }
+          else if (e.key === 'Escape') { closeModal('actionInputModal'); }
+        });
+      }
+      await pollAll();
+      setInterval(() => { if (STATE.sourceMode !== 'webcam' || !STATE.webcamSocket) pollMetrics(); }, 1000);
+      setInterval(() => { if (STATE.sourceMode !== 'webcam' || !STATE.webcamSocket) pollWorkersAndAlerts(); }, 1800);
+    }
+
+    async function loadStatusAndModels() {
+      try {
+        const data = await apiJson('/api/status');
+        const sel = document.getElementById('modelSelect');
+        const models = data.available_models || [];
+        sel.innerHTML = '';
+        if (models.length === 0) {
+          const opt = document.createElement('option');
+          opt.value = data.model_path || '';
+          opt.textContent = (data.model_path || 'GDUT 5-Class Stub').split(/[\\/]/).pop();
+          sel.appendChild(opt);
+        } else {
+          models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.path;
+            opt.textContent = m.label + ' (' + m.size_mb + ' MB)';
+            if (data.model_path && data.model_path.replace(/\\/g, '/').endsWith(m.path)) {
+              opt.selected = true;
+            }
+            sel.appendChild(opt);
+          });
+        }
+        document.getElementById('taxonomyBadge').textContent = data.is_helmet_only ? 'GDUT-HWD 5-CLASS' : 'MULTI-CLASS PPE';
+      } catch (e) {}
+    }
+
+    async function loadVideos() {
+      try {
+        const data = await apiJson('/api/videos');
+        const sel = document.getElementById('videoSourceSelect');
+        sel.innerHTML = '';
+        (data.videos || []).forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.path;
+          opt.textContent = v.filename + ' (' + v.size_mb + ' MB)';
+          if (data.active_source && data.active_source.replace(/\\/g, '/').endsWith(v.filename)) {
+            opt.selected = true;
+          }
+          sel.appendChild(opt);
+        });
+      } catch (e) {}
+    }
+
+    async function loadRolePolicy() {
+      try {
+        const data = await apiJson('/api/roles');
+        STATE.rolePolicy = data.roles || {};
+        STATE.roleDefaults = data.defaults || {};
+        renderRoleFilterChips();
+      } catch (e) {}
+    }
+
+    function renderRoleFilterChips() {
+      const container = document.getElementById('roleFilterChips');
+      container.innerHTML = '';
+      ['white', 'yellow', 'blue', 'red'].forEach(col => {
+        const info = STATE.rolePolicy[col];
+        if (!info) return;
+        const btn = document.createElement('button');
+        const code = info.short_code || col.toUpperCase();
+        btn.className = 'filter-chip' + (STATE.filterRoles.includes(code.toLowerCase()) ? ' active' : '');
+        btn.innerHTML = `<span class="swatch" style="background:${escHtml(info.hex_color)}"></span>${escHtml(code)}`;
+        btn.title = info.role_title;
+        btn.onclick = () => toggleRoleFilter(code.toLowerCase());
+        container.appendChild(btn);
+      });
+    }
+
+    // --------------------------------------------------------------
+    // SOURCE MODES, VIDEO TRANSPORT & WEBCAM C960 ULTRA
+    // --------------------------------------------------------------
+    function setSourceMode(mode, opts = {}) {
+      const prevMode = STATE.sourceMode;
+      const wasWebcamRunning = Boolean(STATE.webcamSocket || STATE.wasWebcamActive);
+      STATE.sourceMode = mode;
+      document.getElementById('modeVideoBtn').classList.toggle('active', mode === 'video');
+      document.getElementById('modeWebcamBtn').classList.toggle('active', mode === 'webcam');
+      const transport = document.getElementById('videoTransportBar');
+      const webcamBar = document.getElementById('webcamControlBar');
+      const mjpegImg = document.getElementById('liveStream');
+      const wsImg = document.getElementById('webcamAnnotated');
+      const localVid = document.getElementById('localWebcamPreview');
+      const overlayCvs = document.getElementById('webcamOverlayCanvas');
+      const clipLabelEl = document.getElementById('clipSelectorLabel');
+      const clipSelectEl = document.getElementById('videoSourceSelect');
+
+      if (mode === 'webcam') {
+        transport.style.display = 'none';
+        webcamBar.classList.add('visible');
+        if (clipLabelEl) clipLabelEl.style.display = 'none';
+        if (clipSelectEl) clipSelectEl.style.display = 'none';
+        enumerateCameras();
+        if (prevMode !== 'webcam') {
+          STATE._switchingToWebcam = true;
+          STATE.workers = [];
+          STATE.activeTracks = [];
+          STATE.focusTrackId = null;
+          mjpegImg.style.display = 'none';
+          mjpegImg.removeAttribute('src');
+          document.getElementById('clearFocusBtn').style.display = 'none';
+          document.getElementById('kpiActiveWorkers').textContent = '0';
+          document.getElementById('kpiGalleryCount').textContent = '0';
+          renderPersonnelRegistry();
+          renderFocusInspector();
+          apiJson('/api/switch_source', {
+            method: 'POST',
+            body: JSON.stringify({ video_source: 'browser_webcam' }),
+          })
+            .catch(() => apiJson('/api/tracking/reset', { method: 'POST' }).catch(() => {}))
+            .finally(() => {
+              STATE._switchingToWebcam = false;
+              pollAll();
+            });
+        }
+        if (STATE.webcamSocket) {
+          mjpegImg.style.display = 'none';
+          wsImg.style.display = 'none';
+          localVid.style.display = 'block';
+          overlayCvs.style.display = 'block';
+        }
+      } else {
+        stopBrowserWebcam();
+        webcamBar.classList.remove('visible');
+        transport.style.display = 'flex';
+        if (clipLabelEl) clipLabelEl.style.display = '';
+        if (clipSelectEl) clipSelectEl.style.display = '';
+        wsImg.style.display = 'none';
+        localVid.style.display = 'none';
+        overlayCvs.style.display = 'none';
+        mjpegImg.style.display = 'block';
+        const activeClip = document.getElementById('videoSourceSelect')?.value;
+        if (!opts.skipRestore && (prevMode === 'webcam' || wasWebcamRunning) && activeClip) {
+          STATE.wasWebcamActive = false;
+          switchSelectedVideo(activeClip, { skipSetMode: true });
+        } else if (!mjpegImg.getAttribute('src')) {
+          mjpegImg.src = '/video_feed?t=' + Date.now();
+        }
+      }
+    }
+
+    async function switchSelectedVideo(path, opts = {}) {
+      if (!path) return;
+      if (!opts.skipSetMode) {
+        setSourceMode('video', { skipRestore: true });
+      }
+      STATE.wasWebcamActive = false;
+      try {
+        await apiJson('/api/switch_source', { method: 'POST', body: JSON.stringify({ video_source: path }) });
+        document.getElementById('liveStream').src = '/video_feed?t=' + Date.now();
+        showToast('Restored video stream: ' + path.split('/').pop());
+        pollAll();
+      } catch (e) { showToast('Switch failed: ' + e.message); }
+    }
+
+    async function switchSelectedModel(modelPath) {
+      if (!modelPath) return;
+      try {
+        const res = await apiJson('/api/switch_model', { method: 'POST', body: JSON.stringify({ model_path: modelPath }) });
+        document.getElementById('taxonomyBadge').textContent = res.is_helmet_only ? 'GDUT-HWD 5-CLASS' : 'MULTI-CLASS PPE';
+        showToast('Model hot-swapped successfully');
+        pollAll();
+      } catch (e) { showToast('Model switch error: ' + e.message); }
+    }
+
+    function triggerVideoUpload() { document.getElementById('videoUploadInput').click(); }
+
+    async function handleVideoUpload(inp) {
+      const f = inp.files && inp.files[0];
+      if (!f) return;
+      const fd = new FormData();
+      fd.append('file', f);
+      try {
+        showToast('Uploading ' + f.name + '...');
+        const res = await fetch('/api/upload_video', { method: 'POST', body: fd });
+        if (!res.ok) throw new Error('Upload failed');
+        const data = await res.json();
+        setSourceMode('video');
+        await loadVideos();
+        document.getElementById('liveStream').src = '/video_feed?t=' + Date.now();
+        showToast('Loaded video: ' + data.filename);
+      } catch (e) { showToast(e.message); }
+      inp.value = '';
+    }
+
+    async function connectRtspStream() {
+      const url = document.getElementById('rtspUrlInput').value.trim();
+      if (!url) return;
+      closeModal('rtspModal');
+      setSourceMode('video');
+      await switchSelectedVideo(url);
+    }
+
+    function bindTransportListeners() {
+      const slider = document.getElementById('seekSlider');
+      slider.addEventListener('pointerdown', () => { STATE.isSeeking = true; });
+      slider.addEventListener('pointerup', () => { STATE.isSeeking = false; });
+      slider.addEventListener('change', async () => {
+        STATE.isSeeking = false;
+        await seekPercent(parseFloat(slider.value));
+      });
+      document.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+        if (e.key === 'Escape' && STATE.focusTrackId !== null) {
+          setFocusTrack(null);
+        } else if (e.code === 'Space' && STATE.sourceMode === 'video') {
+          e.preventDefault();
+          togglePlayPause();
+        }
+      });
+    }
+
+    async function togglePlayPause() {
+      try {
+        const res = await apiJson('/api/video/play_pause', { method: 'POST', body: JSON.stringify({}) });
+        applyPlaybackState(res);
+      } catch (e) {}
+    }
+
+    async function seekRelative(deltaSec) {
+      try {
+        const res = await apiJson('/api/video/seek', { method: 'POST', body: JSON.stringify({ delta_seconds: deltaSec }) });
+        applyPlaybackState(res);
+      } catch (e) {}
+    }
+
+    async function restartVideo() {
+      try {
+        const res = await apiJson('/api/video/seek', { method: 'POST', body: JSON.stringify({ frame: 0 }) });
+        applyPlaybackState(res);
+      } catch (e) {}
+    }
+
+    async function seekPercent(pct) {
+      try {
+        const res = await apiJson('/api/video/seek', { method: 'POST', body: JSON.stringify({ percent: pct }) });
+        applyPlaybackState(res);
+      } catch (e) {}
+    }
+
+    async function setPlaybackSpeed(speed) {
+      try {
+        const res = await apiJson('/api/video/speed', { method: 'POST', body: JSON.stringify({ speed: parseFloat(speed) }) });
+        applyPlaybackState(res);
+      } catch (e) {}
+    }
+
+    async function setVideoResolution(resKey) {
+      try {
+        const res = await apiJson('/api/video/resolution', { method: 'POST', body: JSON.stringify({ resolution: resKey }) });
+        applyPlaybackState(res);
+        showToast('Processing resolution set to ' + resKey.toUpperCase());
+      } catch (e) {}
+    }
+
+    function applyPlaybackState(pb) {
+      if (!pb) return;
+      STATE.playback = pb;
+      const playBtn = document.getElementById('playPauseBtn');
+      const recDot = document.getElementById('recDot');
+      playBtn.textContent = pb.is_paused ? 'Play' : 'Pause';
+      recDot.classList.toggle('paused', Boolean(pb.is_paused));
+      if (!STATE.isSeeking && typeof pb.progress_pct === 'number') {
+        document.getElementById('seekSlider').value = pb.progress_pct;
+      }
+      document.getElementById('timecodeReadout').textContent =
+        `${formatTime(pb.current_sec)} / ${formatTime(pb.duration_sec)} (F ${pb.current_frame || 0}/${pb.total_frames || 0})`;
+      const spSel = document.getElementById('speedSelect');
+      if (spSel && pb.speed) spSel.value = String(pb.speed).replace(/\.0$/, '');
+      const rSel = document.getElementById('videoResSelect');
+      if (rSel && pb.resolution) rSel.value = pb.resolution;
+    }
+
+    // --------------------------------------------------------------
+    // C960 ULTRA WEBCAM (Browser Direct WebSocket /ws/webcam)
+    // --------------------------------------------------------------
+    async function enumerateCameras() {
+      const sel = document.getElementById('webcamDeviceSelect');
+      sel.innerHTML = '';
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        sel.innerHTML = '<option value="">Camera API unavailable in insecure origin</option>';
+        return;
+      }
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cams = devices.filter(d => d.kind === 'videoinput');
+        if (cams.length === 0) {
+          sel.innerHTML = '<option value="">No webcam detected (grant permission on Start)</option>';
+          return;
+        }
+        const prevVal = sel.value;
+        let matchedPrev = false;
+        let preferredIdx = -1;
+        let firstNonVirtualIdx = -1;
+        cams.forEach((c, idx) => {
+          const opt = document.createElement('option');
+          opt.value = c.deviceId;
+          const rawLabel = String(c.label || '').trim();
+          const isPathLabel = /^[A-Za-z]:[\\/]|^\//.test(rawLabel);
+          const baseName = rawLabel ? rawLabel.split(/[\\/]/).pop() : '';
+          const lbl = isPathLabel ? `Virtual Camera (${baseName || 'stream'})` : (rawLabel || `USB Camera #${idx + 1}`);
+          opt.textContent = lbl;
+          const isVirtual = /v-cam|virtual/i.test(lbl);
+          const isPhysicalC960 = /c960|emeet/i.test(lbl) && !isVirtual;
+          if (prevVal && c.deviceId === prevVal) matchedPrev = true;
+          if (preferredIdx === -1 && isPhysicalC960) preferredIdx = idx;
+          if (firstNonVirtualIdx === -1 && !isVirtual) firstNonVirtualIdx = idx;
+          sel.appendChild(opt);
+        });
+        if (matchedPrev) {
+          sel.value = prevVal;
+        } else if (preferredIdx >= 0) {
+          sel.selectedIndex = preferredIdx;
+        } else if (firstNonVirtualIdx >= 0) {
+          sel.selectedIndex = firstNonVirtualIdx;
+        }
+      } catch (e) {
+        sel.innerHTML = '<option value="">Default Webcam</option>';
+      }
+    }
+
+    function toggleBrowserWebcam() {
+      if (STATE.webcamSocket) {
+        stopBrowserWebcam();
+      } else {
+        startBrowserWebcam();
+      }
+    }
+
+    function clearWebcamOverlay() {
+      const cvs = document.getElementById('webcamOverlayCanvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, cvs.width, cvs.height);
+    }
+
+    function getActiveMediaElement() {
+      const vid = document.getElementById('localWebcamPreview');
+      if (STATE.sourceMode === 'webcam' && vid && vid.style.display !== 'none' && vid.videoWidth > 0) {
+        return vid;
+      }
+      const wsImg = document.getElementById('webcamAnnotated');
+      if (STATE.sourceMode === 'webcam' && wsImg && wsImg.style.display !== 'none' && wsImg.naturalWidth > 0) {
+        return wsImg;
+      }
+      return document.getElementById('liveStream');
+    }
+
+    function getRenderedMediaRect(stageEl) {
+      const stageRect = stageEl.getBoundingClientRect();
+      const mediaEl = getActiveMediaElement();
+      let natW = 0;
+      let natH = 0;
+      if (mediaEl) {
+        natW = mediaEl.videoWidth || mediaEl.naturalWidth || 0;
+        natH = mediaEl.videoHeight || mediaEl.naturalHeight || 0;
+      }
+      if (!natW || !natH || !stageRect.width || !stageRect.height) {
+        return {
+          left: stageRect.left,
+          top: stageRect.top,
+          width: stageRect.width,
+          height: stageRect.height,
+          relLeft: 0,
+          relTop: 0,
+          stageW: stageRect.width,
+          stageH: stageRect.height,
+        };
+      }
+      const mediaAspect = natW / natH;
+      const stageAspect = stageRect.width / stageRect.height;
+      let drawW = stageRect.width;
+      let drawH = stageRect.height;
+      let relLeft = 0;
+      let relTop = 0;
+      if (mediaAspect > stageAspect) {
+        drawW = stageRect.width;
+        drawH = stageRect.width / mediaAspect;
+        relTop = (stageRect.height - drawH) / 2;
+      } else {
+        drawH = stageRect.height;
+        drawW = stageRect.height * mediaAspect;
+        relLeft = (stageRect.width - drawW) / 2;
+      }
+      return {
+        left: stageRect.left + relLeft,
+        top: stageRect.top + relTop,
+        width: drawW,
+        height: drawH,
+        relLeft,
+        relTop,
+        stageW: stageRect.width,
+        stageH: stageRect.height,
+      };
+    }
+
+    function drawWebcamOverlay(tracks = STATE.activeTracks, focusId = STATE.focusTrackId) {
+      const cvs = document.getElementById('webcamOverlayCanvas');
+      const stage = document.getElementById('viewportStage');
+      if (!cvs || !stage) return;
+      const box = getRenderedMediaRect(stage);
+      const dpr = window.devicePixelRatio || 1;
+      const targetW = Math.max(1, Math.round(box.stageW * dpr));
+      const targetH = Math.max(1, Math.round(box.stageH * dpr));
+      if (cvs.width !== targetW || cvs.height !== targetH) {
+        cvs.width = targetW;
+        cvs.height = targetH;
+      }
+      const ctx = cvs.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, box.stageW, box.stageH);
+      if (!tracks || tracks.length === 0) return;
+
+      tracks.forEach(t => {
+        const nb = t.norm_bbox;
+        if (!nb || nb.length < 4) return;
+        const x1 = box.relLeft + nb[0] * box.width;
+        const y1 = box.relTop + nb[1] * box.height;
+        const bw = Math.max(6, (nb[2] - nb[0]) * box.width);
+        const bh = Math.max(6, (nb[3] - nb[1]) * box.height);
+        const isFocused = focusId !== null && focusId !== undefined && Number(focusId) === Number(t.track_id);
+        const isDimmed = focusId !== null && focusId !== undefined && !isFocused;
+        const isViol = t.status === 'VIOLATION' || t.current_class === 'none';
+
+        let strokeHex = isViol ? '#DC2626' : (t.role_hex_color || '#0F4C81');
+        if (isDimmed) strokeHex = '#6B7280';
+
+        // Trajectory path ONLY rendered when Solo Focus lock is active
+        if (isFocused && Array.isArray(t.trajectory) && t.trajectory.length >= 2) {
+          ctx.save();
+          ctx.strokeStyle = strokeHex;
+          ctx.lineWidth = isFocused ? 2 : 1.5;
+          ctx.beginPath();
+          t.trajectory.forEach((pt, idx) => {
+            const px = box.relLeft + pt[0] * box.width;
+            const py = box.relTop + pt[1] * box.height;
+            if (idx === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          });
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Main bounding box
+        ctx.save();
+        ctx.globalAlpha = isDimmed ? 0.35 : 1.0;
+        ctx.strokeStyle = strokeHex;
+        ctx.lineWidth = isFocused ? 2.5 : (isViol ? 2.2 : 1.8);
+        if (isDimmed) ctx.setLineDash([4, 4]);
+        ctx.strokeRect(x1, y1, bw, bh);
+        ctx.setLineDash([]);
+
+        // Solo Focus corner brackets
+        if (isFocused) {
+          const arm = Math.max(8, Math.min(18, Math.min(bw, bh) * 0.25));
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = '#F59E0B';
+          ctx.beginPath();
+          // TL, TR, BL, BR
+          ctx.moveTo(x1, y1 + arm); ctx.lineTo(x1, y1); ctx.lineTo(x1 + arm, y1);
+          ctx.moveTo(x1 + bw - arm, y1); ctx.lineTo(x1 + bw, y1); ctx.lineTo(x1 + bw, y1 + arm);
+          ctx.moveTo(x1, y1 + bh - arm); ctx.lineTo(x1, y1 + bh); ctx.lineTo(x1 + arm, y1 + bh);
+          ctx.moveTo(x1 + bw - arm, y1 + bh); ctx.lineTo(x1 + bw, y1 + bh); ctx.lineTo(x1 + bw, y1 + bh - arm);
+          ctx.stroke();
+        }
+
+        // Label tag
+        const alias = t.custom_label ? ` [${t.custom_label}]` : '';
+        const roleTag = t.role_short_code || (t.helmet_color || 'head').toUpperCase();
+        const statusTag = isViol ? 'BARE HEAD' : (t.current_class || t.helmet_color || '').toUpperCase();
+        const streak = Number(t.violation_streak || 0);
+        const kThresh = Math.max(1, Number(t.debounce_frames || 8));
+        const confStr = (typeof t.confidence === 'number') ? ' (' + t.confidence.toFixed(2) + ')' : '';
+        let labelText;
+        let pillBg;
+        if (isViol) {
+          if (streak < kThresh) {
+            labelText = `ID #${t.track_id}${alias} | BARE HEAD${confStr} [${streak}/${kThresh}]`;
+            pillBg = '#B45309';
+          } else {
+            labelText = `ID #${t.track_id}${alias} | VIOLATION: BARE HEAD${confStr}`;
+            pillBg = '#991B1B';
+          }
+        } else {
+          labelText = `ID #${t.track_id}${alias} | ${roleTag} | ${statusTag}`;
+          pillBg = '#111827';
+        }
+        ctx.font = '600 11px JetBrains Mono, monospace';
+        const tw = ctx.measureText(labelText).width;
+        const pillH = 18;
+        const pillY = Math.max(2, y1 - pillH - 2);
+        ctx.fillStyle = pillBg;
+        ctx.fillRect(x1, pillY, tw + 10, pillH);
+        ctx.fillStyle = '#F9FAFB';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, x1 + 5, pillY + pillH / 2);
+        ctx.restore();
+      });
+    }
+
+    async function startBrowserWebcam() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast('WebRTC camera API requires localhost or HTTPS. Use Host CAM:0 if running locally.');
+        return;
+      }
+      const devId = document.getElementById('webcamDeviceSelect').value;
+      const [rw, rh] = (document.getElementById('webcamResSelect').value || '1280x720').split('x').map(Number);
+      const targetFps = parseInt(document.getElementById('webcamFpsSelect').value || '15', 10);
+      const resTag = rh >= 1080 ? '1080p' : (rh <= 480 ? '480p' : '720p');
+      const devOpt = document.getElementById('webcamDeviceSelect').selectedOptions[0];
+      const devLabel = devOpt ? devOpt.textContent.slice(0, 32) : 'C960 Ultra';
+      if (/v-cam|virtual/i.test(devLabel)) {
+        showToast('Warning: Virtual camera selected (may output black frames if inactive). Switch to physical EMEET SmartCam C960 Ultra if preview is blank.');
+      }
+
+      const constraints = {
+        video: {
+          ...(devId ? { deviceId: { exact: devId } } : {}),
+          width: { ideal: rw },
+          height: { ideal: rh },
+          frameRate: { ideal: Math.max(15, targetFps) },
+        },
+        audio: false,
+      };
+
+      try {
+        STATE.webcamStream = await navigator.mediaDevices.getUserMedia(constraints);
+        STATE.wasWebcamActive = true;
+        await enumerateCameras();
+        const videoEl = document.getElementById('localWebcamPreview');
+        videoEl.srcObject = STATE.webcamStream;
+        await videoEl.play();
+
+        const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const wsUrl = `${wsProto}://${window.location.host}/ws/webcam?resolution=${encodeURIComponent(resTag)}&device_label=${encodeURIComponent(devLabel)}&return_image=false`;
+        const ws = new WebSocket(wsUrl);
+        ws.binaryType = 'arraybuffer';
+        STATE.webcamSocket = ws;
+
+        document.getElementById('liveStream').style.display = 'none';
+        document.getElementById('webcamAnnotated').style.display = 'none';
+        document.getElementById('localWebcamPreview').style.display = 'block';
+        document.getElementById('webcamOverlayCanvas').style.display = 'block';
+        document.getElementById('startWebcamBtn').textContent = 'Stop Stream';
+        document.getElementById('startWebcamBtn').classList.add('btn-danger');
+        document.getElementById('webcamWsStatus').textContent = 'WS: CONNECTING...';
+
+        ws.onopen = () => {
+          document.getElementById('webcamWsStatus').textContent = 'WS: BINARY STREAMING';
+          document.getElementById('viewportChannelLabel').textContent = 'CH-01 // C960 ULTRA LIVE WEBCAM';
+          pumpWebcamFrame(targetFps, rh);
+        };
+
+        ws.onmessage = (ev) => {
+          STATE.webcamBusy = false;
+          STATE.webcamInFlight = false;
+          try {
+            const payload = JSON.parse(ev.data);
+            if (payload.status === 'ok') {
+              const rtt = Math.max(1, Math.round(performance.now() - STATE.webcamLastSentAt));
+              document.getElementById('webcamWsStatus').textContent = `WS: BINARY LIVE | RTT ${rtt}ms`;
+              document.getElementById('viewportMetaReadout').textContent =
+                `C960 ULTRA | ${payload.fps} FPS | ${payload.inference_ms} ms`;
+              STATE.activeTracks = payload.active_tracks || [];
+              STATE.workers = payload.personnel || [];
+              if (payload.image && document.getElementById('localWebcamPreview').style.display === 'none') {
+                const wsImg = document.getElementById('webcamAnnotated');
+                wsImg.style.display = 'block';
+                wsImg.src = payload.image;
+              }
+              drawWebcamOverlay(STATE.activeTracks, STATE.focusTrackId);
+              applyKpis(payload.kpis, payload.fps, payload.inference_ms);
+              renderPersonnelRegistry();
+              renderFocusInspector();
+              if (payload.new_alerts) renderAuditLog(payload.new_alerts);
+            }
+          } catch (e) {}
+        };
+
+        ws.onclose = () => {
+          stopBrowserWebcam();
+        };
+      } catch (e) {
+        showToast('Webcam access error: ' + e.message);
+        stopBrowserWebcam();
+      }
+    }
+
+    function pumpWebcamFrame(targetFps, targetHeight) {
+      if (!STATE.webcamSocket || STATE.webcamSocket.readyState !== WebSocket.OPEN) return;
+      const videoEl = document.getElementById('localWebcamPreview');
+      const canvas = document.getElementById('webcamCaptureCanvas');
+      const intervalMs = Math.max(33, Math.round(1000 / Math.max(5, Math.min(30, targetFps))));
+
+      STATE.webcamLoopTimer = setInterval(() => {
+        if (!STATE.webcamSocket || STATE.webcamSocket.readyState !== WebSocket.OPEN) return;
+        const nowMs = performance.now();
+        if (STATE.webcamInFlight && (nowMs - STATE.webcamLastSentAt) < 1500) return;
+        if (videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) return;
+
+        // Downscale capture longest side to <= 640px for fast WS transport while <video> keeps crisp 720p/1080p
+        const vw = videoEl.videoWidth;
+        const vh = videoEl.videoHeight;
+        const maxSide = 640;
+        const scale = Math.min(1, maxSide / Math.max(vw, vh));
+        canvas.width = Math.max(2, Math.round(vw * scale));
+        canvas.height = Math.max(2, Math.round(vh * scale));
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+        const seq = ++STATE.webcamReqSeq;
+        STATE.webcamInFlight = true;
+        STATE.webcamBusy = true;
+        STATE.webcamInFlightSeq = seq;
+        STATE.webcamLastSentAt = nowMs;
+        const sockRef = STATE.webcamSocket;
+
+        canvas.toBlob((blob) => {
+          if (
+            !blob
+            || !STATE.webcamSocket
+            || STATE.webcamSocket !== sockRef
+            || STATE.webcamSocket.readyState !== WebSocket.OPEN
+            || seq !== STATE.webcamInFlightSeq
+          ) {
+            if (seq === STATE.webcamInFlightSeq) {
+              STATE.webcamInFlight = false;
+              STATE.webcamBusy = false;
+            }
+            return;
+          }
+          STATE.webcamLastSentAt = performance.now();
+          STATE.webcamSocket.send(blob);
+        }, 'image/jpeg', 0.72);
+      }, intervalMs);
+    }
+
+    function stopBrowserWebcam() {
+      if (STATE.webcamLoopTimer) {
+        clearInterval(STATE.webcamLoopTimer);
+        STATE.webcamLoopTimer = null;
+      }
+      if (STATE.webcamSocket) {
+        try { STATE.webcamSocket.close(); } catch (e) {}
+        STATE.webcamSocket = null;
+      }
+      if (STATE.webcamStream) {
+        STATE.webcamStream.getTracks().forEach(t => t.stop());
+        STATE.webcamStream = null;
+      }
+      STATE.webcamBusy = false;
+      STATE.webcamInFlight = false;
+      STATE.webcamInFlightSeq = ++STATE.webcamReqSeq;
+      clearWebcamOverlay();
+      const localVid = document.getElementById('localWebcamPreview');
+      if (localVid) {
+        localVid.pause();
+        localVid.srcObject = null;
+        localVid.style.display = 'none';
+      }
+      const cvs = document.getElementById('webcamOverlayCanvas');
+      if (cvs) cvs.style.display = 'none';
+      const btn = document.getElementById('startWebcamBtn');
+      if (btn) {
+        btn.textContent = 'Start C960 Stream';
+        btn.classList.remove('btn-danger');
+      }
+      const wsSt = document.getElementById('webcamWsStatus');
+      if (wsSt) wsSt.textContent = 'WS: STANDBY';
+    }
+
+    async function switchHostWebcamFallback() {
+      stopBrowserWebcam();
+      STATE.wasWebcamActive = true;
+      document.getElementById('webcamAnnotated').style.display = 'none';
+      document.getElementById('localWebcamPreview').style.display = 'none';
+      document.getElementById('webcamOverlayCanvas').style.display = 'none';
+      document.getElementById('liveStream').style.display = 'block';
+      try {
+        await apiJson('/api/switch_source', { method: 'POST', body: JSON.stringify({ video_source: 'webcam:0' }) });
+        document.getElementById('liveStream').src = '/video_feed?t=' + Date.now();
+        showToast('Switched backend to Host Local Camera (webcam:0)');
+      } catch (e) { showToast(e.message); }
+    }
+
+    // --------------------------------------------------------------
+    // MULTI-DIMENSIONAL FILTER & CLICK-TO-FOCUS
+    // --------------------------------------------------------------
+    function bindCanvasClickToFocus() {
+      const layer = document.getElementById('clickToFocusLayer');
+      layer.addEventListener('mousemove', (e) => {
+        const hit = hitTestTrack(e, layer);
+        layer.style.cursor = hit ? 'crosshair' : 'default';
+        layer.title = hit ? `Click to Solo Focus ID #${hit.track_id} (${hit.role_short_code || ''})` : 'Click tracked person to Solo Lock / Focus';
+      });
+      layer.addEventListener('click', (e) => {
+        const hit = hitTestTrack(e, layer);
+        if (!hit) return;
+        const targetId = (STATE.focusTrackId === hit.track_id) ? null : hit.track_id;
+        setFocusTrack(targetId);
+      });
+    }
+
+    function hitTestTrack(ev, layer) {
+      if (!STATE.activeTracks || STATE.activeTracks.length === 0) return null;
+      const stage = document.getElementById('viewportStage') || layer;
+      const rect = getRenderedMediaRect(stage);
+      if (!rect.width || !rect.height) return null;
+      const nx = (ev.clientX - rect.left) / rect.width;
+      const ny = (ev.clientY - rect.top) / rect.height;
+      if (nx < 0 || nx > 1 || ny < 0 || ny > 1) return null;
+      return STATE.activeTracks.find(t => {
+        const b = t.norm_bbox;
+        return b && nx >= b[0] && nx <= b[2] && ny >= b[1] && ny <= b[3];
+      }) || null;
+    }
+
+    async function setFocusTrack(trackId) {
+      try {
+        const res = await apiJson('/api/tracking/focus', { method: 'POST', body: JSON.stringify({ track_id: trackId }) });
+        STATE.focusTrackId = res.focus_track_id;
+        document.getElementById('clearFocusBtn').style.display = STATE.focusTrackId !== null ? 'inline-flex' : 'none';
+        renderPersonnelRegistry();
+        renderFocusInspector();
+        if (STATE.webcamSocket) drawWebcamOverlay();
+        showToast(STATE.focusTrackId !== null ? `Solo Focus locked on ID #${STATE.focusTrackId}` : 'Solo Focus released');
+      } catch (e) {}
+    }
+
+    async function toggleColorFilter(colorKey) {
+      if (colorKey === 'all') {
+        STATE.filterColors = [];
+      } else {
+        const idx = STATE.filterColors.indexOf(colorKey);
+        if (idx >= 0) STATE.filterColors.splice(idx, 1);
+        else STATE.filterColors.push(colorKey);
+      }
+      syncFilterChipsUI();
+      await pushFilterUpdate();
+    }
+
+    async function toggleRoleFilter(roleKey) {
+      const idx = STATE.filterRoles.indexOf(roleKey);
+      if (idx >= 0) STATE.filterRoles.splice(idx, 1);
+      else STATE.filterRoles.push(roleKey);
+      renderRoleFilterChips();
+      await pushFilterUpdate();
+    }
+
+    async function toggleViolatorsOnly(checked) {
+      STATE.violatorsOnly = Boolean(checked);
+      await pushFilterUpdate();
+    }
+
+    async function clearAllFilters() {
+      STATE.filterColors = [];
+      STATE.filterRoles = [];
+      STATE.violatorsOnly = false;
+      document.getElementById('violatorsOnlyChk').checked = false;
+      syncFilterChipsUI();
+      renderRoleFilterChips();
+      await apiJson('/api/tracking/filter', { method: 'POST', body: JSON.stringify({ clear: true }) });
+      showToast('Cleared active color & role filters');
+    }
+
+    function syncFilterChipsUI() {
+      const chips = document.querySelectorAll('#colorFilterChips .filter-chip');
+      chips.forEach(btn => {
+        const c = btn.getAttribute('data-color');
+        if (c === 'all') {
+          btn.classList.toggle('active', STATE.filterColors.length === 0);
+        } else {
+          btn.classList.toggle('active', STATE.filterColors.includes(c));
+          btn.classList.toggle('active-danger', c === 'none' && STATE.filterColors.includes('none'));
+        }
+      });
+    }
+
+    async function pushFilterUpdate() {
+      try {
+        await apiJson('/api/tracking/filter', {
+          method: 'POST',
+          body: JSON.stringify({
+            colors: STATE.filterColors,
+            roles: STATE.filterRoles,
+            violators_only: STATE.violatorsOnly,
+          }),
+        });
+      } catch (e) {}
+    }
+
+    async function resetTrackingGallery() {
+      try {
+        await apiJson('/api/tracking/reset', { method: 'POST' });
+        STATE.focusTrackId = null;
+        document.getElementById('clearFocusBtn').style.display = 'none';
+        showToast('Persistent Re-ID gallery reset');
+        pollWorkersAndAlerts();
+      } catch (e) {}
+    }
+
+    function renameWorker(trackId, existingLabel) {
+      openActionInputModal({
+        title: `Rename Track ID #${trackId}`,
+        desc: `Assign operator display label for persistent ID #${trackId}:`,
+        defaultValue: existingLabel || '',
+        onConfirm: async (newName) => {
+          try {
+            await apiJson('/api/tracking/label', {
+              method: 'POST',
+              body: JSON.stringify({ track_id: trackId, label: newName }),
+            });
+            showToast(`Updated label for ID #${trackId}`);
+            pollWorkersAndAlerts();
+          } catch (e) { showToast(e.message); }
+        },
+      });
+    }
+
+    function openEnrollModal(trackId, existingLabel) {
+      openActionInputModal({
+        title: `Enroll Permanent Identity // ID #${trackId}`,
+        desc: `Save non-biometric upper-torso clothing signature & permanent alias for ID #${trackId} in Gallery Memory:`,
+        defaultValue: existingLabel || `Worker-${trackId}`,
+        onConfirm: async (alias) => {
+          try {
+            const res = await apiJson('/api/tracking/enroll', {
+              method: 'POST',
+              body: JSON.stringify({ track_id: trackId, label: alias ? alias.trim() : null }),
+            });
+            showToast(res.enrolled ? `Enrolled reference ID #${trackId}` : `Track #${trackId} not currently enrollable`);
+            pollWorkersAndAlerts();
+          } catch (e) { showToast('Enroll failed: ' + e.message); }
+        },
+      });
+    }
+
+    function exportRegistryCsv() {
+      window.location.href = '/api/tracking/export_csv';
+      showToast('Downloading personnel registry CSV...');
+    }
+
+    function switchRegistryTab(tab) {
+      STATE.registryTab = tab;
+      document.getElementById('tabActiveBtn').classList.toggle('active', tab === 'active');
+      document.getElementById('tabMemoryBtn').classList.toggle('active', tab === 'memory');
+      renderPersonnelRegistry();
+    }
+
+    // --------------------------------------------------------------
+    // POLLING & RENDERING
+    // --------------------------------------------------------------
+    async function pollAll() {
+      await Promise.all([pollMetrics(), pollWorkersAndAlerts()]);
+    }
+
+    async function pollMetrics() {
+      if (STATE._switchingToWebcam) return;
+      try {
+        const m = await apiJson('/api/metrics');
+        if (STATE._switchingToWebcam) return;
+        STATE.focusTrackId = m.focus_track_id ?? null;
+        STATE.activeTracks = m.active_tracks || [];
+        if (m.filter_state) {
+          STATE.filterColors = m.filter_state.colors || [];
+          STATE.filterRoles = m.filter_state.roles || [];
+          STATE.violatorsOnly = Boolean(m.filter_state.violators_only);
+          syncFilterChipsUI();
+          renderRoleFilterChips();
+        }
+        document.getElementById('clearFocusBtn').style.display = STATE.focusTrackId !== null ? 'inline-flex' : 'none';
+        document.getElementById('viewportChannelLabel').textContent = `CH-01 // ${m.video_source || 'STREAM'} (${m.resolution || '1080p'})`;
+        document.getElementById('viewportMetaReadout').textContent = `${m.model_path || 'GDUT-A6'} | ${m.fps} FPS | ${m.inference_ms} ms | ${m.device}`;
+        if (Array.isArray(m.workers)) {
+          STATE.workers = m.workers;
+          renderPersonnelRegistry();
+        }
+        applyKpis(m, m.fps, m.inference_ms);
+        applyPlaybackState(m.playback_state);
+        renderFocusInspector();
+      } catch (e) {}
+    }
+
+    async function pollWorkersAndAlerts() {
+      if (STATE._switchingToWebcam) return;
+      try {
+        const [wRes, aRes] = await Promise.all([apiJson('/api/tracking/workers'), apiJson('/api/alerts')]);
+        if (STATE._switchingToWebcam) return;
+        STATE.workers = wRes.workers || [];
+        renderPersonnelRegistry();
+        renderAuditLog(aRes || []);
+      } catch (e) {}
+    }
+
+    function applyKpis(k, fps, inferMs) {
+      if (!k) return;
+      document.getElementById('kpiActiveWorkers').textContent = k.workers_count ?? 0;
+      document.getElementById('kpiGalleryCount').textContent = k.gallery_total_count ?? k.registered_workers_count ?? 0;
+      document.getElementById('kpiComplianceRate').textContent = `${Number(k.compliance_rate ?? 100).toFixed(1)}%`;
+      document.getElementById('kpiComplianceSub').textContent = `${k.compliant_count ?? 0} compliant`;
+      document.getElementById('kpiViolations').textContent = k.violations_count ?? 0;
+      document.getElementById('kpiThroughput').textContent = `${Number(fps ?? 0).toFixed(1)} FPS`;
+      document.getElementById('kpiLatencyMs').textContent = `${Number(inferMs ?? 0).toFixed(1)} ms infer`;
+      drawRoleColorChart(k.helmet_colors || {});
+    }
+
+    function renderPersonnelRegistry() {
+      const container = document.getElementById('personnelRegistryList');
+      const activeList = STATE.workers.filter(w => w.is_active);
+      const memoryList = STATE.workers.filter(w => !w.is_active);
+      document.getElementById('activeTabCount').textContent = activeList.length;
+      document.getElementById('memoryTabCount').textContent = memoryList.length;
+
+      const rows = STATE.registryTab === 'active' ? activeList : memoryList;
+      if (rows.length === 0) {
+        container.innerHTML = `<div class="empty-state">${STATE.registryTab === 'active' ? 'No active personnel in frame.' : 'No remembered exits in gallery.'}</div>`;
+        return;
+      }
+
+      container.innerHTML = rows.map(w => {
+        const isFocused = STATE.focusTrackId === w.track_id;
+        const isViol = w.status === 'VIOLATION';
+        const pillCls = !w.is_active ? 'pill-memory' : (isViol ? 'pill-violation' : 'pill-compliant');
+        const pillText = !w.is_active ? `MEMORY (${w.seconds_since_seen || 0}s)` : w.status;
+        const labelHtml = w.custom_label ? `<span style="color:var(--accent-steel);font-weight:600;">[${escHtml(w.custom_label)}]</span>` : '';
+        const priorTag = w.helmet_removed && w.historical_helmet_color
+          ? `<span class="pill pill-violation">PRIOR ${escHtml(w.historical_helmet_color.toUpperCase())} -&gt; BARE HEAD</span>`
+          : '';
+        const roleTxt = w.historical_role_title || w.role_title || 'Unclassified';
+        const swatchHex = w.role_hex_color || '#64748B';
+
+        return `
+          <div class="worker-row ${isFocused ? 'focused' : ''} ${isViol ? 'violation' : ''}">
+            <div class="worker-top">
+              <span class="worker-id-tag mono">
+                <span class="swatch" style="background:${escHtml(swatchHex)}"></span>
+                ID #${escHtml(w.track_id)} ${labelHtml}
+              </span>
+              <span class="pill ${pillCls}">${escHtml(pillText)}</span>
+            </div>
+            <div class="worker-role-line">
+              <strong>${escHtml(roleTxt)}</strong>
+              ${priorTag}
+            </div>
+            <div class="worker-meta-line">
+              <span class="mono">Frames: ${w.total_frames_seen || 1} | ${escHtml((w.helmet_color || 'none').toUpperCase())}</span>
+              <div class="worker-actions">
+                <button class="btn btn-sm ${isFocused ? 'active-toggle' : ''}" onclick="setFocusTrack(${isFocused ? 'null' : w.track_id})">${isFocused ? 'Unfocus' : 'Focus'}</button>
+                <button class="btn btn-sm" onclick="openEnrollModal(${w.track_id}, '${escHtml(w.custom_label || '')}')">Enroll</button>
+                <button class="btn btn-sm" onclick="renameWorker(${w.track_id}, '${escHtml(w.custom_label || '')}')">Rename</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderFocusInspector() {
+      const box = document.getElementById('focusInspectorBody');
+      const badge = document.getElementById('viewportFocusBadge');
+      if (STATE.focusTrackId === null) {
+        if (badge) {
+          badge.style.display = 'none';
+          badge.textContent = '';
+        }
+        box.innerHTML = '<div class="empty-state" style="padding:18px 8px;">No Solo Focus active. Click any bounding box in the monitor or [Focus] in the Personnel Registry.</div>';
+        return;
+      }
+      const w = STATE.workers.find(p => p.track_id === STATE.focusTrackId);
+      if (badge) {
+        badge.style.display = 'inline-block';
+        if (w) {
+          const roleCode = w.historical_role_short_code || w.role_short_code || 'PERSONNEL';
+          const stateTxt = w.is_active ? 'LOCKED' : 'COASTING / MEMORY';
+          badge.style.background = w.is_active ? '#0F4C81' : '#B45309';
+          badge.textContent = `SOLO FOCUS: ID #${w.track_id} | ${roleCode} | ${stateTxt}`;
+        } else {
+          badge.style.background = '#B45309';
+          badge.textContent = `SOLO FOCUS: ID #${STATE.focusTrackId} | COASTING / MEMORY`;
+        }
+      }
+      if (!w) {
+        box.innerHTML = `<div class="empty-state" style="padding:18px 8px;">ID #${escHtml(STATE.focusTrackId)} currently coasting / not yet registered.</div>`;
+        return;
+      }
+      box.innerHTML = `
+        <table class="focus-inspector-table">
+          <tr><td>Canonical ID</td><td class="mono"><strong>#${escHtml(w.track_id)}</strong> ${w.custom_label ? '(' + escHtml(w.custom_label) + ')' : ''}</td></tr>
+          <tr><td>Site Role</td><td><strong>${escHtml(w.historical_role_title || w.role_title)}</strong></td></tr>
+          <tr><td>Current Head Class</td><td class="mono">${escHtml((w.current_class || w.helmet_color || 'none').toUpperCase())}</td></tr>
+          <tr><td>Prior Helmet Color</td><td class="mono">${escHtml((w.historical_helmet_color || 'N/A').toUpperCase())}</td></tr>
+          <tr><td>Safety Status</td><td><span class="pill ${w.status === 'VIOLATION' ? 'pill-violation' : 'pill-compliant'}">${escHtml(w.status)}</span></td></tr>
+          <tr><td>Presence</td><td class="mono">${w.is_active ? 'ON-SITE ACTIVE' : 'GALLERY MEMORY (' + w.seconds_since_seen + 's)'}</td></tr>
+        </table>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="btn btn-sm" onclick="openEnrollModal(${w.track_id}, '${escHtml(w.custom_label || '')}')">Enroll ID</button>
+          <button class="btn btn-sm" onclick="renameWorker(${w.track_id}, '${escHtml(w.custom_label || '')}')">Rename ID</button>
+        </div>
+      `;
+    }
+
+    // Crisp pure-Canvas Horizontal Bar Chart (Zero CDN dependency failure)
+    function drawRoleColorChart(helmetColors) {
+      const canvas = document.getElementById('roleColorChart');
+      if (!canvas) return;
+      const parent = canvas.parentElement;
+      const dpr = window.devicePixelRatio || 1;
+      const width = parent.clientWidth || 320;
+      const height = parent.clientHeight || 196;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, width, height);
+
+      const items = [
+        { key: 'white', label: 'White (PM/ENG)', color: STATE.rolePolicy.white?.hex_color || '#475569' },
+        { key: 'yellow', label: 'Yellow (WORKER)', color: STATE.rolePolicy.yellow?.hex_color || '#B45309' },
+        { key: 'blue', label: 'Blue (SUP/MEP)', color: STATE.rolePolicy.blue?.hex_color || '#0F4C81' },
+        { key: 'red', label: 'Red (HSE)', color: STATE.rolePolicy.red?.hex_color || '#991B1B' },
+        { key: 'none', label: 'Bare Head (VIOL)', color: '#DC2626' },
+      ];
+      const maxVal = Math.max(1, ...items.map(it => Number(helmetColors[it.key] || 0)));
+      const leftPad = 118;
+      const rightPad = 36;
+      const barMaxW = Math.max(40, width - leftPad - rightPad);
+      const topPad = 10;
+      const rowH = Math.floor((height - topPad - 8) / items.length);
+
+      ctx.font = '500 11px Inter, sans-serif';
+      items.forEach((it, idx) => {
+        const val = Number(helmetColors[it.key] || 0);
+        const y = topPad + idx * rowH;
+        const barH = 16;
+
+        ctx.fillStyle = '#374151';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(it.label, leftPad - 8, y + barH / 2);
+
+        ctx.fillStyle = '#F3F4F6';
+        ctx.fillRect(leftPad, y, barMaxW, barH);
+
+        const fillW = Math.round((val / maxVal) * barMaxW);
+        if (fillW > 0) {
+          ctx.fillStyle = it.color;
+          ctx.fillRect(leftPad, y, fillW, barH);
+        }
+
+        ctx.fillStyle = '#111827';
+        ctx.textAlign = 'left';
+        ctx.font = '600 11px JetBrains Mono, monospace';
+        ctx.fillText(String(val), leftPad + barMaxW + 8, y + barH / 2);
+        ctx.font = '500 11px Inter, sans-serif';
+      });
+    }
+
+    // --------------------------------------------------------------
+    // INCIDENT AUDIT LOG + HITL FEEDBACK
+    // --------------------------------------------------------------
+    function renderAuditLog(alerts) {
+      const container = document.getElementById('incidentAuditList');
+      if (!alerts || alerts.length === 0) {
+        container.innerHTML = '<div class="empty-state">No confirmed bare-head alerts recorded in current session.</div>';
+        return;
+      }
+      container.innerHTML = alerts.slice(0, 30).map(a => {
+        const snapUrl = a.snapshot_filename ? `/snapshots/${encodeURIComponent(a.snapshot_filename)}` : '';
+        const roleInfo = a.historical_role_title || a.role_title || 'Unclassified';
+        const priorTag = a.historical_helmet_color ? ` (Prior: ${a.historical_helmet_color.toUpperCase()})` : '';
+        return `
+          <div class="audit-item">
+            <div class="audit-head">
+              <span class="mono" style="font-weight:700;font-size:12px;">ID #${escHtml(a.worker_id)} ${a.custom_label ? '[' + escHtml(a.custom_label) + ']' : ''}</span>
+              <span class="pill pill-violation">VIOLATION</span>
+            </div>
+            <div class="audit-body">
+              ${snapUrl ? `<img class="audit-thumb" src="${snapUrl}" alt="Snapshot" onclick="openEvidenceLightbox('${snapUrl}', 'ID #${escHtml(a.worker_id)} — ${escHtml(a.timestamp)}')" />` : ''}
+              <div class="audit-details">
+                <div><strong>${escHtml(roleInfo)}</strong>${escHtml(priorTag)}</div>
+                <div class="mono" style="color:var(--text-muted);margin-top:2px;">${escHtml(a.timestamp || '')} | ${escHtml(a.camera_id || '')}</div>
+              </div>
+            </div>
+            <div class="hitl-row">
+              <button class="btn btn-sm" onclick="submitHitl('${escHtml(a.alert_id)}', ${Number(a.worker_id) || 0}, 'confirm', '', '${escHtml(a.snapshot_filename || '')}')">Confirm</button>
+              <button class="btn btn-sm" onclick="submitHitl('${escHtml(a.alert_id)}', ${Number(a.worker_id) || 0}, 'false_positive', '', '${escHtml(a.snapshot_filename || '')}')">False Pos</button>
+              <button class="btn btn-sm" onclick="promptHitlLabel('${escHtml(a.alert_id)}', ${Number(a.worker_id) || 0}, '${escHtml(a.snapshot_filename || '')}')">Edit Label</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function clearAlertHistory() {
+      await apiJson('/api/alerts/clear', { method: 'POST' });
+      renderAuditLog([]);
+      showToast('Incident log cleared');
+    }
+
+    function openEvidenceLightbox(url, title) {
+      document.getElementById('lightboxTitle').textContent = title;
+      document.getElementById('lightboxImg').src = url;
+      openModal('evidenceLightboxModal');
+    }
+
+    async function submitHitl(itemId, workerId, verdict, correctedLabel, snap) {
+      try {
+        await apiJson('/api/feedback', {
+          method: 'POST',
+          body: JSON.stringify({
+            item_id: itemId,
+            worker_id: workerId || null,
+            verdict,
+            corrected_label: correctedLabel || null,
+            snapshot_filename: snap || null,
+            source_type: 'incident',
+          }),
+        });
+        showToast('Operator HITL feedback saved');
+        refreshFeedbackSummary();
+      } catch (e) { showToast(e.message); }
+    }
+
+    function promptHitlLabel(itemId, workerId, snap) {
+      openActionInputModal({
+        title: `HITL Ground-Truth Correction // Track #${workerId}`,
+        desc: 'Select verified GDUT-HWD 5-class label for operator feedback audit log:',
+        defaultValue: 'white',
+        selectOptions: [
+          { value: 'white', label: 'white — Project Manager / Site Engineer' },
+          { value: 'yellow', label: 'yellow — Construction Worker' },
+          { value: 'blue', label: 'blue — Technical Supervisor / MEP' },
+          { value: 'red', label: 'red — Safety Officer (HSE)' },
+          { value: 'none', label: 'none — Bare Head (Safety Violation)' },
+        ],
+        onConfirm: async (lbl) => {
+          if (!lbl) return;
+          await submitHitl(itemId, workerId, 'edit_label', lbl.trim().toLowerCase(), snap);
+        },
+      });
+    }
+
+    async function refreshFeedbackSummary() {
+      try {
+        const res = await apiJson('/api/feedback');
+        const s = res.summary || {};
+        document.getElementById('feedbackSummaryPill').textContent = `HITL: ${s.confirmed || 0} OK / ${s.false_positive || 0} FP`;
+      } catch (e) {}
+    }
+
+    // --------------------------------------------------------------
+    // MODALS: IMAGE AUDIT, ROLE POLICY, BENCHMARK, SETTINGS
+    // --------------------------------------------------------------
+    async function runImageAudit() {
+      const inp = document.getElementById('auditImageInput');
+      const f = inp.files && inp.files[0];
+      if (!f) { showToast('Select an image file first'); return; }
+      const fd = new FormData();
+      fd.append('file', f);
+      try {
+        const res = await fetch('/api/predict_image', { method: 'POST', body: fd });
+        if (!res.ok) throw new Error('Image audit request failed');
+        const data = await res.json();
+        document.getElementById('auditResultContainer').style.display = 'flex';
+        document.getElementById('auditResultImg').src = data.annotated_image_b64;
+        document.getElementById('auditResultSummary').textContent =
+          `Detections: ${data.count} | Inference: ${data.inference_ms} ms | Model: ${String(data.model_path || '').split(/[\\/]/).pop()}`;
+        const tbody = document.getElementById('auditResultTableBody');
+        tbody.innerHTML = (data.detections || []).map(d => `
+          <tr>
+            <td class="mono">${escHtml(String(d.name).toUpperCase())}</td>
+            <td>${escHtml(d.role_title || '-')}</td>
+            <td class="mono">${(Number(d.conf || 0) * 100).toFixed(1)}%</td>
+            <td class="mono">[${(d.box || d.bbox || []).join(', ')}]</td>
+          </tr>
+        `).join('') || '<tr><td colspan="4" class="empty-state">No objects detected above confidence threshold.</td></tr>';
+      } catch (e) { showToast(e.message); }
+    }
+
+    async function openRolePolicyModal() {
+      await loadRolePolicy();
+      const tbody = document.getElementById('rolePolicyTableBody');
+      tbody.innerHTML = ['white', 'yellow', 'blue', 'red', 'none'].map(col => {
+        const r = STATE.rolePolicy[col] || {};
+        return `
+          <tr>
+            <td class="mono"><strong>${escHtml(col.toUpperCase())}</strong></td>
+            <td><input type="text" class="ctrl-input" id="roleTitle_${col}" value="${escHtml(r.role_title || '')}" style="width:100%;" /></td>
+            <td><input type="text" class="ctrl-input mono" id="roleCode_${col}" value="${escHtml(r.short_code || '')}" style="width:92px;" /></td>
+            <td><input type="color" id="roleHex_${col}" value="${escHtml(r.hex_color || '#475569')}" style="width:46px;height:28px;border:1px solid #D1D5DB;border-radius:4px;" /></td>
+            <td><span class="pill ${col === 'none' ? 'pill-violation' : 'pill-compliant'}">${col === 'none' ? 'VIOLATION' : 'COMPLIANT'}</span></td>
+          </tr>
+        `;
+      }).join('');
+      openModal('rolePolicyModal');
+    }
+
+    async function saveRolePolicyEdits() {
+      const updates = {};
+      ['white', 'yellow', 'blue', 'red', 'none'].forEach(col => {
+        updates[col] = {
+          role_title: document.getElementById(`roleTitle_${col}`).value.trim(),
+          short_code: document.getElementById(`roleCode_${col}`).value.trim(),
+          hex_color: document.getElementById(`roleHex_${col}`).value,
+        };
+      });
+      try {
+        const res = await apiJson('/api/roles', { method: 'POST', body: JSON.stringify(updates) });
+        STATE.rolePolicy = res.roles || updates;
+        renderRoleFilterChips();
+        closeModal('rolePolicyModal');
+        showToast('Role-by-color policy updated');
+      } catch (e) { showToast(e.message); }
+    }
+
+    async function resetDefaultRolePolicy() {
+      try {
+        const res = await apiJson('/api/roles', { method: 'POST', body: JSON.stringify(STATE.roleDefaults || {}) });
+        STATE.rolePolicy = res.roles || {};
+        openRolePolicyModal();
+        showToast('Restored default site hierarchy');
+      } catch (e) {}
+    }
+
+    async function openBenchmarkModal() {
+      openModal('benchmarkModal');
+      const body = document.getElementById('benchmarkModalBody');
+      try {
+        const b = await apiJson('/api/benchmark/summary');
+        const h = b.host_telemetry || {};
+        const rep = b.gdut_switch_to_deploy || {};
+        const vpMap = b.video_parity || {};
+        const vpGdut = vpMap['Rep-YOLO11s-GDUT-A6 (Capstone 5-Cls)'] || vpMap;
+        const e2e = b.gdut_end2end_reid || {};
+        const e2eStages = e2e.stages || [];
+        const formatLoadRows = (arr) => (arr || []).map(r => `
+          <tr>
+            <td class="mono">C=${r.concurrency}</td>
+            <td class="mono">${r.total_requests}</td>
+            <td class="mono">${r.rps} RPS</td>
+            <td class="mono">${r.avg_ms} ms</td>
+            <td class="mono">${r.p95_ms} ms</td>
+            <td class="mono">${r.p99_ms} ms</td>
+            <td><span class="pill ${Number(r.error_pct || 0) === 0 ? 'pill-compliant' : 'pill-violation'}">${Number(r.error_pct || 0).toFixed(2)}%</span></td>
+          </tr>
+        `).join('');
+        const loadRows = formatLoadRows(b.api_load_test);
+        const dockerLoadRows = formatLoadRows(b.enterprise_docker_load_test);
+
+        const msRows = (b.multistream_rtx3050 || []).map(r => `
+          <tr>
+            <td class="mono">${r.streams}x</td>
+            <td class="mono">${r.agg_fps} FPS</td>
+            <td class="mono">${r.per_stream_fps} FPS</td>
+            <td class="mono">${r.lat_mean_ms} ms</td>
+            <td class="mono">${r.vram_peak_mb} MB</td>
+            <td><span class="pill ${r.sla_25fps_ok ? 'pill-compliant' : 'pill-memory'}">${r.sla_25fps_ok ? 'SLA >=25 FPS PASS' : 'ABOVE 25 FPS LIMIT'}</span></td>
+          </tr>
+        `).join('');
+
+        const optRows = (b.optimization_before_after || []).map(r => {
+          let parityTxt = r.accuracy_delta || 'Baseline Ref';
+          if (!r.accuracy_delta && String(r.precision || '').includes('FP16') && Number(r.batch || 1) === 1 && vpGdut && vpGdut.max_abs_count_delta !== undefined) {
+            const confDiffTxt = vpGdut.mean_conf_diff !== undefined ? `, conf diff ${vpGdut.mean_conf_diff}` : '';
+            parityTxt = `Delta ${vpGdut.max_abs_count_delta} boxes (${vpGdut.fp32_boxes ?? '-'}/${vpGdut.fp16_amp_boxes ?? '-'}${confDiffTxt})`;
+          }
+          return `
+            <tr>
+              <td>${escHtml(r.stage)}</td>
+              <td class="mono">${escHtml(r.precision)}</td>
+              <td class="mono">${r.latency_ms} ms</td>
+              <td class="mono">${r.fps} FPS</td>
+              <td class="mono">${r.vram_mb} MB</td>
+              <td class="mono">${escHtml(parityTxt)}</td>
+            </tr>
+          `;
+        }).join('');
+
+        const e2eRows = e2eStages.map(r => `
+          <tr>
+            <td>${escHtml(r.stage)}</td>
+            <td class="mono">${escHtml(r.config || r.precision || '-')}</td>
+            <td class="mono">${r.latency_ms} ms</td>
+            <td class="mono">${r.p95_ms ?? '-'} ms</td>
+            <td class="mono">${r.fps} FPS</td>
+            <td class="mono">${r.vram_mb} MB</td>
+            <td class="mono">${escHtml(r.parity_note || '-')}</td>
+          </tr>
+        `).join('');
+
+        const e2eMetaBanner = e2e.gpu_model
+          ? `<div class="mono" style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">
+              GPU: ${escHtml(e2e.gpu_model)} | Default=${escHtml(e2e.default_runtime_mode || 'TF32 FP32')} | matmul_tf32=${Boolean(e2e.matmul_allow_tf32 ?? e2e.allow_tf32)} | cudnn_tf32=${Boolean(e2e.cudnn_allow_tf32 ?? e2e.allow_tf32)} | Warmup=${e2e.warmup_iters ?? '-'} | Timed=${e2e.timed_iters ?? '-'} | Input=${escHtml(e2e.frame_resolution || '1920x1080')}
+             </div>`
+          : '';
+
+        body.innerHTML = `
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+            <div class="kpi-card"><span class="kpi-label">Device</span><span class="mono" style="font-weight:700;">${escHtml(b.active_model?.device || 'CPU')}</span></div>
+            <div class="kpi-card"><span class="kpi-label">CPU Load</span><span class="mono" style="font-weight:700;">${h.cpu_percent ?? 0}%</span></div>
+            <div class="kpi-card"><span class="kpi-label">Host RAM</span><span class="mono" style="font-weight:700;">${h.ram_used_mb ?? 0} MB</span></div>
+            <div class="kpi-card"><span class="kpi-label">CUDA VRAM</span><span class="mono" style="font-weight:700;">${h.cuda_vram_mb ?? 0} MB</span></div>
+          </div>
+          ${rep.params_delta ? `<div class="mono" style="font-size:12px;background:var(--bg-subtle);padding:8px;border:1px solid var(--border-hairline);border-radius:4px;">
+            RepConv switch_to_deploy() [Strict FP32, TF32=False]: ${rep.switched_count} fused layers | Params ${rep.params_before} -&gt; ${rep.params_after} (-${rep.params_delta}) | FP32 ${rep.before_fp32_ms}ms -&gt; ${rep.after_fp32_ms}ms | Max Diff: ${Number(rep.max_abs_diff_fp32).toExponential(2)}
+          </div>` : ''}
+          <div>
+            <div class="chip-section-label">1. Inference Optimization Progression &amp; Accuracy Parity</div>
+            <table class="data-table">
+              <thead><tr><th>Stage</th><th>Precision</th><th>Latency</th><th>Throughput</th><th>VRAM</th><th>Box-Count / Conf Parity</th></tr></thead>
+              <tbody>${optRows || '<tr><td colspan="6">No optimization table found.</td></tr>'}</tbody>
+            </table>
+          </div>
+          <div>
+            <div class="chip-section-label">2. Full End-to-End VMS + Non-Biometric Upper-Torso Re-ID Breakdown</div>
+            ${e2eMetaBanner}
+            <table class="data-table">
+              <thead><tr><th>Pipeline Tier</th><th>Mode / Precision</th><th>Mean Lat</th><th>p95 Lat</th><th>Throughput</th><th>Peak VRAM</th><th>Parity / Notes</th></tr></thead>
+              <tbody>${e2eRows || '<tr><td colspan="7">Run scripts/benchmark_gdut_vms_end2end.py to populate End-to-End breakdown.</td></tr>'}</tbody>
+            </table>
+          </div>
+          <div>
+            <div class="chip-section-label">3. RTX 3050 GDUT-A6 Multi-Stream Batched Benchmark</div>
+            <table class="data-table">
+              <thead><tr><th>Streams</th><th>Agg FPS</th><th>Per-Stream</th><th>Mean Lat</th><th>Peak VRAM</th><th>25 FPS SLA</th></tr></thead>
+              <tbody>${msRows || '<tr><td colspan="6">No benchmark JSON found.</td></tr>'}</tbody>
+            </table>
+          </div>
+          <div>
+            <div class="chip-section-label">4A. FastAPI Load &amp; Stress Test — Single-Process In-Process CPU (C=10..100)</div>
+            <table class="data-table">
+              <thead><tr><th>Concurrency</th><th>Requests</th><th>Throughput</th><th>Avg (ms)</th><th>p95 (ms)</th><th>p99 (ms)</th><th>Errors (%)</th></tr></thead>
+              <tbody>${loadRows || '<tr><td colspan="7">No load test JSON found.</td></tr>'}</tbody>
+            </table>
+          </div>
+          <div>
+            <div class="chip-section-label">4B. 6-Container Enterprise Stack Load Test — Nginx -&gt; Gateway -&gt; Postgres (C=10..100)</div>
+            <table class="data-table">
+              <thead><tr><th>Concurrency</th><th>Requests</th><th>Throughput</th><th>Avg (ms)</th><th>p95 (ms)</th><th>p99 (ms)</th><th>Errors (%)</th></tr></thead>
+              <tbody>${dockerLoadRows || '<tr><td colspan="7">Run load_test_api.py against Docker Nginx :8080 to populate Enterprise stack metrics.</td></tr>'}</tbody>
+            </table>
+          </div>
+        `;
+      } catch (e) {
+        body.innerHTML = `<div class="empty-state">Failed to load benchmark telemetry: ${escHtml(e.message)}</div>`;
+      }
+    }
+
+    async function openSettingsModal() {
+      try {
+        const s = await apiJson('/api/status');
+        const cfg = s.config || {};
+        document.getElementById('setConf').value = cfg.conf_threshold ?? 0.25;
+        document.getElementById('setNoneConf').value = cfg.none_conf_threshold ?? 0.25;
+        document.getElementById('setIou').value = cfg.iou_threshold ?? 0.45;
+        document.getElementById('setDebounce').value = cfg.consecutive_violation_frames ?? 8;
+        document.getElementById('setCooldown').value = cfg.alert_cooldown_seconds ?? 30;
+      } catch (e) {}
+      openModal('settingsModal');
+    }
+
+    async function saveSettings() {
+      const payload = {
+        conf_threshold: parseFloat(document.getElementById('setConf').value),
+        none_conf_threshold: parseFloat(document.getElementById('setNoneConf').value),
+        iou_threshold: parseFloat(document.getElementById('setIou').value),
+        consecutive_violation_frames: parseInt(document.getElementById('setDebounce').value, 10),
+        alert_cooldown_seconds: parseFloat(document.getElementById('setCooldown').value),
+      };
+      const tg = document.getElementById('setTelegramChatId').value.trim();
+      const zl = document.getElementById('setZaloTarget').value.trim();
+      if (tg) payload.telegram_chat_id = tg;
+      if (zl) payload.zalo_webhook_url = zl;
+      try {
+        await apiJson('/api/settings', { method: 'POST', body: JSON.stringify(payload) });
+        closeModal('settingsModal');
+        showToast('Pipeline settings saved');
+      } catch (e) { showToast(e.message); }
+    }
+
+    async function testTelegram() {
+      try {
+        const cid = document.getElementById('setTelegramChatId').value.trim();
+        const res = await apiJson('/api/test_alert/telegram', { method: 'POST', body: JSON.stringify({ chat_id: cid || null }) });
+        showToast(res.success ? 'Telegram test sent' : ('Telegram: ' + res.message));
+      } catch (e) { showToast(e.message); }
+    }
+
+    async function testZalo() {
+      try {
+        const target = document.getElementById('setZaloTarget').value.trim();
+        const res = await apiJson('/api/test_alert/zalo', { method: 'POST', body: JSON.stringify({ webhook_url: target || null }) });
+        showToast(res.message || 'Zalo test executed');
+      } catch (e) { showToast(e.message); }
+    }
+
+    document.addEventListener('DOMContentLoaded', bootstrapDashboard);
+  </script>
+</body>
+</html>

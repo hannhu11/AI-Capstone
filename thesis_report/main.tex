@@ -1,0 +1,209 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Consolas}[Scale=0.84]
+
+\usepackage[top=2.3cm, bottom=2.3cm, left=3.2cm, right=2.0cm]{geometry}
+\usepackage{setspace}
+\setstretch{1.15}
+
+\usepackage{amsmath,amssymb,amsfonts,bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{placeins}
+
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc,backgrounds}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\usepackage{tocloft}
+\PassOptionsToPackage{hyphens}{url}
+\usepackage{hyperref}
+\urlstyle{same}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds\do\_\do\-\do\/\do\.\do\=\do\:}
+\makeatother
+\newcommand{\hexhash}[1]{{\ttfamily\def\UrlBreaks{\do 0\do 1\do 2\do 3\do 4\do 5\do 6\do 7\do 8\do 9\do a\do b\do c\do d\do e\do f}\nolinkurl{#1}}}
+
+\definecolor{fptblue}{RGB}{15, 76, 129}
+\definecolor{fptorange}{RGB}{234, 88, 12}
+\definecolor{slatehdr}{RGB}{241, 245, 249}
+\definecolor{codebg}{RGB}{248, 250, 252}
+\definecolor{codeframe}{RGB}{203, 213, 225}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=fptblue,
+  citecolor=green!45!black,
+  urlcolor=blue!65!black,
+  pdftitle={Capstone Project Document FA26AI16 - Group GFA26AI17},
+  pdfauthor={Nguyen Han Nhu, Nguyen Van Thanh, Tran Pham Tuan Dung},
+  pdfsubject={Real-Time Safety Helmet and Color Classification on GDUT-HWD}
+}
+
+% Template AIP491 numbering: Roman I..IX for top-level chapters, 1 / 1.1 / 1.1.1 inside each chapter
+\renewcommand{\thechapter}{\Roman{chapter}}
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\arabic{section}.\arabic{subsection}.\arabic{subsubsection}}
+\renewcommand{\thetable}{\Roman{chapter}.\arabic{table}}
+\renewcommand{\thefigure}{\Roman{chapter}.\arabic{figure}}
+\renewcommand{\theequation}{\Roman{chapter}.\arabic{equation}}
+
+% Ensure hyperref anchors stay unique across chapters with reset section counters
+\renewcommand{\theHsection}{\thechapter.\arabic{section}}
+\renewcommand{\theHsubsection}{\thechapter.\arabic{section}.\arabic{subsection}}
+\renewcommand{\theHsubsubsection}{\thechapter.\arabic{section}.\arabic{subsection}.\arabic{subsubsection}}
+\renewcommand{\theHtable}{\thechapter.\arabic{table}}
+\renewcommand{\theHfigure}{\thechapter.\arabic{figure}}
+\renewcommand{\theHequation}{\thechapter.\arabic{equation}}
+
+% Clean English Template Headings
+\renewcommand{\contentsname}{Table of Contents}
+\renewcommand{\listfigurename}{List of Figures}
+\renewcommand{\listtablename}{List of Tables}
+\renewcommand{\figurename}{Figure}
+\renewcommand{\tablename}{Table}
+\renewcommand{\bibname}{References}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\bfseries\fontsize{15}{19}\selectfont\color{fptblue}}
+  {\thechapter.\ }{0pt}{}
+\titlespacing*{\chapter}{0pt}{-10pt}{14pt}
+
+\titleformat{\section}
+  {\normalfont\bfseries\fontsize{13}{17}\selectfont}
+  {\thesection.\ }{0pt}{}
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+
+\titleformat{\subsection}
+  {\normalfont\bfseries\fontsize{12}{16}\selectfont}
+  {\thesubsection\ }{0pt}{}
+\titlespacing*{\subsection}{0pt}{9pt}{4pt}
+
+\titleformat{\subsubsection}
+  {\normalfont\bfseries\itshape\fontsize{12}{15}\selectfont}
+  {\thesubsubsection\ }{0pt}{}
+\titlespacing*{\subsubsection}{0pt}{7pt}{3pt}
+
+% Wider ToC / LoT / LoF number boxes to prevent overlaps with Roman numerals
+\setlength{\cftchapnumwidth}{2.4em}
+\setlength{\cftsecnumwidth}{2.2em}
+\setlength{\cftsubsecnumwidth}{2.8em}
+\setlength{\cfttabnumwidth}{3.2em}
+\setlength{\cftfignumwidth}{3.2em}
+\setlength{\cftbeforechapskip}{2pt}
+\setlength{\cftbeforesecskip}{0.5pt}
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{3}
+
+% Header and Footer
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize\textit{Capstone Project FA26AI16 -- Group GFA26AI17}}
+\fancyhead[R]{\footnotesize\textit{Safety Helmet \& Color Detection (GDUT-HWD)}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.2pt}
+
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyhead[L]{\footnotesize\textit{Capstone Project FA26AI16 -- Group GFA26AI17}}
+  \fancyhead[R]{\footnotesize\textit{FPT University -- Ho Chi Minh City}}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0.2pt}
+}
+
+% Listings style for PyTorch, YAML, and FastAPI snippets
+\lstset{
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  breakatwhitespace=false,
+  postbreak=\mbox{\textcolor{gray}{$\hookrightarrow$}\space},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=6pt,
+  xleftmargin=12pt,
+  keywordstyle=\color{blue!70!black}\bfseries,
+  commentstyle=\color{green!45!black}\itshape,
+  stringstyle=\color{red!60!black},
+  showstringspaces=false,
+  tabsize=4,
+  columns=flexible
+}
+
+\captionsetup{font=small,labelfont=bf,skip=4pt}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0.8cm}
+% Disable automatic word hyphenation across English & Vietnamese prose
+\lefthyphenmin=64
+\righthyphenmin=64
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\doublehyphendemerits=10000000
+\tolerance=2500
+\emergencystretch=4em
+\sloppy
+\hbadness=10000
+\vbadness=10000
+
+% Integrate bibliography seamlessly under Chapter VIII. References
+\makeatletter
+\patchcmd{\thebibliography}{\chapter*{\bibname}}{\vspace{-6pt}}{}{}
+\makeatother
+
+\begin{document}
+
+% ==============================================================================
+% FRONTMATTER (Roman numerals i, ii, iii, ...)
+% ==============================================================================
+\pagenumbering{roman}
+\input{chapters/frontmatter.tex}
+
+% ==============================================================================
+% MAIN BODY (Arabic numerals 1, 2, 3, ...; Sections I to IX per Template AIP491)
+% ==============================================================================
+\clearpage
+\pagenumbering{arabic}
+\setcounter{table}{0}
+\renewcommand{\thetable}{\Roman{chapter}.\arabic{table}}
+\renewcommand{\theHtable}{\thechapter.\arabic{table}}
+
+\input{chapters/ch1_intro.tex}
+\input{chapters/ch2_pmp.tex}
+\input{chapters/ch3_sota.tex}
+\input{chapters/ch4_methodology.tex}
+\input{chapters/ch5_system.tex}
+\input{chapters/ch6_results.tex}
+\input{chapters/ch7_conclusion.tex}
+
+% VIII. References
+\clearpage
+\chapter{References}
+\label{chap:references}
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+% IX. Appendices
+\clearpage
+\input{chapters/ch9_appendices.tex}
+
+\end{document}
