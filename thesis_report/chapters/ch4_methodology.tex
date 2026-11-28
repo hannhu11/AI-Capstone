@@ -1,0 +1,382 @@
+\chapter{Methodology}
+\label{chap:methodology}
+
+Following \textit{Methodology Sample 1} of the FPT University AIP491 Guide, this chapter defines Research Questions \texttt{RQ1}--\texttt{RQ4}, deduplicated \texttt{GDUT-HWD} data preparation, color-preserving augmentation, the two-stage dual-backbone configuration suite (\texttt{A0}--\texttt{A6}), the auxiliary \textbf{Proposed V1} (\texttt{SHWD\_V1}) benchmark, evaluation metrics, the 15-notebook execution plan, and ethical safeguards. Every layer index, tensor shape, equation, and code listing matches the verified execution manifests 1-to-1.
+
+\section{Research Questions}
+
+To address Gaps \textbf{G1--G4} from Chapter~\ref{chap:sota}, four testable questions govern our experiments:
+\begin{itemize}[leftmargin=1.8em, itemsep=2.5pt]
+  \item \textbf{RQ1 (Dataset Integrity and Color Safety):} How do exact RGB-pixel SHA-256 deduplication and hue/saturation-locked offline augmentation (\texttt{hsv\_h = 0}, \texttt{hsv\_s = 0}) affect five-class \texttt{GDUT-HWD} generalization across \texttt{YOLO11s} and \texttt{YOLOv8s}?
+  \item \textbf{RQ2 (Unified Baseline Comparison):} Under identical \texttt{ce2a883e} five-class splits and 48 matched Stage 2 hyperparameters, how do \texttt{B1: YOLO11n-DCRCF}~\cite{zhao2025yolodcrcf} and \texttt{B2: YOLOv8s-DWR-ASPP-NWD}~\cite{song2024improved} compare against \texttt{V2 A6} in test accuracy, bare-head sensitivity, transfer ratio, and T4 latency?
+  \item \textbf{RQ3 (Ablation Mechanics and Initialization Stability):} Across Stage 1 reference \texttt{A0} and six Stage 2 branches (\texttt{A1}--\texttt{A6}), do \texttt{CoordConv}, stride-2 \texttt{RepConv}, \texttt{BiFormerBlockLite}, and \texttt{Focal-EIoU} compound additively, and how does replacing \texttt{C2PSA} (\texttt{YOLO11s}) compare to appending after \texttt{SPPF} (\texttt{YOLOv8s})?
+  \item \textbf{RQ4 (Edge Optimization and VMS Reliability):} What RTX 3050 speedups do vectorized \texttt{torch.gather}, verified \nolinkurl{RepConv.switch_to_deploy()}, CUDA AMP FP16, and micro-batching ($N=4$) deliver under a 12-frame sample parity check, what is the paired 1080p VMS + Re-ID and multi-stream 25 FPS SLA envelope, and how reliably does the 6-container stack handle concurrent load?
+\end{itemize}
+
+\section{Data Collection and Preprocessing}
+
+\subsection{GDUT-HWD Taxonomy and Exact VOC-to-YOLO Conversion}
+
+Raw \textbf{GDUT-HWD}~\cite{wu2019hardhats} contains 3,174 Pascal VOC images split evenly into \texttt{trainval.txt} (1,587) and \texttt{test.txt} (1,587) across five locked classes (Table~\ref{tab:ch4_taxonomy}). Prior to conversion, \nolinkurl{dataset_pipeline.py} verifies zero ID overlap, 1-to-1 XML bijection, exact RGB image dimensions $(W,H)$, valid finite box coordinates, and retention of \texttt{difficult=1} objects. Pascal VOC 1-based inclusive boxes $(x_{\min}, y_{\min}, x_{\max}, y_{\max})$ convert to normalized YOLO format $(c, x_c, y_c, w, h)$ via:
+\begin{align}
+x_1 &= \max(0, \, x_{\min} - 1), & y_1 &= \max(0, \, y_{\min} - 1), \nonumber \\
+x_2 &= \min(W, \, x_{\max}),     & y_2 &= \min(H, \, y_{\max}), \label{eq:ch4_voc_to_yolo} \\
+x_c &= \frac{x_1 + x_2}{2W}, \quad y_c = \frac{y_1 + y_2}{2H}, &
+w &= \frac{x_2 - x_1}{W}, \quad h = \frac{y_2 - y_1}{H}, \nonumber
+\end{align}
+serialized to ten decimal places.
+
+\begin{table}[htbp]
+\centering
+\caption{Locked Five-Class Label Taxonomy of the GDUT-HWD Benchmark.}
+\label{tab:ch4_taxonomy}
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{|c|l|X|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Class ID} & \textbf{Code Label} & \textbf{Construction Site Semantic Meaning} \\
+\hline
+\texttt{0} & \texttt{blue}   & Blue safety helmet (technical specialists, electricians, shift supervisors) \\ \hline
+\texttt{1} & \texttt{white}  & White safety helmet (project managers, engineers, authorized inspectors) \\ \hline
+\texttt{2} & \texttt{yellow} & Yellow safety helmet (general construction laborers, operators) \\ \hline
+\texttt{3} & \texttt{red}    & Red safety helmet (safety officers, fire wardens, emergency coordinators) \\ \hline
+\texttt{4} & \texttt{none}   & Unprotected bare head (immediate occupational safety violation) \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{SHA-256 RGB Pixel Deduplication and Official Splits}
+
+Decoding every image to raw RGB bytes and hashing $(W, H) \Vert \text{RGB}$ via SHA-256 uncovered \textbf{six exact pixel-identical cross-split duplicates} in \texttt{trainval} matching official \texttt{test} images (Table~\ref{tab:ch4_duplicates}). All 1,587 official test images were kept unmodified while all six leaking copies were dropped from \texttt{trainval}, leaving 1,581 clean \texttt{trainval} images (3,168 clean images total). Internal \texttt{trainval} duplicate clusters were kept indivisible, shuffled with \texttt{seed = 3407}, and split 80\%/20\% into \textbf{1,265 Train} and \textbf{316 Validation} images (Table~\ref{tab:ch4_split_stats}, Figures~\ref{fig:ch4_class_dist}--\ref{fig:ch4_labels_geom}). Exact pixel hashing catches identical copies without claiming perceptual near-duplicate removal, and cluster splitting preserves natural class proportions rather than forcing synthetic balance.
+
+\begin{table}[htbp]
+\centering
+\caption{Six Exact RGB Pixel-Identical Cross-Split Duplicates Detected via SHA-256 Audit.}
+\label{tab:ch4_duplicates}
+\footnotesize
+\renewcommand{\arraystretch}{1.10}
+\begin{tabularx}{\textwidth}{|c|l|l|X|}
+\hline
+\rowcolor{slatehdr}
+\textbf{\#} & \textbf{Removed \texttt{trainval} Duplicate} & \textbf{Retained Official \texttt{test} Image} & \textbf{Audit Action} \\
+\hline
+1 & \nolinkurl{JPEGImages/00286.jpg} & \nolinkurl{JPEGImages/02142.jpg} & Dropped from \texttt{trainval}; kept \texttt{test} intact \\ \hline
+2 & \nolinkurl{JPEGImages/00641.jpg} & \nolinkurl{JPEGImages/00615.jpg} & Dropped from \texttt{trainval}; kept \texttt{test} intact \\ \hline
+3 & \nolinkurl{JPEGImages/00676.jpg} & \nolinkurl{JPEGImages/00239.jpg} & Dropped from \texttt{trainval}; kept \texttt{test} intact \\ \hline
+4 & \nolinkurl{JPEGImages/00801.jpg} & \nolinkurl{JPEGImages/01007.jpg} & Dropped from \texttt{trainval}; kept \texttt{test} intact \\ \hline
+5 & \nolinkurl{JPEGImages/03087.jpg} & \nolinkurl{JPEGImages/01726.jpg} & Dropped from \texttt{trainval}; kept \texttt{test} intact \\ \hline
+6 & \nolinkurl{JPEGImages/03365.jpg} & \nolinkurl{JPEGImages/02224.jpg} & Dropped from \texttt{trainval}; kept \texttt{test} intact \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Instance Distribution of the Clean Deduplicated GDUT-HWD Benchmark (3,168 Images, 18,849 Boxes).}
+\label{tab:ch4_split_stats}
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{|l|r|r|r|r|r|r|r|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Split} & \textbf{Base Images} & \textbf{\texttt{blue}} & \textbf{\texttt{white}} & \textbf{\texttt{yellow}} & \textbf{\texttt{red}} & \textbf{\texttt{none}} & \textbf{Total Boxes} \\
+\hline
+\textbf{Train (Base)} & 1,265 & 978 & 1,462 & 1,465 & 1,865 & 1,767 & 7,537 \\ \hline
+\textbf{Validation}   & 316   & 258 & 349   & 448   & 279   & 404   & 1,738 \\ \hline
+\textbf{Official Test}& 1,587 & 1,361 & 1,968 & 1,962 & 2,083 & 2,200 & 9,574 \\ \hline
+\rowcolor{slatehdr}
+\textbf{Total Clean}  & \textbf{3,168} & \textbf{2,597} & \textbf{3,779} & \textbf{3,875} & \textbf{4,227} & \textbf{4,371} & \textbf{18,849} \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_gdut_class_distribution.png}
+\caption[Clean Deduplicated GDUT-HWD Five-Class Split Distribution (3,168 Images, 18,849 Boxes)]{Clean deduplicated GDUT-HWD five-class distribution across Train (1,265), Validation (316), and Official Test (1,587) splits, totaling 18,849 bounding boxes.}
+\label{fig:ch4_class_dist}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.60\textwidth]{figures/gdut_labels_dist.jpg}
+\caption[Ultralytics Spatial Geometry Audit (\texttt{labels.jpg}) of Canonical GDUT-HWD Stage 2 Training Set]{Ultralytics spatial geometry audit (\texttt{labels.jpg}) of the Stage 2 training set (\texttt{ce2a883e...}; 2,530 images, 15,004 boxes retained after \nolinkurl{min_visibility=0.20}), highlighting small box concentration $(w,h < 0.10)$.}
+\label{fig:ch4_labels_geom}
+\end{figure}
+
+\noindent\textbf{Cryptographic Provenance Chain:} All 15 official \texttt{GDUT-HWD} Kaggle notebooks share the exact manifest digest \hexhash{ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c}. For local deployment and RTX 3050 profiling, canonical Kaggle Run \texttt{A6} \texttt{best.pt} (\hexhash{21866da3396e36a408236b1c3717bff0ed5b99f2e59e9cbbbce96ea6bdb68233}) is exported via \nolinkurl{scripts/export_gdut_a6_deploy.py} into standalone \nolinkurl{rep_yolo11s_gdut_a6_deploy.pt} (\hexhash{d422dd1d826c3bc2292d4074dba8bc52db2a7115baef0fd74310a25a3050b100}), establishing one unbroken provenance chain from cloud evaluation to edge VMS runtime.
+
+\section{Feature Engineering and Color-Preserving Augmentation}
+
+For Stage 2 training (\texttt{A1--A6}), each of the 1,265 base training images generates one deterministic offline augmented twin via Albumentations~\cite{buslaev2020albumentations} (\texttt{2.0.8}, per-image seed $3407 + i$), totaling \textbf{2,530 training images} (Table~\ref{tab:ch4_hardaug}, Listing~\ref{lst:ch4_hardaug}, Figure~\ref{fig:ch4_train_batch}). Crucially, hue and saturation jitter are locked to zero (\texttt{hsv\_h = 0.0}, \texttt{hsv\_s = 0.0}) across both offline Albumentations and Ultralytics online dataloading because hue shifts push \texttt{yellow} helmets toward \texttt{red} or desaturate colored helmets into \texttt{white}, injecting direct label noise. Online geometric augmentation applies \texttt{mosaic = 1.0} (\nolinkurl{close_mosaic = 10}), \texttt{fliplr = 0.5}, \texttt{translate = 0.1}, and \texttt{scale = 0.5}. As verified in \texttt{args.yaml}, Stage 1 and \texttt{A2--A6} use \texttt{hsv\_v = 0.40, mixup = 0.0}, whereas \texttt{A1} used \texttt{hsv\_v = 0.45, mixup = 0.10}; validation and test splits never receive augmentation.
+
+\begin{table}[htbp]
+\centering
+\caption{Offline Color-Preserving Hard-Case Augmentation Policy (Stage 2 Training Only).}
+\label{tab:ch4_hardaug}
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{4.0cm}|X|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Transform} & \textbf{Exact Parameters} & \textbf{Construction Surveillance Rationale} \\
+\hline
+\texttt{LongestMaxSize} + \texttt{PadIfNeeded} & Max side 640 px, constant fill 114 ($p=1.0$) & Standardizes geometry to $640 \times 640$ without distortion. \\ \hline
+\texttt{RandomShadow} & 1--3 polygonal shadows, 5 vertices ($p=0.35$) & Simulates scaffolding, crane boom, and cloud shadows. \\ \hline
+\texttt{RandomBrightnessContrast} & Brightness $\pm 0.25$, contrast $\pm 0.25$ ($p=0.45$) & Models outdoor glare, overcast skies, and dusk shifts. \\ \hline
+\texttt{MotionBlur} & \texttt{blur\_limit = 5} ($p=0.12$) & Approximates head movement and camera shutter blur. \\ \hline
+\texttt{GaussNoise} & \nolinkurl{std_range = (0.02, 0.08)} ($p=0.18$) & Models low-light CMOS sensor noise and CCTV grain. \\ \hline
+\texttt{CoarseDropout} & 1--8 black patches, size $0.03\text{--}0.18$ ($p=0.35$) & Simulates occlusion by rebar grids, poles, and netting. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{lstlisting}[language=Python, basicstyle=\fontsize{7.5pt}{8.6pt}\selectfont\ttfamily, caption={Verbatim Color-Preserving Hard-Case Augmentation Pipeline (\nolinkurl{albumentations_hardcase_policy.py}).}, label={lst:ch4_hardaug}]
+def build_hardcase_transform(image_size: int = 640):
+    import albumentations as A
+    coarse_kwargs = {
+        "num_holes_range": (1, 8), "hole_height_range": (0.03, 0.18),
+        "hole_width_range": (0.03, 0.18), "fill": 0, "p": 0.35,
+    }
+    return A.Compose([
+        A.LongestMaxSize(max_size=image_size, p=1.0),
+        A.PadIfNeeded(min_height=image_size, min_width=image_size,
+                      border_mode=cv2.BORDER_CONSTANT, fill=114, p=1.0),
+        A.RandomShadow(shadow_roi=(0, 0, 1, 1), num_shadows_limit=(1, 3),
+                       shadow_dimension=5, p=0.35),
+        A.RandomBrightnessContrast(brightness_limit=0.25, contrast_limit=0.25, p=0.45),
+        A.MotionBlur(blur_limit=5, p=0.12),
+        A.GaussNoise(std_range=(0.02, 0.08), p=0.18),
+        A.CoarseDropout(**coarse_kwargs),
+    ], bbox_params=A.BboxParams(
+        format="yolo", label_fields=["class_labels"], min_visibility=0.20))
+\end{lstlisting}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/gdut_train_batch0.jpg}
+\caption[Authentic Stage 2 Training Mosaic Batch (\texttt{gdut\_A6\_yolo11s}) Under HardAug]{Stage 2 training mosaic batch (\nolinkurl{train_batch0.jpg}) from canonical \texttt{gdut\_A6\_yolo11s} showing five-class boxes (\texttt{0--4}) under color-preserving HardAug and online mosaic.}
+\label{fig:ch4_train_batch}
+\end{figure}
+
+\section{Model Training, Architecture, and Validation}
+
+\subsection{Two-Stage Independent Branching Protocol}
+
+Training separates base domain adaptation from Stage 2 configuration comparison under recorded recipes:
+\begin{enumerate}[leftmargin=1.8em, itemsep=2pt]
+  \item \textbf{Stage 1 (\texttt{S1} / \texttt{A0}):} Pretrained stock \texttt{YOLOv8s} and \texttt{YOLO11s} fine-tune on 1,265 base GDUT images (\texttt{AdamW}, \texttt{lr0 = 0.0003}, \texttt{batch = 16}, \texttt{seed = 3407}, \texttt{epochs = 100}, \texttt{patience = 50}); \texttt{A0} evaluates these checkpoints directly.
+  \item \textbf{Stage 2 (Six Independent Branches \texttt{A1}--\texttt{A6}):} Each branch starts independently from Stage 1 \texttt{best.pt} (never chained sequentially), injects only its assigned modules/loss, resets \texttt{AdamW} at \texttt{lr0 = 0.0001}, and fine-tunes on the 2,530-image Stage 2 set (Tables~\ref{tab:ch4_hyperparams}--\ref{tab:ch4_ablation_matrix}). Because \texttt{A1} retained online \texttt{mixup = 0.1, hsv\_v = 0.45} while \texttt{A2}--\texttt{A6} locked \texttt{mixup = 0.0, hsv\_v = 0.40}, direct \texttt{A6 $-$ A1} comparisons capture combined structural and augmentation effects rather than purely isolated module deltas.
+\end{enumerate}
+
+\begin{table}[htbp]
+\centering
+\caption{Canonical Training Hyperparameters Verified from \nolinkurl{run_manifest.json} and \texttt{args.yaml}.}
+\label{tab:ch4_hyperparams}
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{|p{4.0cm}|p{4.2cm}|X|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Hyperparameter} & \textbf{Canonical Value} & \textbf{Notes / Scope} \\
+\hline
+Backbones & \texttt{YOLO11s}, \texttt{YOLOv8s} & Evaluated identically across \texttt{A0--A6} \\ \hline
+Input Size / Classes & \texttt{imgsz = 640} / \texttt{nc = 5} & RGB input; \texttt{CoordConv} appends X/Y internally \\ \hline
+Seed / Determinism & \texttt{seed = 3407}, \nolinkurl{deterministic = True} & Locked across split, HardAug, and DDP \\ \hline
+Optimizer / LR & \texttt{AdamW}; \texttt{0.0003} (S1), \texttt{0.0001} (S2) & \texttt{lrf = 0.01}, \texttt{cos\_lr = False}, \texttt{wd = 0.0005} \\ \hline
+Schedule / Warmup & Max 100 epochs, \texttt{patience = 50} & 3 warmup epochs, \nolinkurl{warmup_bias_lr = 0.0} \\ \hline
+Batch / Hardware & \texttt{batch = 16} on \texttt{device = 0,1} & Dual Kaggle Tesla T4, \texttt{workers = 4}, \texttt{amp = True} \\ \hline
+Loss Gains & \texttt{box = 7.5}, \texttt{cls = 0.5}, \texttt{dfl = 1.5} & Standard Ultralytics multi-task weighting \\ \hline
+Software Stack & PyTorch \texttt{2.11.0+cu130}, Ultralytics \texttt{8.4.115} & Albumentations \texttt{2.0.8}; final test on Tesla T4 GPU 0 \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Two-Stage Configuration Comparison Matrix (\texttt{A0}--\texttt{A6}, Under Recorded Recipes) and Exact 0-Based Module Layer Indices.}
+\label{tab:ch4_ablation_matrix}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.14}
+\begin{tabular}{|c|l|l|l|l|l|}
+\hline
+\rowcolor{slatehdr}
+\textbf{ID} & \textbf{CoordConv} & \textbf{RepConv (stride 2)} & \textbf{BiFormerBlockLite} & \textbf{Box Loss} & \textbf{Stage 2 Data / Online Aug} \\
+\hline
+\textbf{A0} & None & None & None & CIoU (S1) & Stage 1 base only (eval only) \\ \hline
+\textbf{A1} & None & None & None & CIoU & Base+HardAug (\nolinkurl{mixup=0.1, hsv_v=0.45}) \\ \hline
+\textbf{A2} & Layer \texttt{0} (stem) & None & None & CIoU & Base+HardAug (\nolinkurl{mixup=0, hsv_v=0.4}) \\ \hline
+\textbf{A3} & None & \textbf{7 blocks}: \texttt{0,1,3,5,7,17,20} (Y11) / \texttt{0,1,3,5,7,16,19} (V8) & None & CIoU & Base+HardAug (\nolinkurl{mixup=0, hsv_v=0.4}) \\ \hline
+\textbf{A4} & None & None & None & \textbf{Focal-EIoU} & Base+HardAug (\nolinkurl{mixup=0, hsv_v=0.4}) \\ \hline
+\textbf{A5} & None & None & Layer \texttt{10} (Y11) / Layer \texttt{9} (V8) & CIoU & Base+HardAug (\nolinkurl{mixup=0, hsv_v=0.4}) \\ \hline
+\rowcolor{slatehdr}
+\textbf{A6} & \textbf{Layer \texttt{0}} & \textbf{6 blocks}: \texttt{1,3,5,7,17,20} (Y11) / \texttt{1,3,5,7,16,19} (V8) & \textbf{Layer \texttt{10} (Y11) / Layer \texttt{9} (V8)} & \textbf{Focal-EIoU} & Base+HardAug (\nolinkurl{mixup=0, hsv_v=0.4}) \\ \hline
+\end{tabular}
+}
+\end{table}
+
+\subsection{Finalized Overall Architecture (GDUT A6 YOLO11s vs. YOLOv8s)}
+
+Figure~\ref{fig:ch4_overall_arch} shows the exact runtime graph of \texttt{GDUT A6 YOLO11s} verified by \nolinkurl{architecture_rank_0.json}. For a $B \times 3 \times 640 \times 640$ input: (1) \textbf{\texttt{CoordConv} (\texttt{layer 0})} appends $(X,Y) \in [-1,1]$ into 5 channels and downsamples to $32 \times 320^2$; (2) \textbf{Backbone (\texttt{layers 1--10})} applies four stride-2 \texttt{RepConv} $\to$ \texttt{C3k2} stages (\texttt{P2} $128\times 160^2$, \texttt{P3} $256\times 80^2$, \texttt{P4} $256\times 40^2$, \texttt{P5} $512\times 20^2$) followed by \texttt{SPPF} and \texttt{BiFormerBlockLite} at \texttt{layer 10} (replacing \texttt{C2PSA}); (3) \textbf{PAN Neck (\texttt{layers 11--22})} fuses multi-scale features via two bottom-up stride-2 \texttt{RepConv} blocks (\texttt{layers 17, 20}; Table~\ref{tab:ch4_pan_edges}); (4) \textbf{Decoupled Head (\texttt{layer 23})} evaluates 8,400 anchor points across \texttt{N3/N4/N5}, emitting pre-NMS $B \times 9 \times 8400$ tensors (5 class logits + 4 DFL-decoded box coordinates), followed externally by NMS (upgraded to \textbf{Class-Agnostic NMS}, \texttt{agnostic\_nms=True}, IoU $0.45$, in \textbf{AEGIS-CCTV Edge VMS v3.0}); and (5) \textbf{Training Supervision} combines \texttt{TAL}, \texttt{BCEWithLogitsLoss}, \texttt{DFL}, and \texttt{Focal-EIoU} ($\gamma = 0.5$):
+\begin{equation}
+\mathcal{L} = 0.5 \, \mathcal{L}_{\text{BCE}} + 7.5 \, \mathcal{L}_{\text{Focal-EIoU}} + 1.5 \, \mathcal{L}_{\text{DFL}}.
+\label{eq:ch4_total_loss}
+\end{equation}
+Table~\ref{tab:ch4_y11_vs_v8} contrasts \texttt{YOLO11s A6} with \texttt{YOLOv8s A6}, where \texttt{YOLOv8s} keeps \texttt{SPPF} intact inside \texttt{SPPFWithBiFormer} (\texttt{layer 9}) instead of replacing \texttt{C2PSA}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/GDUT_A6_YOLO11s_Overall_Simplified.pdf}
+\caption[Finalized Overall Architecture of \texttt{GDUT A6 YOLO11s} Schematic]{Finalized overall architecture of \texttt{GDUT A6 YOLO11s} (\nolinkurl{GDUT_A6_YOLO11s_Overall_Simplified.pdf}): \texttt{CoordConv} stem (\texttt{layer 0}), four backbone stride-2 \texttt{RepConv} stages (\texttt{1, 3, 5, 7}), \texttt{BiFormerBlockLite} at P5 (\texttt{layer 10}), PAN neck with two bottom-up \texttt{RepConv} blocks (\texttt{17, 20}), five-class decoupled head (\texttt{23}), and training-only supervision.}
+\label{fig:ch4_overall_arch}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Exact PAN Neck Feature Routing Edges in \texttt{GDUT A6 YOLO11s}.}
+\label{tab:ch4_pan_edges}
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{|p{2.4cm}|X|p{3.6cm}|}
+\hline
+\rowcolor{slatehdr}
+\textbf{PAN Pathway} & \textbf{Exact Graph Operation and Feature Concatenation} & \textbf{Output Tensor ($C \times H \times W$)} \\
+\hline
+Top-Down 1 & Upsample P5 (\texttt{layer 10}: $20 \to 40$); concat with P4 (\texttt{layer 6}); \texttt{C3k2} (\texttt{layer 13}). & $256 \times 40 \times 40$ \\ \hline
+Top-Down 2 & Upsample \texttt{layer 13} ($40 \to 80$); concat with P3 (\texttt{layer 4}); \texttt{C3k2} (\texttt{layer 16}). & \texttt{N3/P3}: $128 \times 80 \times 80$ \\ \hline
+Bottom-Up 1 & Stride-2 \texttt{RepConv} (\texttt{layer 17}: $80 \to 40$); concat with \texttt{layer 13}; \texttt{C3k2} (\texttt{layer 19}). & \texttt{N4/P4}: $256 \times 40 \times 40$ \\ \hline
+Bottom-Up 2 & Stride-2 \texttt{RepConv} (\texttt{layer 20}: $40 \to 20$); concat with P5 (\texttt{layer 10}); \texttt{C3k2} (\texttt{layer 22}). & \texttt{N5/P5}: $512 \times 20 \times 20$ \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Exact Structural Differences Between \texttt{YOLO11s A6} and \texttt{YOLOv8s A6}.}
+\label{tab:ch4_y11_vs_v8}
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{|p{3.5cm}|X|X|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Architectural Element} & \textbf{YOLO11s A6} & \textbf{YOLOv8s A6} \\
+\hline
+Core Feature Block & \texttt{C3k2} & \texttt{C2f} \\ \hline
+Backbone P2--P5 & $128\times 160^2$, $256\times 80^2$, $256\times 40^2$, $512\times 20^2$ & $64\times 160^2$, $128\times 80^2$, $256\times 40^2$, $512\times 20^2$ \\ \hline
+Attention Placement & Replaces \texttt{C2PSA} at \texttt{layer 10} & Retains \texttt{SPPF}, appends \texttt{BiFormer} at \texttt{layer 9} \\ \hline
+Neck \texttt{RepConv} Indices & Layers \texttt{17, 20} (backbone: \texttt{1, 3, 5, 7}) & Layers \texttt{16, 19} (backbone: \texttt{1, 3, 5, 7}) \\ \hline
+Neck Outputs / Detect & Layers \texttt{16, 19, 22} $\to$ \texttt{Detect 23} & Layers \texttt{15, 18, 21} $\to$ \texttt{Detect 22} \\ \hline
+Classification Head (\texttt{cv3}) & 2$\times$ depthwise-separable ($3\times 3$ DW + $1\times 1$ PW) + $1\times 1$ & 2$\times$ standard $3\times 3$ CBS + $1\times 1$ \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Module Mechanics, Function-Preserving Init, and Reconciliation}
+
+\texttt{BiFormerBlockLite} pads P5 ($512 \times 20 \times 20$) to $24 \times 24$ ($3 \times 3 = 9$ regions of $8 \times 8$), routes $\text{topk}=4$ regions ($256$ tokens across $h=4, d_k=128$), crops back to $20 \times 20$, and adds the result residually without an extra FFN or padding mask. In deployment (\nolinkurl{custom_ablation_modules.py}), the Python region loop is replaced by vectorized \texttt{torch.gather} at \texttt{0.0} numerical drift. To avoid cold-start shock in Stage 2, \nolinkurl{pretrained_conversion.py} (Listing~\ref{lst:ch4_init}) copies Stage 1 RGB/$3\times 3$/BN weights directly and zero-initializes new branch scales; under DDP (\texttt{device=0,1}), \nolinkurl{ResearchTrainer.get_model()} and \nolinkurl{init_criterion()} patch every worker rank independently and log \nolinkurl{architecture_rank_0/1.json}. Table~\ref{tab:ch4_reconcile} reconciles legacy schematics against the verified runtime code.
+
+\begin{lstlisting}[language=Python, basicstyle=\fontsize{7.4pt}{8.5pt}\selectfont\ttfamily, caption={Verbatim Function-Preserving Stage 1 Weight Conversion (\texttt{pretrained\_conversion.py}).}, label={lst:ch4_init}]
+@torch.no_grad()
+def coord_from_conv(source):
+    c = source.conv
+    new = CoordConv(c.in_channels, c.out_channels, k=c.kernel_size[0], s=c.stride[0], with_r=False)
+    new.to(device=c.weight.device, dtype=c.weight.dtype)
+    new.conv.conv.weight.zero_()
+    new.conv.conv.weight[:, :c.in_channels].copy_(c.weight)
+    copy_bn(source.bn, new.conv.bn)
+    return new
+
+@torch.no_grad()
+def rep_from_conv(source):
+    c = source.conv
+    new = RepConv(c.in_channels, c.out_channels, k=3, s=c.stride[0], deploy=False)
+    new.to(device=c.weight.device, dtype=c.weight.dtype)
+    new.rbr_dense[0].weight.copy_(c.weight)
+    copy_bn(source.bn, new.rbr_dense[1])
+    new.rbr_1x1[1].weight.zero_()
+    new.rbr_1x1[1].bias.zero_()
+    return new
+
+@torch.no_grad()
+def identity_start_attention(channels, source):
+    new = BiFormerBlockLite(channels=channels, num_heads=4)
+    p = next(source.parameters())
+    new.to(device=p.device, dtype=p.dtype)
+    new.norm.weight.zero_()
+    new.norm.bias.zero_()   # Starts block as identity map (input + 0)
+    return new
+\end{lstlisting}
+
+\begin{table}[htbp]
+\centering
+\caption{Audit Reconciliation: Legacy Schematic / Notebooks vs. Finalized GDUT CLEAN Implementation.}
+\label{tab:ch4_reconcile}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.14}
+\begin{tabular}{|p{2.9cm}|p{4.6cm}|p{5.6cm}|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Audit Dimension} & \textbf{Legacy Diagram / Original Notebook} & \textbf{Finalized GDUT CLEAN Code \& Schematic} \\
+\hline
+Backbone \texttt{RepConv} & Omitted in old figure, though code patched backbone & Explicitly depicts \texttt{RepConv (s2) $\to$ C3k2} at P2--P5 (\texttt{layers 1, 3, 5, 7}) \\ \hline
+Neck \texttt{RepConv} & Drawn as one generic fusion block with deploy claim & Specifies two stride-2 bottom-up blocks (\texttt{layers 17, 20}); separates eval vs. deploy \\ \hline
+P2 / P3 Channels & Labeled 64 / 128 (pre-\texttt{C3k2} width) & Corrected to 128 / 256 (post-\texttt{C3k2} stage outputs in YOLO11s) \\ \hline
+\texttt{BiFormer} Location & Drawn inside PAN neck & Placed at backbone P5: \texttt{layer 10} (YOLO11s) and \texttt{layer 9} \texttt{SPPFWithBiFormer} (YOLOv8s) \\ \hline
+Head \& Supervision & 2-class (\texttt{hat/person}); omitted raw logit BCE path & 5-class logits; routes raw logits to \texttt{BCE(logits)} and detached preds to \texttt{TAL} \\ \hline
+DDP \& \texttt{Focal-EIoU} & Patched parent process; A6 did not wire criterion & Patches per worker in \texttt{get\_model()}; wires \texttt{FocalEIoUBboxLoss} in \nolinkurl{init_criterion()} \\ \hline
+\end{tabular}
+}
+\end{table}
+
+\subsection{Auxiliary Phase: Proposed V1 Two-Class Cross-Domain Architecture}
+
+Before scaling to five-class color classification, an auxiliary two-class prototype (\textbf{Proposed V1}, archived in \texttt{SHWD\_V1/}) was trained on \textbf{SHWD}~\cite{shwd_dataset} (7,581 images; 1,517 Test images; \texttt{hat, person}) for 60 epochs across three seeds (\texttt{42, 1337, 2026}) and tested zero-shot on \textbf{HHW}~\cite{hard_hat_workers_mvd} (1,766 Test images). Table~\ref{tab:ch4_v1_vs_v2_design} details the evolution from \textbf{V1} (12 PAN neck \texttt{RepConv} blocks + dual P4/P5 \texttt{BiFormer}) to \textbf{V2} (6 stride-2 \texttt{RepConv} blocks + single P5 \texttt{BiFormer} + color-safe five-class training).
+
+\begin{table}[htbp]
+\centering
+\caption{Architectural and Experimental Evolution from Auxiliary \texttt{Proposed V1} (\texttt{SHWD\_V1}) to Primary \texttt{Proposed V2} (\texttt{GDUT-HWD}).}
+\label{tab:ch4_v1_vs_v2_design}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.14}
+\begin{tabular}{|p{3.0cm}|p{5.2cm}|p{5.6cm}|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Design Dimension} & \textbf{Proposed V1 (Auxiliary Cross-Domain)} & \textbf{Proposed V2 (Primary Industrial Five-Class)} \\
+\hline
+Datasets \& Splits & \texttt{SHWD} (1,517 Test) + Zero-Shot \texttt{HHW} (1,766 Test); 2 classes (\texttt{hat, person}) & Deduplicated \texttt{GDUT-HWD} (1,265 Train / 316 Val / 1,587 Test); 5 classes (\texttt{blue, white, yellow, red, none}) \\ \hline
+\texttt{RepConv} Placement & 12 PAN neck blocks (\texttt{layers 13..22}; \texttt{9.62M $\to$ 9.43M} deploy in \texttt{V1 A2}) & 6 stride-2 blocks across backbone \& PAN (\texttt{layers 1, 3, 5, 7, 17, 20}; \texttt{9.79M $\to$ 9.48M} fused in \texttt{V2 A6}) \\ \hline
+\texttt{BiFormer} Placement & Dual residual \nolinkurl{BiFormerSequentialWrapper} after \texttt{P4} \& \texttt{P5} (\texttt{10.93M $\to$ 10.74M}) & Single P5 block (\texttt{layer 10} repl. \texttt{C2PSA} on \texttt{YOLO11s}; \texttt{layer 9} after \texttt{SPPF} on \texttt{YOLOv8s}) \\ \hline
+Replication \& Protocol & 60 epochs $\times$ 3 random seeds (\texttt{42, 1337, 2026}); paired $t$-tests & Two-stage \texttt{ce2a883e} (\texttt{S1 + S2}, \texttt{seed = 3407}); dual backbones + unified \texttt{B1/B2} comparator \\ \hline
+\end{tabular}
+}
+\end{table}
+
+\section{Evaluation Metrics, Implementation Plan, and Ethics}
+
+Detection quality is measured via IoU, Precision, Recall, mAP@50, COCO mAP@50--95, and Macro-F1:
+\begin{align}
+\mathrm{IoU}(B_p, B_{gt}) &= \frac{|B_p \cap B_{gt}|}{|B_p \cup B_{gt}|}, \qquad
+\mathrm{Precision} = \frac{\mathrm{TP}}{\mathrm{TP} + \mathrm{FP}}, \qquad
+\mathrm{Recall} = \frac{\mathrm{TP}}{\mathrm{TP} + \mathrm{FN}}, \label{eq:ch4_pr} \\
+\mathrm{AP}_c(\tau) &= \int_0^1 p_c(r; \tau)\,dr, \qquad
+\mathrm{mAP@50} = \frac{1}{5} \sum_{c=0}^{4} \mathrm{AP}_c(0.50), \label{eq:ch4_map50} \\
+\mathrm{mAP@50\text{--}95} &= \frac{1}{10} \sum_{k=0}^{9} \left(\frac{1}{5}\sum_{c=0}^{4} \mathrm{AP}_c(0.50 + 0.05k)\right), \qquad
+\mathrm{Macro\text{-}F1} = \frac{1}{5} \sum_{c=0}^{4} \frac{2 P_c R_c}{P_c + R_c}. \label{eq:ch4_map95}
+\end{align}
+All validation tables in Chapter~\ref{chap:results} come strictly from re-evaluating saved \texttt{best.pt} checkpoints (\texttt{val\_check}), paired with parameter count, GFLOPs, mean/p95 latency (ms), FPS, peak VRAM (MB), API RPS, and HTTP error rate. Table~\ref{tab:ch4_impl_plan} summarizes the 15-notebook Kaggle execution plan (\ref{app:kaggle_catalog}) and \texttt{SHWD\_V1}.
+
+\begin{table}[htbp]
+\centering
+\caption{Unified Fifteen-Notebook Kaggle Implementation Plan (\texttt{ce2a883e}) and Auxiliary \texttt{SHWD\_V1}.}
+\label{tab:ch4_impl_plan}
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{|c|p{4.7cm}|p{2.6cm}|X|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Steps} & \textbf{Kaggle Notebook Group} & \textbf{Inputs / Split} & \textbf{Core Task \& Verified Outputs} \\
+\hline
+1 & \nolinkurl{gdut-dataset-preparation} & Raw GDUT-HWD & VOC check, SHA-256 dedup (6 removed), 80/20 split, HardAug, \texttt{ce2a883e} manifests. \\ \hline
+2--3 & \nolinkurl{gdut-structural-...-architecture{1,2}} & Step 1 output & Stage 1 Stock \texttt{YOLOv8s} \& \texttt{YOLO11s} on 1,265 base images (\texttt{best.pt}, \nolinkurl{run_manifest.json}). \\ \hline
+4--10 & \nolinkurl{gdut-stage2-...-run-a{0..6}} & Steps 1--3 & Eval-only \texttt{A0} + independent Stage 2 fine-tuning of \texttt{A1--A6} + \texttt{init\_check}. \\ \hline
+11 & \nolinkurl{gdut-final-test-evaluation} & Steps 1--10 & Evaluates all 14 checkpoints (\texttt{A0--A6} $\times 2$) on 1,587-image Official Test split. \\ \hline
+12--15 & \nolinkurl{gdut-stage1-yolo11n-for-dcrcf}, \nolinkurl{gdut-baseline-*}, \nolinkurl{gdut-baseline-and-a6-stage1-protocol-comparison} & Step 1 (\texttt{ce2a883e}) & Stage 1 \texttt{YOLO11n}, \texttt{B1} (\texttt{YOLO11n-DCRCF}), \texttt{B2} (\texttt{YOLOv8s-DWR-ASPP-NWD}), unified comparator (\texttt{48/48} matched Stage 2 params). \\ \hline
+Aux & \nolinkurl{SHWD_V1/notebooks/*.ipynb} & \texttt{SHWD} / \texttt{HHW} & 3-seed \texttt{V1 A0--A4} ablations + controlled SOTA baselines + zero-shot \texttt{HHW} CSVs. \\ \hline
+\end{tabularx}
+\end{table}
+
+\noindent\textbf{Ethical Safeguards:} (1) \textbf{Local Privacy Boundary:} All CCTV inference runs on-premises inside Docker without cloud video upload or biometric face recognition; operator RBAC is not yet implemented in this laboratory prototype, and confirmed violation snapshots leave the LAN only if optional Telegram/Zalo bot tokens are configured in \texttt{.env}. (2) \textbf{Fairness and Human-in-the-Loop Governance:} Per-class reporting exposes worst-class bare-head recall explicitly, and alerts support human safety officers via \texttt{/api/feedback} (\texttt{confirm}, \texttt{false\_positive}, \texttt{edit\_label}) rather than automated punitive payroll actions. (3) \textbf{Scientific Reporting:} All negative and nuanced findings (\texttt{A1 > A6}, \texttt{V1 A4} focal trade-off, \texttt{B1}/\texttt{B2} drops, Conv+BN parameter folding, OOD headgear false positives, proxy overhead, and pending field SUS scoring) are reported directly.

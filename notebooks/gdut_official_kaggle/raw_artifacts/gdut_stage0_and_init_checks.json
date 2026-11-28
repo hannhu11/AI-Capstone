@@ -1,0 +1,406 @@
+{
+  "source_dataset_manifest": "nvthanh2004/gdut-dataset-preparation -> prepared_gdut/dataset_manifest.json",
+  "dataset_audit": {
+    "manifest_sha256": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+    "names": [
+      "blue",
+      "white",
+      "yellow",
+      "red",
+      "none"
+    ],
+    "seed": 3407,
+    "records_count": 3168,
+    "split_counts": {
+      "test": 1587,
+      "val": 316,
+      "train": 1265
+    },
+    "box_counts": {
+      "train": {
+        "red": 1865,
+        "white": 1462,
+        "yellow": 1465,
+        "none": 1767,
+        "blue": 978
+      },
+      "val": {
+        "red": 279,
+        "white": 349,
+        "yellow": 448,
+        "none": 404,
+        "blue": 258
+      },
+      "test": {
+        "white": 1968,
+        "red": 2083,
+        "none": 2200,
+        "yellow": 1962,
+        "blue": 1361
+      }
+    },
+    "excluded_trainval_count": 6,
+    "excluded_trainval": [
+      {
+        "relative": "JPEGImages/00286.jpg",
+        "pixel_hash": "8f7e4392ff350df845e17155c0d5bfa08a63695f5e175abf3b658bb5d811c9a4",
+        "matching_test": [
+          "JPEGImages/02142.jpg"
+        ]
+      },
+      {
+        "relative": "JPEGImages/00641.jpg",
+        "pixel_hash": "02248ec06f1cee1d509539d06dcd96ba3a60cf84c98683ccfd88f7d68e8b326d",
+        "matching_test": [
+          "JPEGImages/00615.jpg"
+        ]
+      },
+      {
+        "relative": "JPEGImages/00676.jpg",
+        "pixel_hash": "a494deee06dc5b39a08a789a9125f48ba4b96817337eb9954e5dffb359df35f6",
+        "matching_test": [
+          "JPEGImages/00239.jpg"
+        ]
+      },
+      {
+        "relative": "JPEGImages/00801.jpg",
+        "pixel_hash": "2eb32cda849553dce08bacb7b33a167c925e630125acb9d1de9b82d113bf87ff",
+        "matching_test": [
+          "JPEGImages/01007.jpg"
+        ]
+      },
+      {
+        "relative": "JPEGImages/03087.jpg",
+        "pixel_hash": "14a89d489f5f17604504664536edb5b34e14a6203f84434cc918a32c366d53f3",
+        "matching_test": [
+          "JPEGImages/01726.jpg"
+        ]
+      },
+      {
+        "relative": "JPEGImages/03365.jpg",
+        "pixel_hash": "ca61ca89138d7ee3dfd0a028ae52b00c50a7a95cfb052827a13c9983fff7c3b1",
+        "matching_test": [
+          "JPEGImages/02224.jpg"
+        ]
+      }
+    ],
+    "official_test_count": 1587,
+    "aug_manifest": {
+      "seed": 3407,
+      "image_size": 640,
+      "per_image_seed": "3407 + index in sorted hashed image names",
+      "copies_per_train_image": 1,
+      "hue_saturation_transform_removed": true,
+      "validation_test_augmented": false
+    },
+    "preparation_complete": {
+      "complete": true,
+      "records": 3168,
+      "augmentation_imgsz": 640
+    }
+  },
+  "initialization_checks": {
+    "A2": {
+      "yolo11s": {
+        "initialization_policy": "preserve_pretrained_v1",
+        "modules": [
+          {
+            "index": 0,
+            "module": "CoordConv",
+            "copied_conv_bn": true
+          }
+        ],
+        "pretrain_validation": {
+          "metrics/precision(B)": 0.9221201319795529,
+          "metrics/recall(B)": 0.8479828894165399,
+          "metrics/mAP50(B)": 0.9182928992406246,
+          "metrics/mAP50-95(B)": 0.6083450325263076,
+          "fitness": 0.6083450325263076
+        },
+        "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+        "source_checkpoint_sha256": "c42dba9e799b156fe74abd3711468e885014c58904a972a3ed2ea29ab6d3f337",
+        "imgsz": 640
+      },
+      "yolov8s": {
+        "initialization_policy": "preserve_pretrained_v1",
+        "modules": [
+          {
+            "index": 0,
+            "module": "CoordConv",
+            "copied_conv_bn": true
+          }
+        ],
+        "pretrain_validation": {
+          "metrics/precision(B)": 0.9154297597961947,
+          "metrics/recall(B)": 0.8575258663168313,
+          "metrics/mAP50(B)": 0.9187736658489822,
+          "metrics/mAP50-95(B)": 0.605462681375899,
+          "fitness": 0.605462681375899
+        },
+        "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+        "source_checkpoint_sha256": "f55c0430cf6dedaa05635c150896ee9dc6dcaa8dc72ee06bafdbabdc9a59dc0d",
+        "imgsz": 640
+      }
+    },
+    "A3": {
+      "yolo11s": {
+        "initialization_policy": "preserve_pretrained_v1",
+        "modules": [
+          {
+            "index": 0,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 1,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 3,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 5,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 7,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 17,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 20,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          }
+        ],
+        "pretrain_validation": {
+          "metrics/precision(B)": 0.9221201246734779,
+          "metrics/recall(B)": 0.8479827522716621,
+          "metrics/mAP50(B)": 0.9182928992406246,
+          "metrics/mAP50-95(B)": 0.6083450325263076,
+          "fitness": 0.6083450325263076
+        },
+        "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+        "source_checkpoint_sha256": "c42dba9e799b156fe74abd3711468e885014c58904a972a3ed2ea29ab6d3f337",
+        "imgsz": 640
+      },
+      "yolov8s": {
+        "initialization_policy": "preserve_pretrained_v1",
+        "modules": [
+          {
+            "index": 0,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 1,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 3,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 5,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 7,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 16,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 19,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          }
+        ],
+        "pretrain_validation": {
+          "metrics/precision(B)": 0.9154292679169315,
+          "metrics/recall(B)": 0.8575259408778854,
+          "metrics/mAP50(B)": 0.9187736658489822,
+          "metrics/mAP50-95(B)": 0.6054739707401295,
+          "fitness": 0.6054739707401295
+        },
+        "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+        "source_checkpoint_sha256": "f55c0430cf6dedaa05635c150896ee9dc6dcaa8dc72ee06bafdbabdc9a59dc0d",
+        "imgsz": 640
+      }
+    },
+    "A5": {
+      "yolo11s": {
+        "initialization_policy": "preserve_pretrained_v1",
+        "modules": [
+          {
+            "index": 10,
+            "module": "BiFormerBlockLite",
+            "placement": "replace_C2PSA",
+            "identity_start": true
+          }
+        ],
+        "pretrain_validation": {
+          "metrics/precision(B)": 0.8718705038115495,
+          "metrics/recall(B)": 0.7755915535734964,
+          "metrics/mAP50(B)": 0.8633868792448249,
+          "metrics/mAP50-95(B)": 0.561488988562043,
+          "fitness": 0.561488988562043
+        },
+        "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+        "source_checkpoint_sha256": "c42dba9e799b156fe74abd3711468e885014c58904a972a3ed2ea29ab6d3f337",
+        "imgsz": 640
+      },
+      "yolov8s": {
+        "initialization_policy": "preserve_pretrained_v1",
+        "modules": [
+          {
+            "index": 9,
+            "module": "BiFormerBlockLite",
+            "placement": "after_SPPF",
+            "identity_start": true
+          }
+        ],
+        "pretrain_validation": {
+          "metrics/precision(B)": 0.9154294891148975,
+          "metrics/recall(B)": 0.8575259162877609,
+          "metrics/mAP50(B)": 0.9187736658489822,
+          "metrics/mAP50-95(B)": 0.6054739707401295,
+          "fitness": 0.6054739707401295
+        },
+        "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+        "source_checkpoint_sha256": "f55c0430cf6dedaa05635c150896ee9dc6dcaa8dc72ee06bafdbabdc9a59dc0d",
+        "imgsz": 640
+      }
+    },
+    "A6": {
+      "yolo11s": {
+        "initialization_policy": "preserve_pretrained_v1",
+        "modules": [
+          {
+            "index": 0,
+            "module": "CoordConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 1,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 3,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 5,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 7,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 17,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 20,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 10,
+            "module": "BiFormerBlockLite",
+            "placement": "replace_C2PSA",
+            "identity_start": true
+          }
+        ],
+        "pretrain_validation": {
+          "metrics/precision(B)": 0.8718705578513998,
+          "metrics/recall(B)": 0.7755919375209464,
+          "metrics/mAP50(B)": 0.8633868792448249,
+          "metrics/mAP50-95(B)": 0.5615277180443955,
+          "fitness": 0.5615277180443955
+        },
+        "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+        "source_checkpoint_sha256": "c42dba9e799b156fe74abd3711468e885014c58904a972a3ed2ea29ab6d3f337",
+        "imgsz": 640
+      },
+      "yolov8s": {
+        "initialization_policy": "preserve_pretrained_v1",
+        "modules": [
+          {
+            "index": 0,
+            "module": "CoordConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 1,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 3,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 5,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 7,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 16,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 19,
+            "module": "RepConv",
+            "copied_conv_bn": true
+          },
+          {
+            "index": 9,
+            "module": "BiFormerBlockLite",
+            "placement": "after_SPPF",
+            "identity_start": true
+          }
+        ],
+        "pretrain_validation": {
+          "metrics/precision(B)": 0.9154292679169315,
+          "metrics/recall(B)": 0.8575259408778854,
+          "metrics/mAP50(B)": 0.9187736658489822,
+          "metrics/mAP50-95(B)": 0.6054739707401295,
+          "fitness": 0.6054739707401295
+        },
+        "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+        "source_checkpoint_sha256": "f55c0430cf6dedaa05635c150896ee9dc6dcaa8dc72ee06bafdbabdc9a59dc0d",
+        "imgsz": 640
+      }
+    }
+  }
+}

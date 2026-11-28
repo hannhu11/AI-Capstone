@@ -1,0 +1,509 @@
+\chapter{Results and Discussion}
+\label{chap:results}
+
+This chapter reports verified empirical results across four pillars: (1) unified \texttt{ce2a883e} SOTA baseline reproduction (\texttt{B1}, \texttt{B2}) cross-checked across all 15 public Kaggle notebooks (\ref{app:kaggle_catalog}, \texttt{75/75 MATCH}); (2) Stage 1 reference \texttt{A0} and six Stage 2 configurations (\texttt{A1}--\texttt{A6}) across \texttt{YOLO11s} and \texttt{YOLOv8s} on GDUT-HWD validation (316) and official test (1,587) splits, plus isolated three-seed \textbf{Proposed V1} (\texttt{SHWD\_V1}); (3) RTX 3050 optimization, \nolinkurl{RepConv.switch_to_deploy()} equivalence, paired 1080p VMS + MobileNetV3 Re-ID profiling, and 1080p multi-stream scaling on the single canonical checkpoint chain (\texttt{21866da3 $\to$ d422dd1d}); and (4) software QA (\textbf{141/141} workspace CPU \texttt{pytest}; \textbf{84 passed, 1 skipped} Clean-Room CI), Dual Load Tests, failure analysis, and UAT/SUS protocol. Validation and official test splits remain strictly separated throughout.
+
+\section{Results and Analysis}
+
+\subsection{Unified GDUT-HWD Stage 1 SOTA Baselines Comparison (B1 \& B2)}
+
+Table~\ref{tab:ch6_b1_b2_paper_vs_gdut} contrasts published two-class SHWD metrics from Zhao et al.~\cite{zhao2025yolodcrcf} (\texttt{B1}) and Song et al.~\cite{song2024improved} (\texttt{B2}) against our five-class GDUT-HWD reproductions under 48 matched Stage 2 hyperparameters (\nolinkurl{stage2_recipe_audit.csv}: \texttt{imgsz=640}, \texttt{batch=16}, \texttt{seed=3407}, \texttt{AdamW}, \texttt{lr0=1e-4}, \texttt{ce2a883e}). All head-to-head architecture comparisons are evaluated strictly inside the unified comparator (Table~\ref{tab:ch6_unified_cmp}, Figure~\ref{fig:ch6_v2_baselines_vs_a6}).
+
+\begin{table}[htbp]
+\centering
+\caption{Original Published SOTA Metrics (SHWD 2-Class) vs. Unified GDUT-HWD 5-Class Reproductions (\nolinkurl{paper_vs_experiment.csv}, \texttt{seed = 3407}).}
+\label{tab:ch6_b1_b2_paper_vs_gdut}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.14}
+\begin{tabular}{|l|l|r|r|r|r|l|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Model} & \textbf{Source / Split} & \textbf{P (\%)} & \textbf{R (\%)} & \textbf{mAP@50 (\%)} & \textbf{mAP@50--95 (\%)} & \textbf{Delta vs. Paper (Test)} \\
+\hline
+\textbf{B1: YOLO-DCRCF} & Paper Zhao 2025 (SHWD 2-cls) & 90.90 & 88.50 & 92.70 & \textbf{60.60} & Scratch 300 ep, SGD \\ \hline
+\textbf{B1: YOLO11n-DCRCF} & GDUT Val (316) / \textbf{Test (1,587)} & 91.11 / \textbf{90.17} & 79.40 / \textbf{76.48} & 88.27 / \textbf{84.85} & 57.46 / \textbf{54.77} & P $-0.73$, R $\mathbf{-12.02}$, mAP50 $-7.85$ pp \\ \hline
+\textbf{B2: YOLOv8s-DWR-NWD} & Paper Song 2024 (SHWD+Aug) & 91.80 & 86.60 & 92.00 & \textbf{62.20} & SGD, batch 16, 100 ep \\ \hline
+\textbf{B2: YOLOv8s-DWR-NWD} & GDUT Val (316) / \textbf{Test (1,587)} & 92.39 / \textbf{89.58} & 84.05 / \textbf{81.85} & 91.46 / \textbf{87.51} & 60.08 / \textbf{56.59} & P $-2.22$, R $-4.75$, mAP50 $-4.49$ pp \\ \hline
+\end{tabular}}
+\end{table}
+
+On Official Test (1,587 images; isolated T4 FP32 $B=1$ forward timing, 30 iters / 10 warmup), \textbf{Proposed V2 (\texttt{A6\_yolo11s})} reaches \textbf{88.94\% mAP@50} and \textbf{58.08\% mAP@50--95} (\textbf{87.08\% macro F1}, \textbf{9,476,783} fused parameters, \textbf{15.207 ms}), surpassing \texttt{B1} by \textbf{+4.09 / +3.31 pp} (\textbf{+7.80 pp} overall recall) and \texttt{B2} by \textbf{+1.43 / +1.50 pp} (deltas computed from unrounded values in \nolinkurl{comparison_test.csv}) while using \textbf{41.8\% fewer} parameters and \textbf{32.1\% lower} T4 latency than \texttt{B2}. \texttt{A6\_yolov8s} (\texttt{88.37\% / 57.37\%}) also exceeds both baselines. Two structural factors explain these gaps: (1) \textbf{\texttt{B1} Transfer Shock:} stock \texttt{YOLO11n Stage 1} (\texttt{2c8b5c63...}) achieves \textbf{90.94\% / 58.63\%} val mAP (\texttt{none} AP50 \textbf{86.94\%}, R \textbf{76.50\%}), whereas inserting four uninitialized \texttt{SBA} and two \texttt{DCNv2} blocks allows only \textbf{26.22\%} parameter transfer (1,783,391 / 6,802,005; 78 fresh tensors), dropping val mAP to \textbf{88.27\% / 57.46\%} and Test \texttt{none} Recall to \textbf{68.0\%}; and (2) \textbf{\texttt{B2} Parameter Bloat:} while transferring \textbf{65.17\%} (10,612,223 / 16,284,863), \texttt{DWR + ASPP} inflates deployment size to \textbf{16.28M} and slows T4 inference to \textbf{22.396 ms}, while the fixed $0.5 \cdot \mathrm{NWD}$ term may contribute to softer high-IoU localization (\texttt{none} AP50--95 $51.3\%$ vs. \texttt{A6}'s $53.4\%$). On \texttt{A6\_yolo11s}, \nolinkurl{RepConv.switch_to_deploy()} removes \textbf{300,992} parameters ($9,788,575 \to 9,487,583$) and \nolinkurl{model.fuse()} folds \textbf{10,800} Conv+BN affine parameters to yield the \textbf{9,476,783} fused count in Table~\ref{tab:ch6_unified_cmp}.
+
+\begin{table}[htbp]
+\centering
+\caption{Unified \texttt{ce2a883e} Stage 1 Comparator: Baselines \texttt{B1/B2} vs. \texttt{Proposed V2 (A6)} on GDUT Val (316) and Official Test (1,587).}
+\label{tab:ch6_unified_cmp}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.14}
+\begin{tabular}{|l|r|r|r|c|c|c|c|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Model (\texttt{ce2a883e})} & \textbf{Train Params} & \textbf{Deploy Fused} & \textbf{T4 FP32} & \textbf{Val mAP@50 / 50--95} & \textbf{Test P / R (\%)} & \textbf{Test mAP@50 / 50--95} & \textbf{Test \texttt{none} AP50 / 50--95} \\
+\hline
+\textbf{B1: \texttt{YOLO11n-DCRCF}} & 6,802,005 & 6,796,045 & \textbf{11.048 ms} & 88.27 / 57.46 & 90.17 / 76.48 & 84.85 / 54.77 (F1 82.68) & 78.3 / 48.5 (R 68.0) \\ \hline
+\textbf{B2: \texttt{YOLOv8s-DWR-NWD}} & 16,284,863 & 16,275,615 & 22.396 ms & 91.46 / 60.08 & 89.58 / 81.85 & 87.51 / 56.59 (F1 85.50) & 82.7 / 51.3 (R 76.9) \\ \hline
+\textbf{A6\_yolov8s} & 12,446,399 & 12,177,727 & 18.641 ms & \textbf{92.56} / 60.68 & \textbf{90.32} / 82.63 & 88.37 / 57.37 (F1 86.20) & 83.5 / 51.8 (R 75.1) \\ \hline
+\rowcolor{slatehdr}
+\textbf{A6\_yolo11s (V2)} & \textbf{9,788,575} & \textbf{9,476,783} & \textbf{15.207 ms} & 92.50 / \textbf{61.23} & 90.19 / \textbf{84.28} & \textbf{88.94 / 58.08 (F1 87.08)} & \textbf{84.6 / 53.4 (R 77.3)} \\ \hline
+\end{tabular}}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_v2_baselines_vs_a6_comparison.png}
+\caption[Unified \texttt{ce2a883e} SOTA Comparison on GDUT-HWD Official Test (1,587 Images)]{Unified \texttt{ce2a883e} SOTA comparison on GDUT-HWD Official Test (1,587 images): (a) Test mAP@50, mAP@50--95, and Macro F1; (b) Fused parameters, T4 FP32 median latency, and bare-head (\texttt{none}) AP@50/AP@50--95.}
+\label{fig:ch6_v2_baselines_vs_a6}
+\end{figure}
+
+\subsection{Configuration Comparison (A0--A6 on YOLO11s \& YOLOv8s)}
+
+All 14 checkpoints (\texttt{A0/S1} and \texttt{A1}--\texttt{A6} $\times 2$ backbones) share digest \texttt{ce2a883e...} and \texttt{seed = 3407}. Validation results come from \nolinkurl{run_manifest.json} (\texttt{val\_check}, 316 images; Tables~\ref{tab:ch6_val_y11}--\ref{tab:ch6_val_deltas}), while Official Test results come from \nolinkurl{GDUT_final_test_evaluation.ipynb} (1,587 images; Tables~\ref{tab:ch6_test_y11}--\ref{tab:ch6_test_deltas}, Figure~\ref{fig:ch6_ablation_val_test}). Using unrounded 4-decimal percentages from \nolinkurl{test_evaluation/summary.csv} resolves the 1-decimal tie on single-seed 3407 for \texttt{YOLOv8s} (\texttt{A1} \textbf{88.7328\% / 57.7618\%} vs. \texttt{A3} \textbf{88.7305\% / 57.1614\%}): \texttt{YOLO11s A1} peaks internally (\textbf{89.7616\% / 59.0804\%}), followed by \texttt{V2 A6 (YOLO11s)} (\textbf{88.9379\% / 58.0825\%}) and \texttt{YOLOv8s A1} (\textbf{88.7328\% / 57.7618\%})---all ahead of \texttt{B1} ($84.85\%$) and \texttt{B2} ($87.51\%$).
+
+\begin{table}[htbp]
+\centering
+\caption{GDUT-HWD Validation Results (316 Images) for \texttt{YOLO11s} Across Ablations \texttt{A0--A6}.}
+\label{tab:ch6_val_y11}
+\footnotesize
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|l|r|r|r|r|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Config} & \textbf{Active Modifications (From Stage 1)} & \textbf{Precision (\%)} & \textbf{Recall (\%)} & \textbf{mAP@50 (\%)} & \textbf{mAP@50--95 (\%)} \\
+\hline
+\textbf{A0} & Stage 1 Stock \texttt{YOLO11s} (base train only) & \textbf{92.21} & 84.80 & 91.83 & 60.83 \\ \hline
+\textbf{A1} & Stock + HardAug + \nolinkurl{mixup=0.1, hsv_v=0.45} & 91.33 & 87.37 & \textbf{93.40} & \textbf{61.69} \\ \hline
+\textbf{A2} & + \texttt{CoordConv} (\texttt{layer 0}) & 91.01 & 86.25 & 92.72 & 61.31 \\ \hline
+\textbf{A3} & + 7$\times$\texttt{RepConv} (\texttt{0,1,3,5,7,17,20}) & 90.79 & \textbf{87.86} & 92.88 & 61.41 \\ \hline
+\textbf{A4} & + \texttt{Focal-EIoU} ($\gamma = 0.5$) & 90.64 & 87.49 & 92.77 & 61.36 \\ \hline
+\textbf{A5} & + \texttt{BiFormerBlockLite} (\texttt{layer 10}, repl. \texttt{C2PSA}) & 90.05 & 87.14 & 92.40 & 61.08 \\ \hline
+\rowcolor{slatehdr}
+\textbf{A6} & \textbf{Full Architecture (Coord + 6$\times$Rep + BiFormer + F-EIoU)} & 90.45 & 87.58 & 92.50 & 61.23 \\ \hline
+\end{tabular}}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{GDUT-HWD Validation Results (316 Images) for \texttt{YOLOv8s} Across Ablations \texttt{A0--A6}.}
+\label{tab:ch6_val_v8}
+\footnotesize
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|l|r|r|r|r|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Config} & \textbf{Active Modifications (From Stage 1)} & \textbf{Precision (\%)} & \textbf{Recall (\%)} & \textbf{mAP@50 (\%)} & \textbf{mAP@50--95 (\%)} \\
+\hline
+\textbf{A0} & Stage 1 Stock \texttt{YOLOv8s} (base train only) & 91.54 & 85.75 & 91.88 & 60.55 \\ \hline
+\textbf{A1} & Stock + HardAug + \nolinkurl{mixup=0.1, hsv_v=0.45} & 91.55 & 86.21 & \textbf{93.14} & \textbf{61.19} \\ \hline
+\textbf{A2} & + \texttt{CoordConv} (\texttt{layer 0}) & 91.51 & \textbf{86.79} & 92.47 & 60.32 \\ \hline
+\textbf{A3} & + 7$\times$\texttt{RepConv} (\texttt{0,1,3,5,7,16,19}) & 91.47 & 86.67 & 92.41 & 60.30 \\ \hline
+\textbf{A4} & + \texttt{Focal-EIoU} ($\gamma = 0.5$) & 92.60 & 84.91 & 92.35 & 60.21 \\ \hline
+\textbf{A5} & + \texttt{BiFormerBlockLite} (\texttt{layer 9}, after \texttt{SPPF}) & 92.02 & 85.56 & 92.59 & 60.26 \\ \hline
+\rowcolor{slatehdr}
+\textbf{A6} & \textbf{Full Architecture (Coord + 6$\times$Rep + BiFormer + F-EIoU)} & \textbf{93.21} & 85.11 & 92.56 & 60.68 \\ \hline
+\end{tabular}}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Validation Percentage-Point (pp) Deltas of Full Architecture \texttt{A6} Against \texttt{A0} and \texttt{A1}.}
+\label{tab:ch6_val_deltas}
+\footnotesize
+\renewcommand{\arraystretch}{1.10}
+\begin{tabular}{|l|l|r|r|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Comparison} & \textbf{Backbone} & \textbf{$\Delta$ mAP@50 (pp)} & \textbf{$\Delta$ mAP@50--95 (pp)} \\
+\hline
+\texttt{A6 $-$ A0} & \texttt{YOLO11s} & $+0.67$ & $+0.39$ \\ \hline
+\texttt{A6 $-$ A0} & \texttt{YOLOv8s} & $+0.68$ & $+0.13$ \\ \hline
+\texttt{A6 $-$ A1} & \texttt{YOLO11s} & $-0.90$ & $-0.46$ \\ \hline
+\texttt{A6 $-$ A1} & \texttt{YOLOv8s} & $-0.58$ & $-0.51$ \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{GDUT-HWD Official Test Results (1,587 Images, 9,574 Boxes) for \texttt{YOLO11s} (\texttt{A0--A6}).}
+\label{tab:ch6_test_y11}
+\footnotesize
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|r|r|r|r|l|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Config} & \textbf{Precision (\%)} & \textbf{Recall (\%)} & \textbf{mAP@50 (\%)} & \textbf{mAP@50--95 (\%)} & \textbf{Tesla T4 Infer (ms)} \\
+\hline
+\textbf{A0 (S1)} & 91.0 & 82.8 & 88.8 & 58.5 & 8.0 \\ \hline
+\textbf{A1} & \textbf{91.2} & \textbf{84.4} & \textbf{89.8} & \textbf{59.1} & \textbf{7.5} \\ \hline
+\textbf{A2} & 91.1 & 83.5 & 89.4 & 58.6 & 8.3 \\ \hline
+\textbf{A3} & 90.7 & 83.9 & 89.3 & 58.3 & 8.9 (unfused) \\ \hline
+\textbf{A4} & 90.2 & 84.3 & 89.2 & 58.5 & 8.0 \\ \hline
+\textbf{A5} & 90.2 & 84.2 & 89.2 & 58.6 & 8.5 \\ \hline
+\rowcolor{slatehdr}
+\textbf{A6} & 90.2 & 84.3 & 88.9 & 58.1 & 9.2 (unfused) \\ \hline
+\end{tabular}}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{GDUT-HWD Official Test Results (1,587 Images, 9,574 Boxes) for \texttt{YOLOv8s} (\texttt{A0--A6}).}
+\label{tab:ch6_test_v8}
+\footnotesize
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|r|r|r|r|l|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Config} & \textbf{Precision (\%)} & \textbf{Recall (\%)} & \textbf{mAP@50 (\%)} & \textbf{mAP@50--95 (\%)} & \textbf{Tesla T4 Infer (ms)} \\
+\hline
+\textbf{A0 (S1)} & 90.1 & 81.8 & 87.5 & 57.2 & 7.5 \\ \hline
+\textbf{A1} & 90.5 & 83.4 & \textbf{88.7} & \textbf{57.8} & \textbf{7.4} \\ \hline
+\textbf{A2} & 90.6 & 83.1 & 88.6 & 57.2 & 7.7 \\ \hline
+\textbf{A3} & 89.7 & \textbf{83.6} & \textbf{88.7} & 57.2 & 8.5 (unfused) \\ \hline
+\textbf{A4} & \textbf{90.9} & 82.6 & 88.3 & 57.2 & 7.5 \\ \hline
+\textbf{A5} & \textbf{90.9} & 82.4 & 88.3 & 57.3 & 8.4 \\ \hline
+\rowcolor{slatehdr}
+\textbf{A6} & 90.3 & 82.6 & 88.4 & 57.4 & 9.1 (unfused) \\ \hline
+\end{tabular}}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Official Test Deltas (Unrounded 4-Decimal \nolinkurl{test_evaluation/summary.csv}) and Val$\to$Test Gap for \texttt{A6}.}
+\label{tab:ch6_test_deltas}
+\footnotesize
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|r|r|r|r|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Comparison} & \textbf{Backbone} & \textbf{$\Delta$ mAP@50} & \textbf{$\Delta$ mAP@50--95} & \textbf{Val$\to$Test mAP@50 Gap} & \textbf{Val$\to$Test mAP@50--95 Gap} \\
+\hline
+\texttt{A6 $-$ A0} & \texttt{YOLO11s} & $+0.12$ pp & $-0.38$ pp & $92.50\% \to 88.94\%$ ($-3.56$ pp) & $61.23\% \to 58.08\%$ ($-3.14$ pp) \\ \hline
+\texttt{A6 $-$ A0} & \texttt{YOLOv8s} & $+0.91$ pp & $+0.17$ pp & $92.56\% \to 88.37\%$ ($-4.19$ pp) & $60.68\% \to 57.37\%$ ($-3.31$ pp) \\ \hline
+\texttt{A6 $-$ A1}$^\ddagger$ & \texttt{YOLO11s} & $-0.82$ pp & $-1.00$ pp & -- & -- \\ \hline
+\texttt{A6 $-$ A1}$^\ddagger$ & \texttt{YOLOv8s} & $-0.36$ pp & $-0.39$ pp & -- & -- \\ \hline
+\end{tabular}}
+\vspace{2pt}\par\noindent\scriptsize\raggedright\textit{Protocol Note:} $^\ddagger$\texttt{A1} used online \texttt{mixup=0.1, hsv\_v=0.45} whereas \texttt{A2--A6} locked \texttt{mixup=0.0, hsv\_v=0.40}, so \texttt{A6 $-$ A1} reflects combined structural and online-augmentation effects.
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_gdut_ablation_val_test.png}
+\caption[Complete \texttt{A0--A6} Ablation Comparison Across Validation and Official Test Splits]{Complete \texttt{A0--A6} ablation comparison across Validation (316) and Official Test (1,587) splits on \texttt{YOLO11s} and \texttt{YOLOv8s}.}
+\label{fig:ch6_ablation_val_test}
+\end{figure}
+
+\subsubsection{Per-Class Performance, Initialization Audit, and Official Test Diagnostics}
+
+Table~\ref{tab:ch6_perclass_a6} and Figure~\ref{fig:ch6_perclass_a6} break down \texttt{A6} by class: \texttt{yellow} helmets peak on both backbones ($92.7\%$ / $92.4\%$ AP@50), while bare heads (\texttt{none}) register the lowest AP@50 ($84.6\%$ / $83.5\%$) and recall ($77.3\%$ / $75.1\%$) despite holding the most test boxes (2,200), implicating visual variability rather than sample scarcity. \texttt{YOLO11s A6} outperforms \texttt{YOLOv8s A6} on \texttt{none} ($+1.1$ pp AP@50, $+1.6$ pp AP@50--95) and \texttt{red} ($+2.3$ pp AP@50).
+
+Table~\ref{tab:ch6_init_epochs} and Figure~\ref{fig:ch6_init_epochs} confirm that \texttt{A2}/\texttt{A3} on both backbones and \texttt{A5}/\texttt{A6} on \texttt{YOLOv8s} preserve exact Stage 1 validation mAP@50 at epoch 0, whereas replacing \texttt{C2PSA} with \texttt{BiFormerBlockLite} on \texttt{YOLO11s} drops initialization mAP@50 by \textbf{$-5.49$ pp} ($91.83\% \to 86.34\%$). Both \texttt{A6} backbones peak at epoch 16 and decline steadily across 50 subsequent epochs to epoch 66, confirming convergence rather than premature stopping. Figures~\ref{fig:ch6_a6_curves}--\ref{fig:ch6_qual_preds} present raw Kaggle training curves, controlled same-split Official Test PR/confusion matrices, and Official Test prediction grids for both \texttt{A6} and \texttt{A1}.
+
+\begin{table}[htbp]
+\centering
+\caption{Per-Class Official Test Performance of \texttt{A6} Across All Five GDUT-HWD Classes (1,587 Images).}
+\label{tab:ch6_perclass_a6}
+\footnotesize
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|r|r|r|r|r|r|r|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Class} & \textbf{Test Boxes} & \multicolumn{3}{c|}{\textbf{YOLO11s A6 (\%)}} & \multicolumn{3}{c|}{\textbf{YOLOv8s A6 (\%)}} \\
+\cline{3-8}
+\rowcolor{slatehdr}
+& & \textbf{Recall} & \textbf{AP@50} & \textbf{AP@50--95} & \textbf{Recall} & \textbf{AP@50} & \textbf{AP@50--95} \\
+\hline
+\texttt{blue}   & 1,361 & 86.6 & \textbf{89.8} & \textbf{59.4} & 83.3 & 89.3 & 58.8 \\ \hline
+\texttt{white}  & 1,968 & 86.6 & 89.1 & 59.5 & \textbf{86.9} & \textbf{90.4} & \textbf{59.6} \\ \hline
+\texttt{yellow} & 1,962 & \textbf{88.2} & \textbf{92.7} & \textbf{60.7} & 87.8 & 92.4 & 60.6 \\ \hline
+\texttt{red}    & 2,083 & \textbf{82.7} & \textbf{88.6} & \textbf{57.4} & 80.1 & 86.3 & 56.0 \\ \hline
+\texttt{none}   & 2,200 & \textbf{77.3} & \textbf{84.6} & \textbf{53.4} & 75.1 & 83.5 & 51.8 \\ \hline
+\end{tabular}}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.90\textwidth]{figures/fig_gdut_perclass_a6.png}
+\caption[Per-Class Test AP@50 and AP@50--95 Comparison Between \texttt{YOLO11s A6} and \texttt{YOLOv8s A6}]{Per-class test AP@50 and AP@50--95 comparison between \texttt{YOLO11s A6} and \texttt{YOLOv8s A6} across 9,574 ground-truth boxes.}
+\label{fig:ch6_perclass_a6}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Pre-Finetune Function-Preservation Audit (\nolinkurl{initialization_check.json}) and Early-Stopping Epochs.}
+\label{tab:ch6_init_epochs}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Config} & \textbf{YOLO11s Pre-Finetune mAP@50 / 50--95 (\%)} & \textbf{YOLOv8s Pre-Finetune mAP@50 / 50--95 (\%)} & \textbf{YOLO11s (Stop / Best)} & \textbf{YOLOv8s (Stop / Best)} \\
+\hline
+\textbf{A0} & 91.83 / 60.83 & 91.88 / 60.55 & Stage 1 & Stage 1 \\ \hline
+\textbf{A1} & -- (stock init) & -- (stock init) & 70 / 20 & 63 / 13 \\ \hline
+\textbf{A2} & 91.83 / 60.83 & 91.88 / 60.55 & 52 / 2  & 65 / 15 \\ \hline
+\textbf{A3} & 91.83 / 60.83 & 91.88 / 60.55 & 66 / 16 & 51 / 1  \\ \hline
+\textbf{A4} & -- (loss only) & -- (loss only) & 65 / 15 & 66 / 16 \\ \hline
+\textbf{A5} & \textbf{86.34 / 56.15} & 91.88 / 60.55 & 65 / 15 & 51 / 1  \\ \hline
+\textbf{A6} & \textbf{86.34 / 56.15} & 91.88 / 60.55 & 66 / 16 & 66 / 16 \\ \hline
+\end{tabular}}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.90\textwidth]{figures/fig_gdut_init_check_and_epochs.png}
+\caption[Mechanistic Convergence Diagnostics (\texttt{initialization\_check.json} and \texttt{results.csv})]{Mechanistic convergence diagnostics: (a) pre-finetune initialization preservation vs. $-5.49$ pp \texttt{C2PSA} drop on \texttt{YOLO11s}; (b) Stage 2 validation mAP@50--95 trajectories from \texttt{results.csv}.}
+\label{fig:ch6_init_epochs}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.90\textwidth]{figures/a6_yolo11s_results.png}
+\caption[Authentic Kaggle Stage 2 Loss and Metric Curves (\texttt{results.png}) for \texttt{GDUT A6 YOLO11s}]{Raw Kaggle Stage 2 loss and metric curves (\texttt{results.png}) for \texttt{GDUT A6 YOLO11s} (\texttt{ce2a883e...}), showing rapid recovery from epoch-0 \texttt{C2PSA} replacement and early stopping at epoch 66.}
+\label{fig:ch6_a6_curves}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}[b]{0.46\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/a6_yolo11s_test_pr.png}
+  \caption{A6 \texttt{YOLO11s} Official Test PR (mAP@50 88.9\%)}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.46\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/a6_yolo11s_test_cm.png}
+  \caption{A6 \texttt{YOLO11s} Official Test Confusion Matrix}
+\end{subfigure}\\[4pt]
+\begin{subfigure}[b]{0.46\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/a1_yolo11s_test_pr.png}
+  \caption{A1 \texttt{YOLO11s} Official Test PR (mAP@50 89.8\%)}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.46\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/a1_yolo11s_test_cm.png}
+  \caption{A1 \texttt{YOLO11s} Official Test Confusion Matrix}
+\end{subfigure}
+\caption[Authentic Kaggle Official Test PR Curves and Normalized Confusion Matrices (\texttt{A6} vs. \texttt{A1})]{Controlled same-split Official Test (1,587 images; \texttt{conf=0.25}, \texttt{iou=0.45}, class-wise NMS; columns=True, rows=Predicted) PR curves and normalized confusion matrices. At this threshold, \texttt{A6} exhibits tighter inter-color leakage ($2\%\text{--}7\%$; diagonal recall $74\%\text{--}81\%$) than \texttt{A1} ($1\%\text{--}12\%$; diagonal recall $72\%\text{--}84\%$), while \texttt{A1} holds higher area-under-PR ($89.8\%$ vs. $88.9\%$). Both models show $0.08$ \texttt{none}$\to$background miss rate, with \texttt{none} accounting for $0.24$ (\texttt{A6}) and $0.26$ (\texttt{A1}) of background false positives.}
+\label{fig:ch6_test_curves}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}[b]{0.47\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/a6_yolo11s_test_pred0.jpg}
+  \caption{A6 \texttt{YOLO11s} Official Test Predictions (\texttt{test\_batch0})}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.47\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/a1_yolo11s_test_pred0.jpg}
+  \caption{A1 \texttt{YOLO11s} Official Test Predictions (\texttt{test\_batch0})}
+\end{subfigure}
+\caption[Authentic Qualitative Five-Class Predictions on GDUT Official Test (\texttt{A6} vs. \texttt{A1})]{Same-split qualitative five-class predictions from \nolinkurl{gdut-final-test-evaluation} (\texttt{test\_evaluation/\{A6,A1\}\_yolo11s/val\_batch0\_pred.jpg}, 1,587-image Official Test split) showing multi-color helmet and bare-head detection across dense scaffolding.}
+\label{fig:ch6_qual_preds}
+\end{figure}
+
+\subsection{Auxiliary Proposed V1 Results (SHWD + Zero-Shot HHW) and Unified Synthesis}
+
+Table~\ref{tab:ch6_v1_shwd_hhw} and Figure~\ref{fig:ch6_v1_shwd_hhw} summarize three-seed (\texttt{42, 1337, 2026}, \texttt{ddof=1}) binary \textbf{Proposed V1} results (\texttt{SHWD\_V1/}) on \texttt{SHWD} Test (1,517 images)~\cite{shwd_dataset} and zero-shot \texttt{HHW} Test (1,766 images)~\cite{hard_hat_workers_mvd}. Neck \texttt{RepConv} (\texttt{V1 A2 Edge}) shows no statistically significant SHWD accuracy difference vs. \texttt{A0} at $n=3$ ($94.30 \pm 0.36\%$ vs. $94.51 \pm 0.06\%$, $p=0.3834$) while accelerating T4 FP16 latency to \textbf{13.55 $\pm$ 0.23 ms} (\textbf{73.83 FPS}, $p=0.0386$ vs. \texttt{V1 A1}) and achieving peak zero-shot \texttt{HHW} transfer (\textbf{95.78 $\pm$ 0.07\%} mAP@50, \textbf{56.48 $\pm$ 0.42\%} mAP@50--95, $4.7\times$ tighter SD than \texttt{A0}). Because dual P4/P5 \texttt{BiFormer} inflated \texttt{V1 A3/A4} latency to $16.25\text{--}16.43$ ms and Focal-EIoU reduced tiny \texttt{person} AP@50 ($p=0.0144$), \textbf{Proposed V2} removed P4 attention and focused \texttt{RepConv} onto stride-2 blocks. Table~\ref{tab:ch6_2baselines_v1_v2_summary} synthesizes all isolated tracks without cross-dataset arithmetic.
+
+\begin{table}[htbp]
+\centering
+\caption{Three-Seed \texttt{Proposed V1} Cross-Domain Benchmark (\texttt{SHWD\_V1}, Mean $\pm$ Sample SD, \texttt{ddof=1}) and Controlled Reference Baselines.}
+\label{tab:ch6_v1_shwd_hhw}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{|l|r|r|r|r|r|r|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Model / Config} & \textbf{Deploy Params} & \textbf{T4 FP16 (ms / FPS)} & \textbf{SHWD mAP@50} & \textbf{SHWD mAP@50--95} & \textbf{HHW 2-Cls 50 / 50--95} & \textbf{HHW Hat-Only 50 / 50--95} \\
+\hline
+\texttt{YOLOv8s} (Seed 42 ref) & 11,136,374 & 10.16 / 98.4 & 94.23 & 61.05 & 94.45 / 54.96 & 96.08 / 54.13 \\ \hline
+\texttt{YOLOv9s} (Seed 42 ref) & 7,288,182 & 36.41 / 27.5 & 94.34 & 61.72 & 95.70 / 55.91 & 96.64 / 54.85 \\ \hline
+\texttt{YOLOv10s} (Seed 42 ref) & 8,067,900 & 16.69 / 59.9 & 94.14 & 61.69 & 95.90 / \textbf{56.70} & 96.67 / 55.25 \\ \hline
+\texttt{YOLO12s} (Seed 42 ref) & 9,253,910 & 21.95 / 45.5 & \textbf{94.56} & \textbf{61.70} & \textbf{95.95} / 56.34 & 96.70 / 54.85 \\ \hline
+\hline
+\textbf{V1 A0} (Stock YOLO11s) & 9,428,566 & 14.15$\pm$0.24 / 70.7 & 94.51$\pm$0.06 & 61.67$\pm$0.03 & 95.63$\pm$0.33 / 55.90$\pm$0.58 & 96.64$\pm$0.23 / 54.87$\pm$0.50 \\ \hline
+\textbf{V1 A1} (+ CoordConv Stem) & 9,429,142 & 14.59$\pm$0.59 / 68.6 & 94.38$\pm$0.26 & 61.61$\pm$0.30 & 95.74$\pm$0.08 / 56.46$\pm$0.51 & 96.60$\pm$0.27 / 55.30$\pm$0.53 \\ \hline
+\rowcolor{slatehdr}
+\textbf{V1 A2 (V1 Edge)} & 9,427,766 & \textbf{13.55$\pm$0.23 / 73.8} & 94.30$\pm$0.36 & 61.61$\pm$0.05 & \textbf{95.78$\pm$0.07 / 56.48$\pm$0.42} & 96.71$\pm$0.31 / \textbf{55.54$\pm$0.48} \\ \hline
+\textbf{V1 A3} (+ BiFormer P4/P5) & 10,740,024 & 16.43$\pm$0.11 / 60.8 & 94.44$\pm$0.20 & 61.65$\pm$0.10 & 95.48$\pm$0.16 / 56.10$\pm$0.24 & 96.50$\pm$0.11 / 55.09$\pm$0.02 \\ \hline
+\textbf{V1 A4 (Full V1)} & 10,740,024 & 16.25$\pm$0.09 / 61.5 & 94.18$\pm$0.23 & 61.33$\pm$0.25 & 95.69$\pm$0.05 / 56.25$\pm$0.44 & \textbf{96.72$\pm$0.09} / 55.17$\pm$0.48 \\ \hline
+\end{tabular}}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_v1_shwd_hhw_ablation.png}
+\caption[Isolated Three-Seed \textbf{Proposed V1} Validation on \texttt{SHWD\_V1} and Zero-Shot \texttt{HHW}]{Isolated three-seed \textbf{Proposed V1} validation (\texttt{SHWD\_V1}, Mean $\pm$ SD): (a) SHWD Test accuracy and T4 FP16 latency; (b) zero-shot \texttt{HHW} cross-domain mAP@50--95.}
+\label{fig:ch6_v1_shwd_hhw}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Unified Architectural Synthesis: Two SOTA Baselines vs. \texttt{Proposed V1} vs. \texttt{Proposed V2} Across Isolated Tracks.}
+\label{tab:ch6_2baselines_v1_v2_summary}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{|l|l|r|r|r|r|l|}
+\hline
+\rowcolor{slatehdr}
+\textbf{System / Baseline} & \textbf{Isolated Evaluation Track} & \textbf{Deploy Params} & \textbf{T4 Latency} & \textbf{mAP@50 (\%)} & \textbf{mAP@50--95 (\%)} & \textbf{Verified Engineering Takeaway} \\
+\hline
+\textbf{B1: \texttt{YOLO11n-DCRCF}} & GDUT 5-Cls Test (\texttt{ce2a883e}) & 6,796,045 & 11.048 ms (B=1 FP32) & 84.85 & 54.77 & Low transfer (\texttt{26.22\%}), weak \texttt{none} (\texttt{78.3\%}) \\ \hline
+\textbf{B2: \texttt{YOLOv8s-DWR-NWD}} & GDUT 5-Cls Test (\texttt{ce2a883e}) & 16,275,615 & 22.396 ms (B=1 FP32) & 87.51 & 56.59 & Bloated weights \& slowest T4 latency \\ \hline
+\textbf{Proposed V1 (\texttt{A2 Edge})} & SHWD / HHW 2-Cls (\texttt{3 seeds}) & 9,427,766 & 13.55 ms (FP16) & 94.30 / \textbf{95.78} & 61.61 / \textbf{56.48} & Fastest FP16, $4.7\times$ lower HHW SD \\ \hline
+\textbf{Proposed V1 (\texttt{A4 Full})} & SHWD / HHW 2-Cls (\texttt{3 seeds}) & 10,740,024 & 16.25 ms (FP16) & 94.18 / 95.69 & 61.33 / 56.25 & Peak Hat-Only \texttt{HHW} (\texttt{96.72 $\pm$ 0.09\%}) \\ \hline
+\textbf{Proposed V2 (\texttt{A1 Peak})} & GDUT 5-Cls Test (\texttt{ce2a883e}) & 9,414,735 & 7.5 ms$^\dagger$ (B=16 AMP) & \textbf{89.76} & \textbf{59.08} & Color-safe HardAug + \texttt{mixup=0.1} champion \\ \hline
+\rowcolor{slatehdr}
+\textbf{Proposed V2 (\texttt{A6 Primary})} & \textbf{GDUT 5-Cls Test (\texttt{ce2a883e})} & \textbf{9,476,783} & \textbf{15.207 ms} (B=1 FP32) & \textbf{88.94} & \textbf{58.08} & \textbf{Beats B1 (+4.09 pp) \& B2 (+1.43 pp, $-41.8\%$ params)} \\ \hline
+\end{tabular}}
+\vspace{2pt}\par\noindent\scriptsize\raggedright\textit{Timing Note:} $^\dagger$\texttt{V2 (A1 Peak)} uses Ultralytics \texttt{batch=16} AMP inference (where unfused \texttt{A6} measured \texttt{9.2 ms}), whereas comparator rows measure isolated \texttt{batch=1} FP32 forward latency.
+\end{table}
+
+\subsection{Edge Inference Optimization and RTX 3050 Hardware Profiling}
+
+All four edge benchmarks below execute on the identical deployed checkpoint \nolinkurl{rep_yolo11s_gdut_a6_deploy.pt} (\texttt{d422dd1d...}) exported directly from canonical Kaggle Run \texttt{A6} (\texttt{21866da3...}) on an \textbf{NVIDIA GeForce RTX 3050 Laptop GPU} (4 GB VRAM, PyTorch \texttt{2.0.0+cu118}, Ultralytics \texttt{8.3.91}).
+
+\noindent\textbf{Detector Optimization Ladder (Table~\ref{tab:ch6_opt_ladder}):} Vectorizing \texttt{BiFormerBlockLite} via \texttt{torch.gather}, fusing \texttt{RepConv}, enabling CUDA AMP FP16, and micro-batching ($N=4$) cut isolated $640 \times 640$ detector latency from \textbf{12.16 ms (82.3 FPS)} to \textbf{6.96 ms/frame (143.7 FPS, $1.75\times$ GPU speedup; $37.8\times$ vs. 4-thread CPU)}, verified on a 12-frame sample parity check ($\Delta = 0$ boxes; mean conf diff $0.00029$ at $B=1$, $0.00022$ at $N=4$; full-test AMP mAP re-evaluation left for future work).
+
+\begin{table}[htbp]
+\centering
+\caption{Before vs. After Detector-Only Inference Optimization on Canonical \texttt{Rep-YOLO11s-GDUT-A6} (\texttt{21866da3 $\to$ d422dd1d}, RTX 3050, $640 \times 640$).}
+\label{tab:ch6_opt_ladder}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.14}
+\begin{tabular}{|l|l|c|r|r|r|r|l|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Optimization Stage} & \textbf{Hardware / Precision} & \textbf{Batch} & \textbf{Latency (ms/f)} & \textbf{FPS} & \textbf{VRAM (MB)} & \textbf{Speedup} & \textbf{Box / Conf Parity (12 Frames)} \\
+\hline
+CPU Reference (4-Thread) & CPU FP32 & 1 & 263.12 & 3.8 & 0.0 & $0.05\times$ & CPU FP32 Ref \\ \hline
+\textbf{Before} (Loop BiFormer) & RTX 3050 FP32 (TF32) & 1 & 12.16 & 82.3 & 222.5 & $1.00\times$ & GPU FP32 Ref (12/12 boxes) \\ \hline
+\textbf{After-1} (+ Vec \texttt{torch.gather} + RepConv) & RTX 3050 FP32 (TF32) & 1 & 11.67 & 85.7 & 222.5 & $1.04\times$ & Exact Reparameterized FP32 \\ \hline
+\textbf{After-2} (+ CUDA AMP FP16) & RTX 3050 FP16-AMP & 1 & 9.24 & 108.3 & \textbf{217.5} & $1.32\times$ & $\Delta=0$ boxes (conf diff $0.00029$) \\ \hline
+\rowcolor{slatehdr}
+\textbf{After-3 (Micro-Batch $N=4$)} & \textbf{RTX 3050 FP16-AMP} & \textbf{4} & \textbf{6.96} & \textbf{143.7} & 295.3 & \textbf{$1.75\times$} & $\Delta=0$ boxes (conf diff $0.00022$) \\ \hline
+\end{tabular}}
+\end{table}
+
+\noindent\textbf{Dedicated \nolinkurl{RepConv.switch_to_deploy()} Verification (Table~\ref{tab:ch6_repconv_deploy}):} Directly profiling canonical \texttt{21866da3...} before and after collapsing all six stride-2 \texttt{RepConv} layers (\texttt{1, 3, 5, 7, 17, 20}) under strict IEEE FP32 (\nolinkurl{allow_tf32 = False}, 20 warmup + 80 timed iters, \nolinkurl{gdut_a6_switch_to_deploy_benchmark.json}) confirms \textbf{$-300,992$ parameters} ($9,788,575 \to 9,487,583$, plus $-10,800$ Conv+BN affine parameters via \texttt{model.fuse()} to reach \textbf{9,476,783}), tight $1 \times 9 \times 8400$ output equivalence (\textbf{mean diff $4.20 \times 10^{-6}$}, max diff $7.93 \times 10^{-4}$), and wall-clock speedups of \textbf{$-5.1\%$ in strict FP32} ($20.206 \to 19.177$ ms, $49.49 \to 52.15$ FPS) and \textbf{$-13.8\%$ in CUDA AMP FP16} ($11.321 \to 9.754$ ms, $88.34 \to 102.52$ FPS). Note that Table~\ref{tab:ch6_repconv_deploy} ($19.177$ ms) exceeds Table~\ref{tab:ch6_opt_ladder} \texttt{After-1} ($11.67$ ms) because the latter uses PyTorch's default \texttt{allow\_tf32=True} (a $-4.25$ ms difference measured directly in Table~\ref{tab:ch6_e2e_paired}).
+
+\begin{table}[htbp]
+\centering
+\caption{Dedicated RTX 3050 Verification of \nolinkurl{RepConv.switch_to_deploy()} Across Six Stride-2 Blocks (\texttt{layers 1, 3, 5, 7, 17, 20}) on Canonical \texttt{GDUT\_A6\_YOLO11s} (\texttt{21866da3 $\to$ d422dd1d}).}
+\label{tab:ch6_repconv_deploy}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.14}
+\begin{tabular}{|l|r|r|r|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Measured Metric (B=1, $640\times 640$, 80 Iters)} & \textbf{Before \nolinkurl{switch_to_deploy()}} & \textbf{After \nolinkurl{switch_to_deploy()}} & \textbf{Verified Delta} \\
+\hline
+Unfused / Fused \texttt{RepConv} Count & 6 multi-branch blocks & 6 single $3\times 3$ blocks & 100\% fused \\ \hline
+Total Parameters (before / after \texttt{model.fuse()}) & 9,788,575 (9.789M) & \textbf{9,487,583} (\textbf{9,476,783} fused) & \textbf{$-300,992$ ($-3.07\%$)} / $-10,800$ BN \\ \hline
+IEEE FP32 Output Parity (\texttt{mean / max abs diff}) & Reference & $4.20 \times 10^{-6}$ / $7.93 \times 10^{-4}$ & Numerically equivalent (FP32 tol.) \\ \hline
+Strict FP32 Latency / Throughput (\texttt{TF32=False}) & 20.206 ms / 49.49 FPS & \textbf{19.177 ms / 52.15 FPS} & $-1.029$ ms ($-5.1\%$) \\ \hline
+CUDA AMP FP16 Latency / Throughput (\texttt{TF32=False}) & 11.321 ms / 88.34 FPS & \textbf{9.754 ms / 102.52 FPS} & \textbf{$-1.567$ ms ($-13.8\%$, $+14.18$ FPS)} \\ \hline
+Peak Allocated VRAM (FP32 / AMP FP16) & 179.59 / 226.75 MB & 179.59 / 233.23 MB & Negligible ($<7$ MB) \\ \hline
+\end{tabular}}
+\end{table}
+
+\noindent\textbf{Paired 1080p VMS + Re-ID and Multi-Stream Scaling (Tables~\ref{tab:ch6_e2e_paired}--\ref{tab:ch6_multistream}):} Using alternating paired shared detections ($n=120$ at $1920\times 1080$, \nolinkurl{gdut_vms_end2end_reid_benchmark.json}), 3-strip HSV/Lab + HOG Re-ID adds \textbf{$+2.88$ ms} over TF32 detection ($12.15 \to 15.03$ ms, \textbf{66.5 FPS}), and gated \texttt{MobileNetV3-Small} brings total Re-ID overhead to \textbf{$+3.07$ ms} ($15.22$ ms, \textbf{65.7 FPS}, \textbf{$+0.19$ ms} marginal over 3-Strip across 4 deep calls: $20.45$ vs. $15.04$ ms). Full batched 1080p multi-stream profiling (H.264 decode + resize + AMP FP16 + overlay, \nolinkurl{rtx3050_gdut_a6_batched_multistream_results.json}) stays under \textbf{586 MB VRAM} at $N=8$ and passes the 25 FPS per-stream SLA at \textbf{$N=1$ (45.3 FPS)} and \textbf{$N=2$ (29.0 FPS/stream)}, dropping below 25 FPS at $N=4$ ($15.4$ FPS) and $N=8$ ($7.9$ FPS) due to CPU decode saturation (suitable for 12--15 FPS industrial sampling or multi-node scaling).
+
+\begin{table}[htbp]
+\centering
+\caption{Five-Tier Paired End-to-End 1080p VMS + Non-Biometric Re-ID Benchmark on RTX 3050 (\texttt{21866da3 $\to$ d422dd1d}, \nolinkurl{gdut_vms_end2end_reid_benchmark.json}).}
+\label{tab:ch6_e2e_paired}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.14}
+\begin{tabular}{|l|r|r|r|r|r|l|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Pipeline Tier} & \textbf{Mean (ms)} & \textbf{p95 (ms)} & \textbf{p99 (ms)} & \textbf{FPS} & \textbf{VRAM (MB)} & \textbf{Paired Parity / Overhead Note} \\
+\hline
+1. Detector Strict FP32 (\texttt{TF32=False}) & 16.10 & 17.07 & 17.61 & 62.1 & \textbf{106.1} & Baseline Ref (12/12 boxes) \\ \hline
+2. Detector TF32 FP32 (\texttt{TF32=True}) & \textbf{11.85} & \textbf{12.36} & \textbf{13.73} & \textbf{84.4} & 215.0 & $-4.25$ ms vs. Strict FP32 [Fastest $B=1$] \\ \hline
+3. Detector Selective AMP FP16 & 12.68 & 13.62 & 14.29 & 78.8 & 210.2 & $\Delta=0$ boxes, conf diff $0.00029$ \\ \hline
+4. TF32 + ByteTrack + 3-Strip Re-ID ($n=120$) & 15.03 & 16.35 & 18.63 & 66.5 & 215.0 & \texttt{det}=12.15 ms + \texttt{strip}=2.88 ms \\ \hline
+\rowcolor{slatehdr}
+5. Full VMS + MobileNetV3 Deep Re-ID ($n=120$) & 15.22 & 18.88 & 20.47 & 65.7 & 218.6 & \textbf{$+3.07$ ms total Re-ID} (\textbf{$+0.19$ ms} vs. 3-Strip; 4 calls: $20.45$ vs. $15.04$ ms) \\ \hline
+\end{tabular}}
+\end{table}
+
+\noindent\textit{Strict FP32 Harness Reconciliation:} Table~\ref{tab:ch6_repconv_deploy} (\texttt{19.177 ms}) and Table~\ref{tab:ch6_e2e_paired} Tier 1 (\texttt{16.10 ms}) both execute under \texttt{TF32=False} on the same canonical checkpoint, but measure two distinct stages: \nolinkurl{scripts/export_gdut_a6_deploy.py} times raw \texttt{model(x)} immediately after \nolinkurl{RepConv.switch_to_deploy()} prior to Ultralytics \nolinkurl{model.fuse()} Conv+BN folding (9,487,583 params), whereas \nolinkurl{scripts/benchmark_gdut_vms_end2end.py} times \texttt{SafetyObjectDetector} after \nolinkurl{model.fuse()} folds all remaining Conv+BN affine layers (9,476,783 params).
+
+\begin{table}[htbp]
+\centering
+\caption{End-to-End 1080p Batched Multi-Stream Profiling of Canonical \texttt{Rep-YOLO11s-GDUT-A6} (\texttt{21866da3 $\to$ d422dd1d}) on RTX 3050 ($N=1,2,4,8$).}
+\label{tab:ch6_multistream}
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.14}
+\begin{tabular}{|c|r|r|r|r|r|r|r|c|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Streams ($N$)} & \textbf{Agg. FPS} & \textbf{FPS / Stream} & \textbf{Mean (ms)} & \textbf{p95 (ms)} & \textbf{GPU Util (\%)} & \textbf{VRAM (MB)} & \textbf{Power (W)} & \textbf{25 FPS SLA} \\
+\hline
+1 & 45.3 & \textbf{45.3} & 21.91 & 27.89 & 36.7 & 356.0 & 35.2 & \textbf{PASS} \\ \hline
+2 & 58.1 & \textbf{29.0} & 34.13 & 37.94 & 47.5 & 486.0 & 57.1 & \textbf{PASS} \\ \hline
+4 & 61.6 & 15.4 & 64.24 & 71.03 & 39.1 & 486.0 & 47.8 & Below 25 FPS (10--15 FPS CCTV ok) \\ \hline
+8 & \textbf{62.9} & 7.9  & 124.36 & 132.50 & 50.1 & 586.0 & 52.1 & Requires stride-2 / multi-node \\ \hline
+\end{tabular}}
+\end{table}
+
+\subsection{Software QA, Dual Load Testing, Field Audit, and Failure Analysis}
+
+\begin{itemize}[leftmargin=1.8em, itemsep=2.5pt]
+  \item \textbf{Automated \texttt{pytest} Suite:} Local workspace CPU runs pass \textbf{141/141} tests (\textbf{140 passed, 1 skipped} in weightless stub mode), and Clean-Room GitHub Actions CI passes \textbf{84 passed, 1 skipped} across 85 tests covering Dynamic Taxonomy (\texttt{cls=2}$\to$\texttt{yellow}), Class-Agnostic NMS, Confirm-Before-Mint Re-ID with 15-frame TTL and 10-frame color hysteresis, 100-frame stationary-worker retention, 8-frame debouncing, Circuit Breaker \texttt{HALF\_OPEN} probing, Binary WebSocket \texttt{/ws/webcam} lifecycle and error-ack, Role APIs, PostgreSQL fallback, and benchmark parity.
+  \item \textbf{Dual API Load Testing (Table~\ref{tab:ch6_load_test}, Figure~\ref{fig:ch6_opt_load}):} Across $C \in \{10, 25, 50, 100\}$ (1,400 requests/tier via \nolinkurl{scripts/load_test_api.py}), both profiles sustain \textbf{0.0\% HTTP error}: \textbf{4A In-Process ASGI} reaches \textbf{446.7--501.1 RPS} (p95 $30.56$--$199.25$ ms), and \textbf{4B 6-Container Docker} reaches \textbf{260.8--225.2 RPS} (p95 $69.09$--$480.67$ ms) through Nginx $\to$ Gateway $\to$ PostgreSQL.
+  \item \textbf{Live CCTV, Cgroup Telemetry \& UAT/SUS:} Verified on 1080p/4K construction clips (\texttt{video\_test/}) and synthetic WebRTC \texttt{/ws/webcam} streams (35--46 ms RTT, 34.7 FPS). Prometheus cgroup v2 working-set RAM (in MiB) tracked \texttt{docker stats} closely (86.7--91.2 MiB vs. 86.48--88.91 MiB on Gateway; 3,009.3--3,020.6 MiB vs. 2.939--2.944 GiB $=$ 3,009.5--3,014.7 MiB on AI Inference at \texttt{45.3 fps / 13.3 ms}, a $\approx 0.2\%$ / $\approx 5.9$ MiB scrape-timing offset). The 10-item SUS~\cite{brooke1996sus} + 4-scenario UAT protocol (\nolinkurl{docs/UAT_SURVEY_TEMPLATE_AND_SUS_PROTOCOL.md}, Appendix D) is finalized for post-defense safety-officer scoring ($N \ge 10$, zero fabricated scores).
+  \item \textbf{Concrete Failure Regimes:} (1) \textbf{Small Bare Heads (\texttt{none}):} lowest recall ($77.3\%$ on \texttt{A6}, $68.0\%$ on \texttt{B1}) in shadowed $<32\times 32$ px scaffolding regions, mitigated by \nolinkurl{NONE_CONF_THRESHOLD=0.25}; (2) \textbf{Inter-Color Leakage:} $2\%\text{--}7\%$ off-diagonal confusion on \texttt{A6} vs. $1\%\text{--}12\%$ on \texttt{A1} under class-wise NMS (Figure~\ref{fig:ch6_test_curves}), mitigated against overlapping multi-color duplicate boxes at runtime via \texttt{agnostic\_nms=True} (unit-tested; full-test confusion re-evaluation left for future work); (3) \textbf{OOD Civilian Headgear:} live \texttt{C960 Ultra} testing showed pith helmets triggering \texttt{none} ($0.52\text{--}0.87$), glossy motorcycle helmets oscillating \texttt{white}/\texttt{yellow}, and carved wooden textures triggering $0.35$ transient boxes; and (4) \textbf{Module/Loss Limits:} $-5.49$ pp \texttt{C2PSA} replacement drop on \texttt{YOLO11s V2 A5/A6} and Focal-EIoU tiny-\texttt{person} trade-off on \texttt{SHWD\_V1 A4} ($p=0.0144$).
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\caption{Dual API Concurrency Load Benchmark: 4A In-Process ASGI vs. 4B 6-Container Docker (\nolinkurl{load_test_results.json} \& \nolinkurl{load_test_enterprise_docker.json}).}
+\label{tab:ch6_load_test}
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|c|r|r|r|r|r|r|r|r|}
+\hline
+\rowcolor{slatehdr}
+\textbf{Deployment Profile} & \textbf{Concurrency ($C$)} & \textbf{Requests} & \textbf{Wall (s)} & \textbf{RPS} & \textbf{Avg (ms)} & \textbf{p50 (ms)} & \textbf{p95 (ms)} & \textbf{p99 (ms)} & \textbf{Err (\%)} \\
+\hline
+4A In-Process ASGI & 10  & 200 & 0.448 & 446.7 & 21.89  & 22.35  & 30.56  & 32.50  & \textbf{0.0} \\ \hline
+4A In-Process ASGI & 25  & 300 & 0.615 & 487.9 & 48.27  & 48.42  & 58.05  & 61.74  & \textbf{0.0} \\ \hline
+4A In-Process ASGI & 50  & 400 & 0.881 & 454.1 & 101.27 & 97.01  & 150.70 & 169.97 & \textbf{0.0} \\ \hline
+4A In-Process ASGI & 100 & 500 & 0.998 & \textbf{501.1} & 173.34 & 187.83 & 199.25 & 200.31 & \textbf{0.0} \\ \hline
+\hline
+4B 6-Container Docker & 10  & 200 & 0.767 & \textbf{260.8} & 37.04  & 30.72  & 69.09  & 76.32  & \textbf{0.0} \\ \hline
+4B 6-Container Docker & 25  & 300 & 1.169 & 256.6 & 92.65  & 89.83  & 133.69 & 146.90 & \textbf{0.0} \\ \hline
+4B 6-Container Docker & 50  & 400 & 1.680 & 238.1 & 196.97 & 198.47 & 250.91 & 267.62 & \textbf{0.0} \\ \hline
+4B 6-Container Docker & 100 & 500 & 2.220 & 225.2 & 394.80 & 422.74 & 480.67 & 500.78 & \textbf{0.0} \\ \hline
+\end{tabular}}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_gdut_optimization_and_multistream.png}
+\caption[Detector Optimization and Dual Concurrent Load Verification on RTX 3050 \& Docker]{Detector optimization and load verification on canonical \texttt{21866da3 $\to$ d422dd1d} weights: (a) RTX 3050 detector-only ($640\times 640$) speedup reaching 143.7 FPS ($6.96$ ms/frame, $1.75\times$ at $N=4$); (b) Dual load throughput comparing 4A In-Process ASGI (501.1 RPS) and 4B 6-Container Docker (225.2--260.8 RPS) at 0.0\% error.}
+\label{fig:ch6_opt_load}
+\end{figure}
+
+\section{Discussion, Recommendations, and Personal Reflection}
+
+\noindent\textbf{Answers to RQ1--RQ4:} (\textbf{RQ1}) SHA-256 deduplication eliminated all six exact cross-split pixel duplicates while keeping 1,587 official test images intact; color-safe HardAug + \texttt{mixup=0.1} (\texttt{A1}) delivered the largest single gain ($+0.95$ pp test mAP@50 on \texttt{YOLO11s}, $+1.28$ pp on \texttt{YOLOv8s}). (\textbf{RQ2}) Under identical \texttt{ce2a883e} rules, \texttt{V2 A6 (YOLO11s)} surpasses \texttt{B1} ($+4.09$ / $+3.31$ pp, $+6.3$ pp \texttt{none} AP@50) and \texttt{B2} ($+1.43$ / $+1.50$ pp unrounded, $-41.8\%$ params, $-32.1\%$ latency), while both baselines drop sharply from 2-class SHWD claims ($-7.85$ / $-4.49$ pp). (\textbf{RQ3}) Internal \texttt{A1 > A6} reflects \texttt{mixup=0.1} asymmetry, \texttt{YOLO11s} \texttt{C2PSA} replacement shock ($-5.49$ pp), and Focal-EIoU tiny-target trade-offs, whereas three-seed \texttt{SHWD\_V1} confirms neck \texttt{RepConv} (\texttt{V1 A2}) drives significant FP16 speedup ($13.55$ ms, $p=0.0386$ vs.\ \texttt{V1 A1}) and $4.7\times$ tighter zero-shot HHW SD. (\textbf{RQ4}) On canonical \texttt{21866da3 $\to$ d422dd1d} weights, RTX 3050 reaches \textbf{143.7 FPS} isolated ($N=4$ AMP), \textbf{65.7 FPS} paired 1080p VMS + MobileNetV3 Re-ID ($+3.07$ ms total / $+0.19$ ms marginal), 25 FPS SLA pass at $N \in \{1, 2\}$, \textbf{141/141} workspace CPU \texttt{pytest} (\textbf{84/85} CI), and \textbf{501.1 / 260.8 RPS} at 0.0\% error.
+
+\noindent\textbf{Engineering Recommendations:} (1) Deploy \texttt{YOLO11s A1} for peak recall ($89.76\%$), \texttt{YOLOv8s A6} for peak validation precision ($93.21\%$), or fused \texttt{YOLO11s A6} ($88.94\%$, $9.48\text{M}$) as our primary re-parameterized engine; (2) always verify \nolinkurl{RepConv.switch_to_deploy()} FP32 parity prior to TensorRT/ONNX export; (3) add tiled $960\text{--}1280$ px distant crops and civilian OOD negatives harvested via \nolinkurl{operator_feedback}; and (4) extend future five-class ablations across $\ge 3$ seeds with uniform \texttt{mixup} and residual \texttt{BiFormer} appended after \texttt{C2PSA}.
+
+\noindent\textbf{Personal Reflection:} Executing three review milestones on \textbf{FA26AI16} taught each member of Group \textbf{GFA26AI17} concrete engineering discipline. Nguyen Van Thanh observed how silent DDP worker bugs revert custom modules until per-rank JSON logging exposes them, and why replacing \texttt{C2PSA} required reporting \texttt{A1 > A6} directly. Nguyen Han Nhu saw how turning a \texttt{.pt} checkpoint into a 6-container stack exposes real integration bugs---GDUT \texttt{cls=2} mislabeling, cross-color NMS overlap, WebSocket stalls, and weight-provenance drift fixed by re-anchoring all benchmarks onto \texttt{21866da3 $\to$ d422dd1d}. Tran Pham Tuan Dung saw during live camera trials how civilian headgear exposes closed-taxonomy limits hidden by offline mAP tables. Together, we converged on one habit: rely only on verifiable manifests, matched-protocol baselines, and automated tests that fail loudly.

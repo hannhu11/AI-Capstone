@@ -1,0 +1,3665 @@
+{
+  "manifest": {
+    "dataset": "gdut",
+    "names": [
+      "blue",
+      "white",
+      "yellow",
+      "red",
+      "none"
+    ],
+    "baseline_id": "yolov8_dwr_aspp_nwd",
+    "warm_revision": "gdut_stage1_baselines_v1",
+    "model": "yolov8s",
+    "imgsz": 640,
+    "stage": "baseline_finetune",
+    "smoke": false,
+    "checkpoint": "weights/best.pt",
+    "checkpoint_sha256": "4769801371da769aa5cc9132224ecd0cef4a4ec3c230fd66b3d1072c41ae1c8b",
+    "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+    "augmentation_manifest_sha256": "95318f647ea1493b9d83779d150abf94ad4a6c32c54f3e3505a86f078d837342",
+    "source_checkpoint_sha256": "f55c0430cf6dedaa05635c150896ee9dc6dcaa8dc72ee06bafdbabdc9a59dc0d",
+    "source_manifest": {
+      "dataset": "gdut",
+      "stage": "S1",
+      "model": "yolov8s",
+      "names": [
+        "blue",
+        "white",
+        "yellow",
+        "red",
+        "none"
+      ],
+      "seed": 3407,
+      "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+      "checkpoint": "weights/best.pt",
+      "checkpoint_sha256": "f55c0430cf6dedaa05635c150896ee9dc6dcaa8dc72ee06bafdbabdc9a59dc0d",
+      "ultralytics": "8.4.115",
+      "torch": "2.11.0+cu130",
+      "smoke": false,
+      "imgsz": 640,
+      "training_args": {
+        "data": "/kaggle/working/config/gdut_base.yaml",
+        "epochs": 100,
+        "imgsz": 640,
+        "batch": 16,
+        "device": "0,1",
+        "workers": 4,
+        "seed": 3407,
+        "deterministic": true,
+        "patience": 50,
+        "project": "/kaggle/working/runs",
+        "name": "gdut_S1_yolov8s",
+        "exist_ok": false,
+        "save": true,
+        "plots": true,
+        "cache": false,
+        "amp": true,
+        "cos_lr": false,
+        "hsv_h": 0.0,
+        "hsv_s": 0.0,
+        "hsv_v": 0.4,
+        "mixup": 0.0,
+        "optimizer": "AdamW",
+        "lr0": 0.0003,
+        "momentum": 0.9,
+        "warmup_bias_lr": 0.0,
+        "warmup_epochs": 3.0
+      },
+      "recipe": "conservative_v2",
+      "architecture_revision": "stock",
+      "split_protocol": "official_test_deduplicated",
+      "initialization_policy": "stock",
+      "initialization_audit": [],
+      "initialization_check": null,
+      "source_checkpoint_sha256": null,
+      "status": "stock",
+      "modules": {
+        "CoordConv": [],
+        "RepConv": [],
+        "BiFormerBlockLite": []
+      },
+      "validation": {
+        "metrics/precision(B)": 0.9154294891148975,
+        "metrics/recall(B)": 0.8575259162877609,
+        "metrics/mAP50(B)": 0.9187736658489822,
+        "metrics/mAP50-95(B)": 0.6054739707401295,
+        "fitness": 0.6054739707401295
+      },
+      "protocol": "fixed640_color_safe_ablation_v2",
+      "observed_epochs_completed": 97
+    },
+    "initialization": "stock_GDUT_Stage1",
+    "hardaug": true,
+    "training_args": {
+      "task": "detect",
+      "mode": "train",
+      "model": "/kaggle/input/notebooks/nvthanh2004/gdut-structural-re-parameterize-yolo-architecture1/runs/gdut_S1_yolov8s/weights/best.pt",
+      "data": "/kaggle/working/transfer_config/gdut_aug.yaml",
+      "epochs": 100,
+      "time": null,
+      "patience": 50,
+      "batch": 16,
+      "imgsz": 640,
+      "save": true,
+      "save_period": -1,
+      "cache": false,
+      "device": "0,1",
+      "workers": 4,
+      "project": "/kaggle/working/transfer_runs",
+      "name": "gdut_yolov8_dwr_aspp_nwd",
+      "exist_ok": false,
+      "pretrained": true,
+      "cls_remap": true,
+      "optimizer": "AdamW",
+      "verbose": true,
+      "seed": 3407,
+      "deterministic": true,
+      "single_cls": false,
+      "rect": false,
+      "cos_lr": false,
+      "close_mosaic": 10,
+      "resume": false,
+      "amp": true,
+      "fraction": 1.0,
+      "profile": false,
+      "freeze": null,
+      "multi_scale": false,
+      "compile": false,
+      "channels_last": false,
+      "overlap_mask": true,
+      "mask_ratio": 4,
+      "dropout": 0.0,
+      "val": true,
+      "split": "val",
+      "save_json": false,
+      "conf": null,
+      "iou": 0.7,
+      "max_det": 300,
+      "quantize": null,
+      "dnn": false,
+      "plots": true,
+      "end2end": null,
+      "source": null,
+      "vid_stride": 1,
+      "stream_buffer": false,
+      "visualize": false,
+      "augment": false,
+      "agnostic_nms": false,
+      "classes": null,
+      "retina_masks": false,
+      "embed": null,
+      "show": false,
+      "save_frames": false,
+      "save_txt": false,
+      "save_conf": false,
+      "save_crop": false,
+      "show_labels": true,
+      "show_conf": true,
+      "show_boxes": true,
+      "line_width": null,
+      "format": "torchscript",
+      "keras": false,
+      "optimize": false,
+      "dynamic": false,
+      "simplify": true,
+      "opset": null,
+      "workspace": null,
+      "nms": false,
+      "lr0": 0.0001,
+      "lrf": 0.01,
+      "momentum": 0.9,
+      "weight_decay": 0.0005,
+      "warmup_epochs": 3.0,
+      "warmup_momentum": 0.8,
+      "warmup_bias_lr": 0.0,
+      "distill_model": null,
+      "dis": 6.0,
+      "box": 7.5,
+      "cls": 0.5,
+      "cls_pw": 0.0,
+      "dfl": 1.5,
+      "pose": 12.0,
+      "kobj": 1.0,
+      "rle": 1.0,
+      "angle": 1.0,
+      "dlog": 1.0,
+      "dgrad": 0.5,
+      "dlam": 1.0,
+      "nbs": 64,
+      "hsv_h": 0.0,
+      "hsv_s": 0.0,
+      "hsv_v": 0.4,
+      "degrees": 0.0,
+      "translate": 0.1,
+      "scale": 0.5,
+      "shear": 0.0,
+      "perspective": 0.0,
+      "flipud": 0.0,
+      "fliplr": 0.5,
+      "bgr": 0.0,
+      "mosaic": 1.0,
+      "mixup": 0.0,
+      "cutmix": 0.0,
+      "copy_paste": 0.0,
+      "copy_paste_mode": "flip",
+      "auto_augment": "randaugment",
+      "erasing": 0.4,
+      "cfg": null,
+      "tracker": "tracktrack.yaml",
+      "save_dir": "/kaggle/working/transfer_runs/gdut_yolov8_dwr_aspp_nwd"
+    },
+    "epochs_completed": 59,
+    "best_epoch": 9,
+    "validation": {
+      "precision": 0.923894980658152,
+      "recall": 0.8405090099435337,
+      "mAP50": 0.9145885723495102,
+      "mAP50_95": 0.6007712492004856,
+      "F1_native_macro": 0.8793840866895885,
+      "precision_conf025_macro": 0.8681333481571126,
+      "recall_conf025_macro": 0.8750884452599201,
+      "F1_conf025_macro": 0.8705395799035891
+    },
+    "modules": {
+      "DWR": [
+        "model.2.dwr",
+        "model.4.dwr",
+        "model.6.dwr"
+      ],
+      "ASPP": [
+        "model.9"
+      ],
+      "ModulatedDCNv2": [],
+      "SBA": []
+    },
+    "transfer": {
+      "source_model": "yolov8s",
+      "transferred": [
+        {
+          "target": "model.0.conv.weight",
+          "source": "model.0.conv.weight",
+          "shape": [
+            32,
+            3,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.0.bn.weight",
+          "source": "model.0.bn.weight",
+          "shape": [
+            32
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.0.bn.bias",
+          "source": "model.0.bn.bias",
+          "shape": [
+            32
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.1.conv.weight",
+          "source": "model.1.conv.weight",
+          "shape": [
+            64,
+            32,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.1.bn.weight",
+          "source": "model.1.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.1.bn.bias",
+          "source": "model.1.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.cv1.conv.weight",
+          "source": "model.2.cv1.conv.weight",
+          "shape": [
+            64,
+            64,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.cv1.bn.weight",
+          "source": "model.2.cv1.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.cv1.bn.bias",
+          "source": "model.2.cv1.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.cv2.conv.weight",
+          "source": "model.2.cv2.conv.weight",
+          "shape": [
+            64,
+            96,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.cv2.bn.weight",
+          "source": "model.2.cv2.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.cv2.bn.bias",
+          "source": "model.2.cv2.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv1.conv.weight",
+          "source": "model.2.m.0.cv1.conv.weight",
+          "shape": [
+            32,
+            32,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv1.bn.weight",
+          "source": "model.2.m.0.cv1.bn.weight",
+          "shape": [
+            32
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv1.bn.bias",
+          "source": "model.2.m.0.cv1.bn.bias",
+          "shape": [
+            32
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv2.conv.weight",
+          "source": "model.2.m.0.cv2.conv.weight",
+          "shape": [
+            32,
+            32,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv2.bn.weight",
+          "source": "model.2.m.0.cv2.bn.weight",
+          "shape": [
+            32
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv2.bn.bias",
+          "source": "model.2.m.0.cv2.bn.bias",
+          "shape": [
+            32
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.3.conv.weight",
+          "source": "model.3.conv.weight",
+          "shape": [
+            128,
+            64,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.3.bn.weight",
+          "source": "model.3.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.3.bn.bias",
+          "source": "model.3.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.cv1.conv.weight",
+          "source": "model.4.cv1.conv.weight",
+          "shape": [
+            128,
+            128,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.cv1.bn.weight",
+          "source": "model.4.cv1.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.cv1.bn.bias",
+          "source": "model.4.cv1.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.cv2.conv.weight",
+          "source": "model.4.cv2.conv.weight",
+          "shape": [
+            128,
+            256,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.cv2.bn.weight",
+          "source": "model.4.cv2.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.cv2.bn.bias",
+          "source": "model.4.cv2.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv1.conv.weight",
+          "source": "model.4.m.0.cv1.conv.weight",
+          "shape": [
+            64,
+            64,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv1.bn.weight",
+          "source": "model.4.m.0.cv1.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv1.bn.bias",
+          "source": "model.4.m.0.cv1.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv2.conv.weight",
+          "source": "model.4.m.0.cv2.conv.weight",
+          "shape": [
+            64,
+            64,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv2.bn.weight",
+          "source": "model.4.m.0.cv2.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv2.bn.bias",
+          "source": "model.4.m.0.cv2.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv1.conv.weight",
+          "source": "model.4.m.1.cv1.conv.weight",
+          "shape": [
+            64,
+            64,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv1.bn.weight",
+          "source": "model.4.m.1.cv1.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv1.bn.bias",
+          "source": "model.4.m.1.cv1.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv2.conv.weight",
+          "source": "model.4.m.1.cv2.conv.weight",
+          "shape": [
+            64,
+            64,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv2.bn.weight",
+          "source": "model.4.m.1.cv2.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv2.bn.bias",
+          "source": "model.4.m.1.cv2.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.5.conv.weight",
+          "source": "model.5.conv.weight",
+          "shape": [
+            256,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.5.bn.weight",
+          "source": "model.5.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.5.bn.bias",
+          "source": "model.5.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.cv1.conv.weight",
+          "source": "model.6.cv1.conv.weight",
+          "shape": [
+            256,
+            256,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.cv1.bn.weight",
+          "source": "model.6.cv1.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.cv1.bn.bias",
+          "source": "model.6.cv1.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.cv2.conv.weight",
+          "source": "model.6.cv2.conv.weight",
+          "shape": [
+            256,
+            512,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.cv2.bn.weight",
+          "source": "model.6.cv2.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.cv2.bn.bias",
+          "source": "model.6.cv2.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv1.conv.weight",
+          "source": "model.6.m.0.cv1.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv1.bn.weight",
+          "source": "model.6.m.0.cv1.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv1.bn.bias",
+          "source": "model.6.m.0.cv1.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv2.conv.weight",
+          "source": "model.6.m.0.cv2.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv2.bn.weight",
+          "source": "model.6.m.0.cv2.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv2.bn.bias",
+          "source": "model.6.m.0.cv2.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv1.conv.weight",
+          "source": "model.6.m.1.cv1.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv1.bn.weight",
+          "source": "model.6.m.1.cv1.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv1.bn.bias",
+          "source": "model.6.m.1.cv1.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv2.conv.weight",
+          "source": "model.6.m.1.cv2.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv2.bn.weight",
+          "source": "model.6.m.1.cv2.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv2.bn.bias",
+          "source": "model.6.m.1.cv2.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.7.conv.weight",
+          "source": "model.7.conv.weight",
+          "shape": [
+            512,
+            256,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.7.bn.weight",
+          "source": "model.7.bn.weight",
+          "shape": [
+            512
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.7.bn.bias",
+          "source": "model.7.bn.bias",
+          "shape": [
+            512
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.cv1.conv.weight",
+          "source": "model.8.cv1.conv.weight",
+          "shape": [
+            512,
+            512,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.cv1.bn.weight",
+          "source": "model.8.cv1.bn.weight",
+          "shape": [
+            512
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.cv1.bn.bias",
+          "source": "model.8.cv1.bn.bias",
+          "shape": [
+            512
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.cv2.conv.weight",
+          "source": "model.8.cv2.conv.weight",
+          "shape": [
+            512,
+            768,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.cv2.bn.weight",
+          "source": "model.8.cv2.bn.weight",
+          "shape": [
+            512
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.cv2.bn.bias",
+          "source": "model.8.cv2.bn.bias",
+          "shape": [
+            512
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.m.0.cv1.conv.weight",
+          "source": "model.8.m.0.cv1.conv.weight",
+          "shape": [
+            256,
+            256,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.m.0.cv1.bn.weight",
+          "source": "model.8.m.0.cv1.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.m.0.cv1.bn.bias",
+          "source": "model.8.m.0.cv1.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.m.0.cv2.conv.weight",
+          "source": "model.8.m.0.cv2.conv.weight",
+          "shape": [
+            256,
+            256,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.m.0.cv2.bn.weight",
+          "source": "model.8.m.0.cv2.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.8.m.0.cv2.bn.bias",
+          "source": "model.8.m.0.cv2.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.9.branches.0.0.weight",
+          "source": "model.9.cv1.conv.weight",
+          "shape": [
+            256,
+            512,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.9.branches.0.1.weight",
+          "source": "model.9.cv1.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.9.branches.0.1.bias",
+          "source": "model.9.cv1.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.cv1.conv.weight",
+          "source": "model.12.cv1.conv.weight",
+          "shape": [
+            256,
+            768,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.cv1.bn.weight",
+          "source": "model.12.cv1.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.cv1.bn.bias",
+          "source": "model.12.cv1.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.cv2.conv.weight",
+          "source": "model.12.cv2.conv.weight",
+          "shape": [
+            256,
+            384,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.cv2.bn.weight",
+          "source": "model.12.cv2.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.cv2.bn.bias",
+          "source": "model.12.cv2.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.m.0.cv1.conv.weight",
+          "source": "model.12.m.0.cv1.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.m.0.cv1.bn.weight",
+          "source": "model.12.m.0.cv1.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.m.0.cv1.bn.bias",
+          "source": "model.12.m.0.cv1.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.m.0.cv2.conv.weight",
+          "source": "model.12.m.0.cv2.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.m.0.cv2.bn.weight",
+          "source": "model.12.m.0.cv2.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.12.m.0.cv2.bn.bias",
+          "source": "model.12.m.0.cv2.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.cv1.conv.weight",
+          "source": "model.15.cv1.conv.weight",
+          "shape": [
+            128,
+            384,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.cv1.bn.weight",
+          "source": "model.15.cv1.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.cv1.bn.bias",
+          "source": "model.15.cv1.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.cv2.conv.weight",
+          "source": "model.15.cv2.conv.weight",
+          "shape": [
+            128,
+            192,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.cv2.bn.weight",
+          "source": "model.15.cv2.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.cv2.bn.bias",
+          "source": "model.15.cv2.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.m.0.cv1.conv.weight",
+          "source": "model.15.m.0.cv1.conv.weight",
+          "shape": [
+            64,
+            64,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.m.0.cv1.bn.weight",
+          "source": "model.15.m.0.cv1.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.m.0.cv1.bn.bias",
+          "source": "model.15.m.0.cv1.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.m.0.cv2.conv.weight",
+          "source": "model.15.m.0.cv2.conv.weight",
+          "shape": [
+            64,
+            64,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.m.0.cv2.bn.weight",
+          "source": "model.15.m.0.cv2.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.15.m.0.cv2.bn.bias",
+          "source": "model.15.m.0.cv2.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.16.conv.weight",
+          "source": "model.16.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.16.bn.weight",
+          "source": "model.16.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.16.bn.bias",
+          "source": "model.16.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.cv1.conv.weight",
+          "source": "model.18.cv1.conv.weight",
+          "shape": [
+            256,
+            384,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.cv1.bn.weight",
+          "source": "model.18.cv1.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.cv1.bn.bias",
+          "source": "model.18.cv1.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.cv2.conv.weight",
+          "source": "model.18.cv2.conv.weight",
+          "shape": [
+            256,
+            384,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.cv2.bn.weight",
+          "source": "model.18.cv2.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.cv2.bn.bias",
+          "source": "model.18.cv2.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.m.0.cv1.conv.weight",
+          "source": "model.18.m.0.cv1.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.m.0.cv1.bn.weight",
+          "source": "model.18.m.0.cv1.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.m.0.cv1.bn.bias",
+          "source": "model.18.m.0.cv1.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.m.0.cv2.conv.weight",
+          "source": "model.18.m.0.cv2.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.m.0.cv2.bn.weight",
+          "source": "model.18.m.0.cv2.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.18.m.0.cv2.bn.bias",
+          "source": "model.18.m.0.cv2.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.19.conv.weight",
+          "source": "model.19.conv.weight",
+          "shape": [
+            256,
+            256,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.19.bn.weight",
+          "source": "model.19.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.19.bn.bias",
+          "source": "model.19.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.cv1.conv.weight",
+          "source": "model.21.cv1.conv.weight",
+          "shape": [
+            512,
+            768,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.cv1.bn.weight",
+          "source": "model.21.cv1.bn.weight",
+          "shape": [
+            512
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.cv1.bn.bias",
+          "source": "model.21.cv1.bn.bias",
+          "shape": [
+            512
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.cv2.conv.weight",
+          "source": "model.21.cv2.conv.weight",
+          "shape": [
+            512,
+            768,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.cv2.bn.weight",
+          "source": "model.21.cv2.bn.weight",
+          "shape": [
+            512
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.cv2.bn.bias",
+          "source": "model.21.cv2.bn.bias",
+          "shape": [
+            512
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.m.0.cv1.conv.weight",
+          "source": "model.21.m.0.cv1.conv.weight",
+          "shape": [
+            256,
+            256,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.m.0.cv1.bn.weight",
+          "source": "model.21.m.0.cv1.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.m.0.cv1.bn.bias",
+          "source": "model.21.m.0.cv1.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.m.0.cv2.conv.weight",
+          "source": "model.21.m.0.cv2.conv.weight",
+          "shape": [
+            256,
+            256,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.m.0.cv2.bn.weight",
+          "source": "model.21.m.0.cv2.bn.weight",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.21.m.0.cv2.bn.bias",
+          "source": "model.21.m.0.cv2.bn.bias",
+          "shape": [
+            256
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.0.0.conv.weight",
+          "source": "model.22.cv2.0.0.conv.weight",
+          "shape": [
+            64,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.0.0.bn.weight",
+          "source": "model.22.cv2.0.0.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.0.0.bn.bias",
+          "source": "model.22.cv2.0.0.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.0.1.conv.weight",
+          "source": "model.22.cv2.0.1.conv.weight",
+          "shape": [
+            64,
+            64,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.0.1.bn.weight",
+          "source": "model.22.cv2.0.1.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.0.1.bn.bias",
+          "source": "model.22.cv2.0.1.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.0.2.weight",
+          "source": "model.22.cv2.0.2.weight",
+          "shape": [
+            64,
+            64,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.0.2.bias",
+          "source": "model.22.cv2.0.2.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.1.0.conv.weight",
+          "source": "model.22.cv2.1.0.conv.weight",
+          "shape": [
+            64,
+            256,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.1.0.bn.weight",
+          "source": "model.22.cv2.1.0.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.1.0.bn.bias",
+          "source": "model.22.cv2.1.0.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.1.1.conv.weight",
+          "source": "model.22.cv2.1.1.conv.weight",
+          "shape": [
+            64,
+            64,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.1.1.bn.weight",
+          "source": "model.22.cv2.1.1.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.1.1.bn.bias",
+          "source": "model.22.cv2.1.1.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.1.2.weight",
+          "source": "model.22.cv2.1.2.weight",
+          "shape": [
+            64,
+            64,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.1.2.bias",
+          "source": "model.22.cv2.1.2.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.2.0.conv.weight",
+          "source": "model.22.cv2.2.0.conv.weight",
+          "shape": [
+            64,
+            512,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.2.0.bn.weight",
+          "source": "model.22.cv2.2.0.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.2.0.bn.bias",
+          "source": "model.22.cv2.2.0.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.2.1.conv.weight",
+          "source": "model.22.cv2.2.1.conv.weight",
+          "shape": [
+            64,
+            64,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.2.1.bn.weight",
+          "source": "model.22.cv2.2.1.bn.weight",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.2.1.bn.bias",
+          "source": "model.22.cv2.2.1.bn.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.2.2.weight",
+          "source": "model.22.cv2.2.2.weight",
+          "shape": [
+            64,
+            64,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv2.2.2.bias",
+          "source": "model.22.cv2.2.2.bias",
+          "shape": [
+            64
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.0.0.conv.weight",
+          "source": "model.22.cv3.0.0.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.0.0.bn.weight",
+          "source": "model.22.cv3.0.0.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.0.0.bn.bias",
+          "source": "model.22.cv3.0.0.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.0.1.conv.weight",
+          "source": "model.22.cv3.0.1.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.0.1.bn.weight",
+          "source": "model.22.cv3.0.1.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.0.1.bn.bias",
+          "source": "model.22.cv3.0.1.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.0.2.weight",
+          "source": "model.22.cv3.0.2.weight",
+          "shape": [
+            5,
+            128,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.0.2.bias",
+          "source": "model.22.cv3.0.2.bias",
+          "shape": [
+            5
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.1.0.conv.weight",
+          "source": "model.22.cv3.1.0.conv.weight",
+          "shape": [
+            128,
+            256,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.1.0.bn.weight",
+          "source": "model.22.cv3.1.0.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.1.0.bn.bias",
+          "source": "model.22.cv3.1.0.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.1.1.conv.weight",
+          "source": "model.22.cv3.1.1.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.1.1.bn.weight",
+          "source": "model.22.cv3.1.1.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.1.1.bn.bias",
+          "source": "model.22.cv3.1.1.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.1.2.weight",
+          "source": "model.22.cv3.1.2.weight",
+          "shape": [
+            5,
+            128,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.1.2.bias",
+          "source": "model.22.cv3.1.2.bias",
+          "shape": [
+            5
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.2.0.conv.weight",
+          "source": "model.22.cv3.2.0.conv.weight",
+          "shape": [
+            128,
+            512,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.2.0.bn.weight",
+          "source": "model.22.cv3.2.0.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.2.0.bn.bias",
+          "source": "model.22.cv3.2.0.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.2.1.conv.weight",
+          "source": "model.22.cv3.2.1.conv.weight",
+          "shape": [
+            128,
+            128,
+            3,
+            3
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.2.1.bn.weight",
+          "source": "model.22.cv3.2.1.bn.weight",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.2.1.bn.bias",
+          "source": "model.22.cv3.2.1.bn.bias",
+          "shape": [
+            128
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.2.2.weight",
+          "source": "model.22.cv3.2.2.weight",
+          "shape": [
+            5,
+            128,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.cv3.2.2.bias",
+          "source": "model.22.cv3.2.2.bias",
+          "shape": [
+            5
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.22.dfl.conv.weight",
+          "source": "model.22.dfl.conv.weight",
+          "shape": [
+            1,
+            16,
+            1,
+            1
+          ],
+          "kind": "parameter"
+        },
+        {
+          "target": "model.0.bn.running_mean",
+          "source": "model.0.bn.running_mean",
+          "shape": [
+            32
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.0.bn.running_var",
+          "source": "model.0.bn.running_var",
+          "shape": [
+            32
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.0.bn.num_batches_tracked",
+          "source": "model.0.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.1.bn.running_mean",
+          "source": "model.1.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.1.bn.running_var",
+          "source": "model.1.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.1.bn.num_batches_tracked",
+          "source": "model.1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.cv1.bn.running_mean",
+          "source": "model.2.cv1.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.cv1.bn.running_var",
+          "source": "model.2.cv1.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.cv1.bn.num_batches_tracked",
+          "source": "model.2.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.cv2.bn.running_mean",
+          "source": "model.2.cv2.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.cv2.bn.running_var",
+          "source": "model.2.cv2.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.cv2.bn.num_batches_tracked",
+          "source": "model.2.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv1.bn.running_mean",
+          "source": "model.2.m.0.cv1.bn.running_mean",
+          "shape": [
+            32
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv1.bn.running_var",
+          "source": "model.2.m.0.cv1.bn.running_var",
+          "shape": [
+            32
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv1.bn.num_batches_tracked",
+          "source": "model.2.m.0.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv2.bn.running_mean",
+          "source": "model.2.m.0.cv2.bn.running_mean",
+          "shape": [
+            32
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv2.bn.running_var",
+          "source": "model.2.m.0.cv2.bn.running_var",
+          "shape": [
+            32
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.2.c2f.m.0.cv2.bn.num_batches_tracked",
+          "source": "model.2.m.0.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.3.bn.running_mean",
+          "source": "model.3.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.3.bn.running_var",
+          "source": "model.3.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.3.bn.num_batches_tracked",
+          "source": "model.3.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.cv1.bn.running_mean",
+          "source": "model.4.cv1.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.cv1.bn.running_var",
+          "source": "model.4.cv1.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.cv1.bn.num_batches_tracked",
+          "source": "model.4.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.cv2.bn.running_mean",
+          "source": "model.4.cv2.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.cv2.bn.running_var",
+          "source": "model.4.cv2.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.cv2.bn.num_batches_tracked",
+          "source": "model.4.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv1.bn.running_mean",
+          "source": "model.4.m.0.cv1.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv1.bn.running_var",
+          "source": "model.4.m.0.cv1.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv1.bn.num_batches_tracked",
+          "source": "model.4.m.0.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv2.bn.running_mean",
+          "source": "model.4.m.0.cv2.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv2.bn.running_var",
+          "source": "model.4.m.0.cv2.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.0.cv2.bn.num_batches_tracked",
+          "source": "model.4.m.0.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv1.bn.running_mean",
+          "source": "model.4.m.1.cv1.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv1.bn.running_var",
+          "source": "model.4.m.1.cv1.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv1.bn.num_batches_tracked",
+          "source": "model.4.m.1.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv2.bn.running_mean",
+          "source": "model.4.m.1.cv2.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv2.bn.running_var",
+          "source": "model.4.m.1.cv2.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.4.c2f.m.1.cv2.bn.num_batches_tracked",
+          "source": "model.4.m.1.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.5.bn.running_mean",
+          "source": "model.5.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.5.bn.running_var",
+          "source": "model.5.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.5.bn.num_batches_tracked",
+          "source": "model.5.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.cv1.bn.running_mean",
+          "source": "model.6.cv1.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.cv1.bn.running_var",
+          "source": "model.6.cv1.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.cv1.bn.num_batches_tracked",
+          "source": "model.6.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.cv2.bn.running_mean",
+          "source": "model.6.cv2.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.cv2.bn.running_var",
+          "source": "model.6.cv2.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.cv2.bn.num_batches_tracked",
+          "source": "model.6.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv1.bn.running_mean",
+          "source": "model.6.m.0.cv1.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv1.bn.running_var",
+          "source": "model.6.m.0.cv1.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv1.bn.num_batches_tracked",
+          "source": "model.6.m.0.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv2.bn.running_mean",
+          "source": "model.6.m.0.cv2.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv2.bn.running_var",
+          "source": "model.6.m.0.cv2.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.0.cv2.bn.num_batches_tracked",
+          "source": "model.6.m.0.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv1.bn.running_mean",
+          "source": "model.6.m.1.cv1.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv1.bn.running_var",
+          "source": "model.6.m.1.cv1.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv1.bn.num_batches_tracked",
+          "source": "model.6.m.1.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv2.bn.running_mean",
+          "source": "model.6.m.1.cv2.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv2.bn.running_var",
+          "source": "model.6.m.1.cv2.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.6.c2f.m.1.cv2.bn.num_batches_tracked",
+          "source": "model.6.m.1.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.7.bn.running_mean",
+          "source": "model.7.bn.running_mean",
+          "shape": [
+            512
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.7.bn.running_var",
+          "source": "model.7.bn.running_var",
+          "shape": [
+            512
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.7.bn.num_batches_tracked",
+          "source": "model.7.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.cv1.bn.running_mean",
+          "source": "model.8.cv1.bn.running_mean",
+          "shape": [
+            512
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.cv1.bn.running_var",
+          "source": "model.8.cv1.bn.running_var",
+          "shape": [
+            512
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.cv1.bn.num_batches_tracked",
+          "source": "model.8.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.cv2.bn.running_mean",
+          "source": "model.8.cv2.bn.running_mean",
+          "shape": [
+            512
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.cv2.bn.running_var",
+          "source": "model.8.cv2.bn.running_var",
+          "shape": [
+            512
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.cv2.bn.num_batches_tracked",
+          "source": "model.8.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.m.0.cv1.bn.running_mean",
+          "source": "model.8.m.0.cv1.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.m.0.cv1.bn.running_var",
+          "source": "model.8.m.0.cv1.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.m.0.cv1.bn.num_batches_tracked",
+          "source": "model.8.m.0.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.m.0.cv2.bn.running_mean",
+          "source": "model.8.m.0.cv2.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.m.0.cv2.bn.running_var",
+          "source": "model.8.m.0.cv2.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.8.m.0.cv2.bn.num_batches_tracked",
+          "source": "model.8.m.0.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.9.branches.0.1.running_mean",
+          "source": "model.9.cv1.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.9.branches.0.1.running_var",
+          "source": "model.9.cv1.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.9.branches.0.1.num_batches_tracked",
+          "source": "model.9.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.cv1.bn.running_mean",
+          "source": "model.12.cv1.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.cv1.bn.running_var",
+          "source": "model.12.cv1.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.cv1.bn.num_batches_tracked",
+          "source": "model.12.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.cv2.bn.running_mean",
+          "source": "model.12.cv2.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.cv2.bn.running_var",
+          "source": "model.12.cv2.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.cv2.bn.num_batches_tracked",
+          "source": "model.12.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.m.0.cv1.bn.running_mean",
+          "source": "model.12.m.0.cv1.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.m.0.cv1.bn.running_var",
+          "source": "model.12.m.0.cv1.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.m.0.cv1.bn.num_batches_tracked",
+          "source": "model.12.m.0.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.m.0.cv2.bn.running_mean",
+          "source": "model.12.m.0.cv2.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.m.0.cv2.bn.running_var",
+          "source": "model.12.m.0.cv2.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.12.m.0.cv2.bn.num_batches_tracked",
+          "source": "model.12.m.0.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.cv1.bn.running_mean",
+          "source": "model.15.cv1.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.cv1.bn.running_var",
+          "source": "model.15.cv1.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.cv1.bn.num_batches_tracked",
+          "source": "model.15.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.cv2.bn.running_mean",
+          "source": "model.15.cv2.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.cv2.bn.running_var",
+          "source": "model.15.cv2.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.cv2.bn.num_batches_tracked",
+          "source": "model.15.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.m.0.cv1.bn.running_mean",
+          "source": "model.15.m.0.cv1.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.m.0.cv1.bn.running_var",
+          "source": "model.15.m.0.cv1.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.m.0.cv1.bn.num_batches_tracked",
+          "source": "model.15.m.0.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.m.0.cv2.bn.running_mean",
+          "source": "model.15.m.0.cv2.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.m.0.cv2.bn.running_var",
+          "source": "model.15.m.0.cv2.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.15.m.0.cv2.bn.num_batches_tracked",
+          "source": "model.15.m.0.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.16.bn.running_mean",
+          "source": "model.16.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.16.bn.running_var",
+          "source": "model.16.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.16.bn.num_batches_tracked",
+          "source": "model.16.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.cv1.bn.running_mean",
+          "source": "model.18.cv1.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.cv1.bn.running_var",
+          "source": "model.18.cv1.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.cv1.bn.num_batches_tracked",
+          "source": "model.18.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.cv2.bn.running_mean",
+          "source": "model.18.cv2.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.cv2.bn.running_var",
+          "source": "model.18.cv2.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.cv2.bn.num_batches_tracked",
+          "source": "model.18.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.m.0.cv1.bn.running_mean",
+          "source": "model.18.m.0.cv1.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.m.0.cv1.bn.running_var",
+          "source": "model.18.m.0.cv1.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.m.0.cv1.bn.num_batches_tracked",
+          "source": "model.18.m.0.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.m.0.cv2.bn.running_mean",
+          "source": "model.18.m.0.cv2.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.m.0.cv2.bn.running_var",
+          "source": "model.18.m.0.cv2.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.18.m.0.cv2.bn.num_batches_tracked",
+          "source": "model.18.m.0.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.19.bn.running_mean",
+          "source": "model.19.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.19.bn.running_var",
+          "source": "model.19.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.19.bn.num_batches_tracked",
+          "source": "model.19.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.cv1.bn.running_mean",
+          "source": "model.21.cv1.bn.running_mean",
+          "shape": [
+            512
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.cv1.bn.running_var",
+          "source": "model.21.cv1.bn.running_var",
+          "shape": [
+            512
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.cv1.bn.num_batches_tracked",
+          "source": "model.21.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.cv2.bn.running_mean",
+          "source": "model.21.cv2.bn.running_mean",
+          "shape": [
+            512
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.cv2.bn.running_var",
+          "source": "model.21.cv2.bn.running_var",
+          "shape": [
+            512
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.cv2.bn.num_batches_tracked",
+          "source": "model.21.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.m.0.cv1.bn.running_mean",
+          "source": "model.21.m.0.cv1.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.m.0.cv1.bn.running_var",
+          "source": "model.21.m.0.cv1.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.m.0.cv1.bn.num_batches_tracked",
+          "source": "model.21.m.0.cv1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.m.0.cv2.bn.running_mean",
+          "source": "model.21.m.0.cv2.bn.running_mean",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.m.0.cv2.bn.running_var",
+          "source": "model.21.m.0.cv2.bn.running_var",
+          "shape": [
+            256
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.21.m.0.cv2.bn.num_batches_tracked",
+          "source": "model.21.m.0.cv2.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.0.0.bn.running_mean",
+          "source": "model.22.cv2.0.0.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.0.0.bn.running_var",
+          "source": "model.22.cv2.0.0.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.0.0.bn.num_batches_tracked",
+          "source": "model.22.cv2.0.0.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.0.1.bn.running_mean",
+          "source": "model.22.cv2.0.1.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.0.1.bn.running_var",
+          "source": "model.22.cv2.0.1.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.0.1.bn.num_batches_tracked",
+          "source": "model.22.cv2.0.1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.1.0.bn.running_mean",
+          "source": "model.22.cv2.1.0.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.1.0.bn.running_var",
+          "source": "model.22.cv2.1.0.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.1.0.bn.num_batches_tracked",
+          "source": "model.22.cv2.1.0.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.1.1.bn.running_mean",
+          "source": "model.22.cv2.1.1.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.1.1.bn.running_var",
+          "source": "model.22.cv2.1.1.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.1.1.bn.num_batches_tracked",
+          "source": "model.22.cv2.1.1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.2.0.bn.running_mean",
+          "source": "model.22.cv2.2.0.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.2.0.bn.running_var",
+          "source": "model.22.cv2.2.0.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.2.0.bn.num_batches_tracked",
+          "source": "model.22.cv2.2.0.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.2.1.bn.running_mean",
+          "source": "model.22.cv2.2.1.bn.running_mean",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.2.1.bn.running_var",
+          "source": "model.22.cv2.2.1.bn.running_var",
+          "shape": [
+            64
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv2.2.1.bn.num_batches_tracked",
+          "source": "model.22.cv2.2.1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.0.0.bn.running_mean",
+          "source": "model.22.cv3.0.0.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.0.0.bn.running_var",
+          "source": "model.22.cv3.0.0.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.0.0.bn.num_batches_tracked",
+          "source": "model.22.cv3.0.0.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.0.1.bn.running_mean",
+          "source": "model.22.cv3.0.1.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.0.1.bn.running_var",
+          "source": "model.22.cv3.0.1.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.0.1.bn.num_batches_tracked",
+          "source": "model.22.cv3.0.1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.1.0.bn.running_mean",
+          "source": "model.22.cv3.1.0.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.1.0.bn.running_var",
+          "source": "model.22.cv3.1.0.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.1.0.bn.num_batches_tracked",
+          "source": "model.22.cv3.1.0.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.1.1.bn.running_mean",
+          "source": "model.22.cv3.1.1.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.1.1.bn.running_var",
+          "source": "model.22.cv3.1.1.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.1.1.bn.num_batches_tracked",
+          "source": "model.22.cv3.1.1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.2.0.bn.running_mean",
+          "source": "model.22.cv3.2.0.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.2.0.bn.running_var",
+          "source": "model.22.cv3.2.0.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.2.0.bn.num_batches_tracked",
+          "source": "model.22.cv3.2.0.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.2.1.bn.running_mean",
+          "source": "model.22.cv3.2.1.bn.running_mean",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.2.1.bn.running_var",
+          "source": "model.22.cv3.2.1.bn.running_var",
+          "shape": [
+            128
+          ],
+          "kind": "buffer"
+        },
+        {
+          "target": "model.22.cv3.2.1.bn.num_batches_tracked",
+          "source": "model.22.cv3.2.1.bn.num_batches_tracked",
+          "shape": [],
+          "kind": "buffer"
+        }
+      ],
+      "newly_initialized_parameters": [
+        {
+          "name": "model.2.dwr.region.0.weight",
+          "shape": [
+            96,
+            64,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.2.dwr.region.1.weight",
+          "shape": [
+            96
+          ]
+        },
+        {
+          "name": "model.2.dwr.region.1.bias",
+          "shape": [
+            96
+          ]
+        },
+        {
+          "name": "model.2.dwr.branches.0.weight",
+          "shape": [
+            64,
+            1,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.2.dwr.branches.1.weight",
+          "shape": [
+            32,
+            1,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.2.dwr.branches.2.weight",
+          "shape": [
+            32,
+            1,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.2.dwr.norm.weight",
+          "shape": [
+            128
+          ]
+        },
+        {
+          "name": "model.2.dwr.norm.bias",
+          "shape": [
+            128
+          ]
+        },
+        {
+          "name": "model.2.dwr.project.weight",
+          "shape": [
+            64,
+            128,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "model.4.dwr.region.0.weight",
+          "shape": [
+            192,
+            128,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.4.dwr.region.1.weight",
+          "shape": [
+            192
+          ]
+        },
+        {
+          "name": "model.4.dwr.region.1.bias",
+          "shape": [
+            192
+          ]
+        },
+        {
+          "name": "model.4.dwr.branches.0.weight",
+          "shape": [
+            128,
+            1,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.4.dwr.branches.1.weight",
+          "shape": [
+            64,
+            1,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.4.dwr.branches.2.weight",
+          "shape": [
+            64,
+            1,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.4.dwr.norm.weight",
+          "shape": [
+            256
+          ]
+        },
+        {
+          "name": "model.4.dwr.norm.bias",
+          "shape": [
+            256
+          ]
+        },
+        {
+          "name": "model.4.dwr.project.weight",
+          "shape": [
+            128,
+            256,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "model.6.dwr.region.0.weight",
+          "shape": [
+            384,
+            256,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.6.dwr.region.1.weight",
+          "shape": [
+            384
+          ]
+        },
+        {
+          "name": "model.6.dwr.region.1.bias",
+          "shape": [
+            384
+          ]
+        },
+        {
+          "name": "model.6.dwr.branches.0.weight",
+          "shape": [
+            256,
+            1,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.6.dwr.branches.1.weight",
+          "shape": [
+            128,
+            1,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.6.dwr.branches.2.weight",
+          "shape": [
+            128,
+            1,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.6.dwr.norm.weight",
+          "shape": [
+            512
+          ]
+        },
+        {
+          "name": "model.6.dwr.norm.bias",
+          "shape": [
+            512
+          ]
+        },
+        {
+          "name": "model.6.dwr.project.weight",
+          "shape": [
+            256,
+            512,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "model.9.branches.1.0.weight",
+          "shape": [
+            256,
+            512,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.9.branches.1.1.weight",
+          "shape": [
+            256
+          ]
+        },
+        {
+          "name": "model.9.branches.1.1.bias",
+          "shape": [
+            256
+          ]
+        },
+        {
+          "name": "model.9.branches.2.0.weight",
+          "shape": [
+            256,
+            512,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.9.branches.2.1.weight",
+          "shape": [
+            256
+          ]
+        },
+        {
+          "name": "model.9.branches.2.1.bias",
+          "shape": [
+            256
+          ]
+        },
+        {
+          "name": "model.9.branches.3.0.weight",
+          "shape": [
+            256,
+            512,
+            3,
+            3
+          ]
+        },
+        {
+          "name": "model.9.branches.3.1.weight",
+          "shape": [
+            256
+          ]
+        },
+        {
+          "name": "model.9.branches.3.1.bias",
+          "shape": [
+            256
+          ]
+        },
+        {
+          "name": "model.9.pool.1.weight",
+          "shape": [
+            256,
+            512,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "model.9.pool.1.bias",
+          "shape": [
+            256
+          ]
+        },
+        {
+          "name": "model.9.project.0.weight",
+          "shape": [
+            512,
+            1280,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "model.9.project.1.weight",
+          "shape": [
+            512
+          ]
+        },
+        {
+          "name": "model.9.project.1.bias",
+          "shape": [
+            512
+          ]
+        }
+      ],
+      "transferred_parameter_elements": 10612223,
+      "total_parameter_elements": 16284863,
+      "new_modules_initialization": "native baseline initializers"
+    },
+    "parameters": 16284863,
+    "runtime": {
+      "hardware": {
+        "gpus": [
+          {
+            "name": "Tesla T4",
+            "memory_bytes": 15636037632,
+            "capability": [
+              7,
+              5
+            ]
+          },
+          {
+            "name": "Tesla T4",
+            "memory_bytes": 15636037632,
+            "capability": [
+              7,
+              5
+            ]
+          }
+        ],
+        "cpu_architecture": "x86_64"
+      },
+      "software": {
+        "packages": {
+          "torch": "2.11.0+cu130",
+          "torchvision": "0.26.0+cu130",
+          "ultralytics": "8.4.115",
+          "albumentations": "2.0.8",
+          "numpy": "2.1.3",
+          "scipy": "1.16.3",
+          "cv2": "4.14.0",
+          "PIL": "13.0.0"
+        },
+        "python": "3.13.16",
+        "cuda": "13.0",
+        "cudnn": 92700,
+        "system": "Linux",
+        "architecture": "x86_64"
+      },
+      "host": {
+        "cpu": "x86_64",
+        "cpu_count": 4
+      }
+    },
+    "code_sha256": {
+      "custom_ablation_modules.py": "3a4128dce5992019b205ef0bf5d7d78c68abaf12d929fcaa9a45e424bbc18860",
+      "warm_protocol.py": "e26dbfd6d0a78b3091483cf8bace2deacbe673bcfe83263ff466a65f42068ba8",
+      "baseline_preflight.py": "0d678feef3ff9bf4a6b0222f2a86804232512296f5e03244de02e986abc13a74",
+      "sitecustomize.py": "1d9188d9e953859413e182d8cc3b07110fdb8194f7284a045484205c6a86aa4b",
+      "warm_launch.py": "f02931b2a7fcdc3f3167a23a75fd258f9bb759391397932a4784a0c872807abb",
+      "baseline_model.py": "e2dd31401fbcfdaecbe17316018f6907f76bbcabf1806a5d9ccdfdd691d3765e",
+      "warm_data.py": "39035b5db751bcc7513eb0eae73af53efbec8a0ace7c0868aa1d604425e17108",
+      "warm_runner.py": "5203038d1e8bc69e32913709173d0a649f5c7637e39b1913f2c2d98520256990",
+      "research_trainer.py": "c5e29ced1767a779287ed360a5e5a7ad48e557507c86d50145522244879f457e",
+      "pretrained_conversion.py": "8c92f2dc4679a2bfa56ff5a87f5e7b4999368aa8cc40959d69af6b16397dfd75",
+      "warm_comparison.py": "ac381e9374ae071970728f46fd3a22deb8b52a91055cab02c8e6a7bc3d3d8d62",
+      "warm_model.py": "a31f59c7e31fd68bd678417794d3578104a34d9ace18006f336ead56ea2349df",
+      "gdut_data.py": "620c14fb67a0db3c326f7103d737a93235ec76b42075ee883dd32fe93b38309b",
+      "warm_environment.py": "5c92d347867853ab6b62ca53828130c900de8e7e065fb53ac947c96f9bce179a",
+      "baseline_modules.py": "cf8d4639b531b6b6997dc9cd89de4d6cdd7fa8a91d5ffd75fd8190b5ea5bd491",
+      "warm_metrics.py": "11f2eb92f63e5f12e96f602a9634a4c8f219f71bba34a6227ae0a01c7cf756ca",
+      "plain_logging.py": "b99f9554ff91837e12f28401ec1da70fbbcd9cbd8d1cd43efbb0d22fcab048dd"
+    }
+  },
+  "source_manifest": "/kaggle/input/notebooks/nvthanh2004/gdut-baseline-yolov8-dwr-aspp-nwd-stage1-finetune/transfer_runs/gdut_yolov8_dwr_aspp_nwd/run_manifest.json",
+  "checkpoint_sha256": "4769801371da769aa5cc9132224ecd0cef4a4ec3c230fd66b3d1072c41ae1c8b",
+  "splits": {
+    "val": {
+      "metrics": {
+        "precision": 0.9238949152435287,
+        "recall": 0.8405088778384912,
+        "mAP50": 0.9145885723495102,
+        "mAP50_95": 0.6007664872957238,
+        "F1_native_macro": 0.8793839881237471,
+        "precision_conf025_macro": 0.8681334747060114,
+        "recall_conf025_macro": 0.8750884576368205,
+        "F1_conf025_macro": 0.8705396497290895
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.929674725523316,
+          "recall": 0.8178294573643411,
+          "F1_native": 0.8701728828410537,
+          "AP50": 0.9012551707608786,
+          "AP50_95": 0.6212626413903014,
+          "precision_conf025": 0.8913085814777045,
+          "recall_conf025": 0.8527131782945736,
+          "F1_conf025": 0.8715838195187665
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.942144202177611,
+          "recall": 0.8865427756583255,
+          "F1_native": 0.9134982052066363,
+          "AP50": 0.9300955197726101,
+          "AP50_95": 0.633329225666054,
+          "precision_conf025": 0.8695797715550894,
+          "recall_conf025": 0.9054441260744985,
+          "F1_conf025": 0.8871496292069251
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9426270167489702,
+          "recall": 0.859375,
+          "F1_native": 0.8990778977929346,
+          "AP50": 0.9350910679678643,
+          "AP50_95": 0.593778281821751,
+          "precision_conf025": 0.883361874967958,
+          "recall_conf025": 0.8883928571428571,
+          "F1_conf025": 0.8858702231983333
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8739687781084414,
+          "recall": 0.8699272633915658,
+          "F1_native": 0.8719433376035264,
+          "AP50": 0.931052551247619,
+          "AP50_95": 0.6143341035029831,
+          "precision_conf025": 0.8186022917661147,
+          "recall_conf025": 0.9219614336028668,
+          "F1_conf025": 0.8672129971079185
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9310598536593052,
+          "recall": 0.768869892778223,
+          "F1_native": 0.842227617174585,
+          "AP50": 0.8754485519985795,
+          "AP50_95": 0.5411281840975289,
+          "precision_conf025": 0.8778148537631907,
+          "recall_conf025": 0.806930693069307,
+          "F1_conf025": 0.8408815796135043
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "test": {
+      "metrics": {
+        "precision": 0.8957662483629667,
+        "recall": 0.8184948358662638,
+        "mAP50": 0.8750712013614199,
+        "mAP50_95": 0.5658537923162188,
+        "F1_native_macro": 0.854994607203057,
+        "precision_conf025_macro": 0.8537172848847501,
+        "recall_conf025_macro": 0.8447632668635764,
+        "F1_conf025_macro": 0.8488876539815392
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9246026982726392,
+          "recall": 0.8199410656270918,
+          "F1_native": 0.8691323627315155,
+          "AP50": 0.8718487755719383,
+          "AP50_95": 0.5820874436418627,
+          "precision_conf025": 0.8878532524000887,
+          "recall_conf025": 0.8390889052167524,
+          "F1_conf025": 0.862782589751121
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.8809243789117178,
+          "recall": 0.8420516209608092,
+          "F1_native": 0.8610494879341168,
+          "AP50": 0.8950576719281469,
+          "AP50_95": 0.5877042950189334,
+          "precision_conf025": 0.8375473888781118,
+          "recall_conf025": 0.8617886178861789,
+          "F1_conf025": 0.8494951013835168
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.8915333139808655,
+          "recall": 0.8629973134565506,
+          "F1_native": 0.877033256405718,
+          "AP50": 0.9198527445548011,
+          "AP50_95": 0.5940579960657042,
+          "precision_conf025": 0.8528667804948689,
+          "recall_conf025": 0.8896633780547359,
+          "F1_conf025": 0.8708765667473893
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.902790080541108,
+          "recall": 0.7988478156505041,
+          "F1_native": 0.8476443612889512,
+          "AP50": 0.8620477164463483,
+          "AP50_95": 0.5522227657276246,
+          "precision_conf025": 0.8578784552547933,
+          "recall_conf025": 0.8350936149783965,
+          "F1_conf025": 0.8463327103938931
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.878980770108503,
+          "recall": 0.7686363636363637,
+          "F1_native": 0.8201135676549834,
+          "AP50": 0.8265490983058656,
+          "AP50_95": 0.5131964611269692,
+          "precision_conf025": 0.8324405473958882,
+          "recall_conf025": 0.7981818181818182,
+          "F1_conf025": 0.8149513016317751
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    }
+  },
+  "timing": {
+    "forward_ms_median": 22.39578800003983,
+    "forward_ms_mean": 22.890731533338265,
+    "batch": 1,
+    "imgsz": 640,
+    "precision": "float32",
+    "includes_preprocessing": false,
+    "includes_nms": false,
+    "warmup": 10,
+    "iterations": 30,
+    "device": "cuda:0",
+    "hardware": "Tesla T4",
+    "repconv_deploy_blocks": 0,
+    "deployment_parameters": 16275615
+  }
+}

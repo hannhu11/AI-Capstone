@@ -1,0 +1,23 @@
+.git
+.agents
+.pytest_cache
+runs/
+hard-negatives/
+Dataset/
+SHWD_YOLO_KFOLD/
+__pycache__/
+*.ipynb
+*.pdf
+*.docx
+*.xlsx
+Output/
+snapshots/
+video_test/
+tmp_voc2028/
+ppe_extension_experiment/
+exported_engines/
+thesis_report/
+AAIML 2027/
+review1_genspark_package/
+test_screenshots/
+docs/ui_screenshots/
