@@ -1,0 +1,102 @@
+{
+  "gpu_model": "NVIDIA GeForce RTX 3050 Laptop GPU",
+  "torch_version": "2.0.0+cu118",
+  "cuda_version": "11.8",
+  "ultralytics_version": "8.3.91",
+  "source_checkpoint_sha256": "21866da3396e36a408236b1c3717bff0ed5b99f2e59e9cbbbce96ea6bdb68233",
+  "deployed_checkpoint_sha256": "d422dd1d826c3bc2292d4074dba8bc52db2a7115baef0fd74310a25a3050b100",
+  "deployed_checkpoint_bytes": 38330403,
+  "default_runtime_mode": "TF32 FP32",
+  "matmul_allow_tf32": true,
+  "cudnn_allow_tf32": true,
+  "allow_tf32": true,
+  "fastest_b1_mode": "TF32 FP32",
+  "fastest_b1_ms": 11.85,
+  "frame_resolution": "1920x1080",
+  "warmup_iters": 20,
+  "timed_iters": 60,
+  "timed_e2e_paired_iters": 120,
+  "paired_protocol": "Within-frame paired shared-detection (AB alternating, n=120)",
+  "parity_fp32_vs_amp_fp16": {
+    "frames": 12,
+    "frame_indices": [
+      180,
+      200,
+      220,
+      240,
+      260,
+      280,
+      300,
+      320,
+      340,
+      360,
+      380,
+      400
+    ],
+    "fp32_boxes": 12,
+    "amp_fp16_boxes": 12,
+    "max_abs_count_delta": 0,
+    "mean_conf_diff": 0.00029
+  },
+  "stages": [
+    {
+      "stage": "1. Pure GDUT-A6 Detector (Strict FP32)",
+      "config": "FP32 (matmul_tf32=False, cudnn_tf32=False)",
+      "latency_ms": 16.1,
+      "p95_ms": 17.07,
+      "p99_ms": 17.61,
+      "fps": 62.1,
+      "vram_mb": 106.1,
+      "parity_note": "Baseline Ref (12/12 boxes)"
+    },
+    {
+      "stage": "2. Pure GDUT-A6 Detector (TF32 FP32)",
+      "config": "TF32 FP32 (matmul_tf32=True, cudnn_tf32=True)",
+      "latency_ms": 11.85,
+      "p95_ms": 12.36,
+      "p99_ms": 13.73,
+      "fps": 84.4,
+      "vram_mb": 215.0,
+      "parity_note": "TensorCore TF32 (-4.25ms vs Strict) [Fastest B=1]"
+    },
+    {
+      "stage": "3. Pure GDUT-A6 Detector (Selective AMP FP16)",
+      "config": "AMP FP16 + CoordConv/BiFormer FP32 guard (TF32=False)",
+      "latency_ms": 12.68,
+      "p95_ms": 13.62,
+      "p99_ms": 14.29,
+      "fps": 78.8,
+      "vram_mb": 210.2,
+      "parity_note": "Delta=0 boxes, conf diff=0.00029"
+    },
+    {
+      "stage": "4. GDUT-A6 TF32 + ByteTrack + 3-Strip Non-Biometric Re-ID",
+      "config": "TF32 FP32 + HSV/Lab + Quadrant HOG + Hungarian",
+      "latency_ms": 15.03,
+      "p95_ms": 16.35,
+      "p99_ms": 18.63,
+      "det_mean_ms": 12.15,
+      "reid_mean_ms": 2.88,
+      "fps": 66.5,
+      "vram_mb": 215.0,
+      "parity_note": "Paired Shared-Det (n=120): det=12.15ms + strip_reid=2.88ms (use_deep=False)"
+    },
+    {
+      "stage": "5. Full VMS + Multi-Layer MobileNetV3 Non-Biometric Re-ID",
+      "config": "TF32 FP32 + Deep Re-ID=GPU (refresh=30)",
+      "latency_ms": 15.22,
+      "p95_ms": 18.88,
+      "p99_ms": 20.47,
+      "det_mean_ms": 12.15,
+      "reid_mean_ms": 3.07,
+      "paired_delta_mean_ms": 0.19,
+      "fps": 65.7,
+      "vram_mb": 218.6,
+      "deep_extract_calls": 4,
+      "deep_frame_mean_ms": 20.45,
+      "deep_frame_p95_ms": 21.99,
+      "non_deep_frame_mean_ms": 15.04,
+      "parity_note": "Paired Shared-Det (n=120): +0.19ms avg (4 MobileNetV3 calls; extract=20.45ms vs steady=15.04ms; >=25 FPS SLA)"
+    }
+  ]
+}

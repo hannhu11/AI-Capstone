@@ -1,0 +1,33 @@
+# Runtime secrets & local environment
+.env
+*.key
+*.pem
+kaggle.json
+
+# Heavy datasets, weights, media & runtime databases (use GitHub Releases for .pt / .pdf)
+*.pt
+*.pth
+*.onnx
+*.engine
+*.mp4
+*.avi
+*.zip
+*.db
+*.sqlite
+Dataset/
+AAIML 2027/
+snapshots/*.jpg
+snapshots/*.png
+!snapshots/.gitkeep
+!docs/ui_screenshots/*.png
+
+# Runtime generated alert logs & caches
+Output/alerts/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+postgres_data/
+prometheus_data/
+grafana_data/
