@@ -1,0 +1,359 @@
+{
+  "manifest": {
+    "dataset": "gdut",
+    "stage": "A6",
+    "model": "yolo11s",
+    "names": [
+      "blue",
+      "white",
+      "yellow",
+      "red",
+      "none"
+    ],
+    "seed": 3407,
+    "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+    "checkpoint": "weights/best.pt",
+    "checkpoint_sha256": "21866da3396e36a408236b1c3717bff0ed5b99f2e59e9cbbbce96ea6bdb68233",
+    "ultralytics": "8.4.115",
+    "torch": "2.11.0+cu130",
+    "smoke": false,
+    "imgsz": 640,
+    "training_args": {
+      "model": "/kaggle/input/notebooks/nvthanh2004/gdut-structural-re-parameterize-yolo-architecture2/runs/gdut_S1_yolo11s/weights/best.pt",
+      "data": "/kaggle/working/config/gdut_aug.yaml",
+      "epochs": 100,
+      "imgsz": 640,
+      "batch": 16,
+      "device": "0,1",
+      "workers": 4,
+      "seed": 3407,
+      "deterministic": true,
+      "patience": 50,
+      "project": "/kaggle/working/runs",
+      "name": "gdut_A6_yolo11s",
+      "exist_ok": false,
+      "save": true,
+      "plots": true,
+      "cache": false,
+      "amp": true,
+      "cos_lr": false,
+      "hsv_h": 0.0,
+      "hsv_s": 0.0,
+      "hsv_v": 0.4,
+      "mixup": 0.0,
+      "optimizer": "AdamW",
+      "lr0": 0.0001,
+      "momentum": 0.9,
+      "warmup_bias_lr": 0.0,
+      "warmup_epochs": 3.0
+    },
+    "recipe": "conservative_v2",
+    "architecture_revision": "biformer_both_backbones_v2",
+    "split_protocol": "official_test_deduplicated",
+    "initialization_policy": "preserve_pretrained_v1",
+    "initialization_audit": [
+      {
+        "index": 0,
+        "module": "CoordConv",
+        "copied_conv_bn": true
+      },
+      {
+        "index": 1,
+        "module": "RepConv",
+        "copied_conv_bn": true
+      },
+      {
+        "index": 3,
+        "module": "RepConv",
+        "copied_conv_bn": true
+      },
+      {
+        "index": 5,
+        "module": "RepConv",
+        "copied_conv_bn": true
+      },
+      {
+        "index": 7,
+        "module": "RepConv",
+        "copied_conv_bn": true
+      },
+      {
+        "index": 17,
+        "module": "RepConv",
+        "copied_conv_bn": true
+      },
+      {
+        "index": 20,
+        "module": "RepConv",
+        "copied_conv_bn": true
+      },
+      {
+        "index": 10,
+        "module": "BiFormerBlockLite",
+        "placement": "replace_C2PSA",
+        "identity_start": true
+      }
+    ],
+    "initialization_check": {
+      "initialization_policy": "preserve_pretrained_v1",
+      "modules": [
+        {
+          "index": 0,
+          "module": "CoordConv",
+          "copied_conv_bn": true
+        },
+        {
+          "index": 1,
+          "module": "RepConv",
+          "copied_conv_bn": true
+        },
+        {
+          "index": 3,
+          "module": "RepConv",
+          "copied_conv_bn": true
+        },
+        {
+          "index": 5,
+          "module": "RepConv",
+          "copied_conv_bn": true
+        },
+        {
+          "index": 7,
+          "module": "RepConv",
+          "copied_conv_bn": true
+        },
+        {
+          "index": 17,
+          "module": "RepConv",
+          "copied_conv_bn": true
+        },
+        {
+          "index": 20,
+          "module": "RepConv",
+          "copied_conv_bn": true
+        },
+        {
+          "index": 10,
+          "module": "BiFormerBlockLite",
+          "placement": "replace_C2PSA",
+          "identity_start": true
+        }
+      ],
+      "pretrain_validation": {
+        "metrics/precision(B)": 0.8718705578513998,
+        "metrics/recall(B)": 0.7755919375209464,
+        "metrics/mAP50(B)": 0.8633868792448249,
+        "metrics/mAP50-95(B)": 0.5615277180443955,
+        "fitness": 0.5615277180443955
+      },
+      "dataset_fingerprint": "ce2a883e0b5050edb96d494218e85a9d16ea04b9a19dc5723c572cb502edfe9c",
+      "source_checkpoint_sha256": "c42dba9e799b156fe74abd3711468e885014c58904a972a3ed2ea29ab6d3f337",
+      "imgsz": 640
+    },
+    "source_checkpoint_sha256": "c42dba9e799b156fe74abd3711468e885014c58904a972a3ed2ea29ab6d3f337",
+    "status": "as_defined",
+    "modules": {
+      "CoordConv": [
+        0
+      ],
+      "RepConv": [
+        1,
+        3,
+        5,
+        7,
+        17,
+        20
+      ],
+      "BiFormerBlockLite": [
+        10
+      ]
+    },
+    "validation": {
+      "metrics/precision(B)": 0.9044893126781165,
+      "metrics/recall(B)": 0.8757717133918959,
+      "metrics/mAP50(B)": 0.9250022264114104,
+      "metrics/mAP50-95(B)": 0.6122661243426987,
+      "fitness": 0.6122661243426987
+    },
+    "protocol": "fixed640_color_safe_ablation_v2"
+  },
+  "source_manifest": "/kaggle/input/notebooks/nvthanh2004/gdut-stage2-ablation-setup-full-train-run-a6/runs/gdut_A6_yolo11s/run_manifest.json",
+  "checkpoint_sha256": "21866da3396e36a408236b1c3717bff0ed5b99f2e59e9cbbbce96ea6bdb68233",
+  "splits": {
+    "val": {
+      "metrics": {
+        "precision": 0.9044893126781165,
+        "recall": 0.8757717133918959,
+        "mAP50": 0.9250022264114104,
+        "mAP50_95": 0.6122661243426987,
+        "F1_native_macro": 0.8886912031979648,
+        "precision_conf025_macro": 0.8645645198647361,
+        "recall_conf025_macro": 0.8935443848446385,
+        "F1_conf025_macro": 0.8772850463528096
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.8971299553258114,
+          "recall": 0.8788636600704283,
+          "F1_native": 0.8879028722415213,
+          "AP50": 0.9207611090864808,
+          "AP50_95": 0.6293394313435189,
+          "precision_conf025": 0.857786482543971,
+          "recall_conf025": 0.8883893864663803,
+          "F1_conf025": 0.8728197662911071
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.9283856993844645,
+          "recall": 0.9054441260744985,
+          "F1_native": 0.9167714109228716,
+          "AP50": 0.9455133090183664,
+          "AP50_95": 0.6474702305449754,
+          "precision_conf025": 0.8971709391082523,
+          "recall_conf025": 0.9249881646674295,
+          "F1_conf025": 0.9108672219007923
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9292821324943069,
+          "recall": 0.8799583538299187,
+          "F1_native": 0.9039479071293623,
+          "AP50": 0.9308455463710088,
+          "AP50_95": 0.5930117577646178,
+          "precision_conf025": 0.8867818826734244,
+          "recall_conf025": 0.8995535714285714,
+          "F1_conf025": 0.8931220704434206
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8431922844987719,
+          "recall": 0.9175627240143369,
+          "F1_native": 0.8788068819249419,
+          "AP50": 0.9403988377056623,
+          "AP50_95": 0.6373975915775384,
+          "precision_conf025": 0.7848401078083639,
+          "recall_conf025": 0.9354838709677419,
+          "F1_conf025": 0.8535662714713138
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9244564916872278,
+          "recall": 0.7970297029702971,
+          "F1_native": 0.8560269437711268,
+          "AP50": 0.8874923298755335,
+          "AP50_95": 0.5541116104828427,
+          "precision_conf025": 0.8962431871896694,
+          "recall_conf025": 0.8193069306930693,
+          "F1_conf025": 0.8560499016574143
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    },
+    "test": {
+      "metrics": {
+        "precision": 0.901941923546446,
+        "recall": 0.8428074180433992,
+        "mAP50": 0.8893793717301739,
+        "mAP50_95": 0.580824610166841,
+        "F1_native_macro": 0.8707865370418666,
+        "precision_conf025_macro": 0.8619116742738878,
+        "recall_conf025_macro": 0.8642621435332056,
+        "F1_conf025_macro": 0.8625625862139964
+      },
+      "per_class": [
+        {
+          "class_id": 0,
+          "name": "blue",
+          "precision": 0.9034423151274099,
+          "recall": 0.8662156473334033,
+          "F1_native": 0.8844374296355666,
+          "AP50": 0.8975476312143126,
+          "AP50_95": 0.5943382304157507,
+          "precision_conf025": 0.8618912286033169,
+          "recall_conf025": 0.8809698750918442,
+          "F1_conf025": 0.87132612736101
+        },
+        {
+          "class_id": 1,
+          "name": "white",
+          "precision": 0.8870894101540079,
+          "recall": 0.8662981219630259,
+          "F1_native": 0.8765704967707175,
+          "AP50": 0.8912664783326767,
+          "AP50_95": 0.5951238054547785,
+          "precision_conf025": 0.8460052499977705,
+          "recall_conf025": 0.883130081300813,
+          "F1_conf025": 0.8641691274104587
+        },
+        {
+          "class_id": 2,
+          "name": "yellow",
+          "precision": 0.9114762461850673,
+          "recall": 0.8816492319754262,
+          "F1_native": 0.8963146664307033,
+          "AP50": 0.9265581567724187,
+          "AP50_95": 0.6066624249649031,
+          "precision_conf025": 0.8732720925899548,
+          "recall_conf025": 0.9021480086789155,
+          "F1_conf025": 0.8874752277524083
+        },
+        {
+          "class_id": 3,
+          "name": "red",
+          "precision": 0.8937932952405746,
+          "recall": 0.8266922707633221,
+          "F1_native": 0.8589342723190152,
+          "AP50": 0.8857720868757729,
+          "AP50_95": 0.5738515619121894,
+          "precision_conf025": 0.8510355360609357,
+          "recall_conf025": 0.856944538623159,
+          "F1_conf025": 0.8539798158202047
+        },
+        {
+          "class_id": 4,
+          "name": "none",
+          "precision": 0.9139083510251701,
+          "recall": 0.7731818181818182,
+          "F1_native": 0.8376758200533309,
+          "AP50": 0.8457525054556887,
+          "AP50_95": 0.534147028086583,
+          "precision_conf025": 0.8773542641174611,
+          "recall_conf025": 0.7981182139712959,
+          "F1_conf025": 0.8358626327259007
+        }
+      ],
+      "definitions": {
+        "precision_recall": "Ultralytics class means at the native operating point",
+        "F1_native_macro": "Mean class F1 at the native mean-F1 operating point; IoU 0.5",
+        "F1_conf025_macro": "Mean class F1 interpolated from PR/confidence curves at confidence 0.25; IoU 0.5",
+        "AP": "Ultralytics 101-point AP integration; AP50 and mean AP at IoU 0.50:0.05:0.95"
+      }
+    }
+  },
+  "timing": {
+    "forward_ms_median": 15.206695499955458,
+    "forward_ms_mean": 15.558933933338418,
+    "batch": 1,
+    "imgsz": 640,
+    "precision": "float32",
+    "includes_preprocessing": false,
+    "includes_nms": false,
+    "warmup": 10,
+    "iterations": 30,
+    "device": "cuda:0",
+    "hardware": "Tesla T4",
+    "repconv_deploy_blocks": 6,
+    "deployment_parameters": 9476783
+  }
+}

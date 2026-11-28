@@ -1,0 +1,199 @@
+# ==============================================================================
+# AEGIS-CCTV ENTERPRISE 6-MICROSERVICE STACK (GDUT-HWD 5-CLASS + RE-ID)
+# Services on isolated bridge network `aegis-net`:
+#   1. frontend-nginx :8080 -> 80    (Static UI + /snapshots + reverse proxy)
+#   2. api-gateway    :8000 (internal) Control-Plane REST, DB, Alerts & Circuit Breaker
+#   3. ai-inference   :8001 (internal) GPU YOLOv11s Selective AMP + Tracking + Re-ID
+#   4. postgres       :5432 (internal) PostgreSQL 16 persistent audit & policy DB
+#   5. prometheus     :9090 -> 9090  (Scrapes api-gateway & ai-inference)
+#   6. grafana        :3000 -> 3000  (Pre-provisioned live telemetry dashboard)
+# ==============================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aegis_vms_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-aegis}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-aegis_local_db}
+      - POSTGRES_DB=${POSTGRES_DB:-aegis_vms}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - aegis-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aegis} -d ${POSTGRES_DB:-aegis_vms}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ai-inference:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aegis-vms-gdut5-inference:v2.1
+    container_name: aegis_vms_ai_inference
+    restart: unless-stopped
+    volumes:
+      - ./video_test:/app/video_test:ro
+      - ./Output:/app/Output
+      - ./snapshots:/app/snapshots
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./custom_ablation_modules.py:/app/custom_ablation_modules.py:ro
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - PYTHONUNBUFFERED=1
+      - SERVICE_MODE=inference
+      - WEB_HOST=0.0.0.0
+      - WEB_PORT=8001
+      - DEVICE=cuda:0
+      - USE_HALF=False
+      - USE_SELECTIVE_AMP=${USE_SELECTIVE_AMP:-False}
+      - ALLOW_TF32=${ALLOW_TF32:-True}
+      - DRAW_VIDEO_HUD=False
+      - API_GATEWAY_URL=http://api-gateway:8000
+      - MODEL_PATH=${MODEL_PATH:-Output/GDUT_Bộ số 1_stage2-full-train-run-a6/deploy_weights/rep_yolo11s_gdut_a6_deploy.pt}
+      - TRACK_HIGH_THRESH=0.30
+      - NEW_TRACK_THRESH=0.30
+      - GDUT_REID_TTL_SEC=${GDUT_REID_TTL_SEC:-600.0}
+      - GDUT_REID_SIM_THRESH=${GDUT_REID_SIM_THRESH:-0.66}
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
+      - VIDEO_SOURCE=${VIDEO_SOURCE:-video_test/construction_site_workers_1080p.mp4}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - TELEGRAM_ENABLED=${TELEGRAM_ENABLED:-False}
+      - ZALO_BOT_TOKEN=${ZALO_BOT_TOKEN:-}
+      - ZALO_CHAT_ID=${ZALO_CHAT_ID:-}
+      - ZALO_ENABLED=${ZALO_ENABLED:-False}
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 6144M
+        reservations:
+          cpus: "2.0"
+          memory: 2048M
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - aegis-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/api/status"]
+      interval: 20s
+      timeout: 8s
+      start_period: 30s
+      retries: 3
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    image: aegis-vms-gdut5-gateway:v2.1
+    container_name: aegis_vms_api_gateway
+    restart: unless-stopped
+    volumes:
+      - ./video_test:/app/video_test
+      - ./Output:/app/Output
+      - ./snapshots:/app/snapshots
+      - ./src:/app/src
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - PYTHONUNBUFFERED=1
+      - SERVICE_MODE=gateway
+      - WEB_HOST=0.0.0.0
+      - WEB_PORT=8000
+      - AI_INFERENCE_URL=http://ai-inference:8001
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:-aegis_local_db}@postgres:5432/${POSTGRES_DB:-aegis_vms}
+      - MODEL_PATH=${MODEL_PATH:-Output/GDUT_Bộ số 1_stage2-full-train-run-a6/deploy_weights/rep_yolo11s_gdut_a6_deploy.pt}
+      - VIDEO_SOURCE=${VIDEO_SOURCE:-video_test/construction_site_workers_1080p.mp4}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - TELEGRAM_ENABLED=${TELEGRAM_ENABLED:-True}
+      - ZALO_BOT_TOKEN=${ZALO_BOT_TOKEN:-}
+      - ZALO_CHAT_ID=${ZALO_CHAT_ID:-}
+      - ZALO_ENABLED=${ZALO_ENABLED:-True}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - aegis-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/status', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  frontend-nginx:
+    image: nginx:1.27-alpine
+    container_name: aegis_vms_frontend_nginx
+    restart: unless-stopped
+    ports:
+      - "${VMS_PORT:-8080}:80"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./src/web/templates/dashboard.html:/app/src/web/templates/dashboard.html:ro
+      - ./snapshots:/app/snapshots:ro
+    depends_on:
+      - api-gateway
+      - ai-inference
+    networks:
+      - aegis-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: aegis_vms_prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=7d"
+    depends_on:
+      - api-gateway
+      - ai-inference
+    networks:
+      - aegis-net
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: aegis_vms_grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-aegis_admin_change_me}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - aegis-net
+
+networks:
+  aegis-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
